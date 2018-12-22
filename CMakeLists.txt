@@ -11,4 +11,4 @@ set(COMPONENT_REQUIRES "ws281x-driver-esp32 mbedtls")
 
 register_component()
 
-target_link_libraries(${COMPONENT_TARGET} libLuna)
+target_link_libraries(${COMPONENT_TARGET} lunaProto)

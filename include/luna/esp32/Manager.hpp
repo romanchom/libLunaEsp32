@@ -14,7 +14,7 @@ class Controller;
 class Manager
 {
 public:
-    explicit Manager(ControlChannelConfig const & config, luna::server::StrandDecoder * strandDecoder);
+    explicit Manager();
     ~Manager();
 private:
     std::unique_ptr<Controller> mController;

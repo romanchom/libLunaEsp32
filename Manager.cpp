@@ -1,15 +1,15 @@
-#include <luna/esp32/Manager.hpp>
+// #include <luna/esp32/Manager.hpp>
 
-#include "Controller.hpp"
+// #include "Controller.hpp"
 
-namespace luna {
-namespace esp32 {
+// namespace luna {
+// namespace esp32 {
 
-Manager::Manager(ControlChannelConfig const & config, luna::server::StrandDecoder * strandDecoder) :
-    mController(std::make_unique<Controller>(config, strandDecoder))
-{}
+// Manager::Manager(ControlChannelConfig const & config, luna::server::StrandDecoder * strandDecoder) :
+//     mController(std::make_unique<Controller>(config, strandDecoder))
+// {}
 
-Manager::~Manager() = default;
+// Manager::~Manager() = default;
 
-}
-}
+// }
+// }

@@ -1,91 +1,91 @@
-#include "ControlChannel.hpp"
+// #include "ControlChannel.hpp"
 
-#include <esp_log.h>
+// #include <esp_log.h>
 
-using namespace tls;
-using namespace lwip_async;
+// using namespace tls;
+// using namespace lwip_async;
 
-static char const TAG[] = "ControlChannel";
-
-
-static int certificate_verification_callback(void *, mbedtls_x509_crt *, int, uint32_t * flags) {
-    constexpr uint32_t mask =  ~(MBEDTLS_X509_BADCERT_FUTURE
-        | MBEDTLS_X509_BADCERT_EXPIRED
-        | MBEDTLS_X509_BADCERT_CN_MISMATCH);
-
-    *flags &= mask;
-    return 0;
-}
+// static char const TAG[] = "ControlChannel";
 
 
-namespace luna {
-namespace esp32 {
+// static int certificate_verification_callback(void *, mbedtls_x509_crt *, int, uint32_t * flags) {
+//     constexpr uint32_t mask =  ~(MBEDTLS_X509_BADCERT_FUTURE
+//         | MBEDTLS_X509_BADCERT_EXPIRED
+//         | MBEDTLS_X509_BADCERT_CN_MISMATCH);
 
-ControlChannel::ControlChannel(ControlChannelConfig const & configuration, luna::server::Listener * commandListener) :
-    mListeningPort(configuration.listenPort),
-    mTcpListeningConnection(nullptr),
-    mPrivateKey(configuration.privateKey, configuration.privateKeySize),
-    mCertificate(configuration.certificate, configuration.certificateSize),
-    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
-    mRandom(&mEntropy, "Stuff", 6),
-    mCommandListener(commandListener),
-    mDecoder(commandListener),
-    mDefragmenter(&mDecoder),
-    mCommandConnection(nullptr)
-{
-    mConfiguration.setDefaults(Endpoint::server, Transport::stream, Preset::default_);
-    mConfiguration.setRandomGenerator(&mRandom);
-    mConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
-    mConfiguration.setOwnCertificate(&mCertificate, &mPrivateKey);
-    mConfiguration.setCertificateVerificationCallback(certificate_verification_callback);
-    //mConfiguration.enableDebug()
+//     *flags &= mask;
+//     return 0;
+// }
 
-    ESP_LOGI(TAG, "Init");
 
-    mTcpListeningConnection = tcp_new();
-    auto error = tcp_bind(mTcpListeningConnection, IP_ADDR_ANY, mListeningPort);
-    mTcpListeningConnection = tcp_listen(mTcpListeningConnection);
+// namespace luna {
+// namespace esp32 {
 
-    tcp_arg(mTcpListeningConnection, reinterpret_cast<void *>(this));
+// ControlChannel::ControlChannel(ControlChannelConfig const & configuration, luna::server::Listener * commandListener) :
+//     mListeningPort(configuration.listenPort),
+//     mTcpListeningConnection(nullptr),
+//     mPrivateKey(configuration.privateKey, configuration.privateKeySize),
+//     mCertificate(configuration.certificate, configuration.certificateSize),
+//     mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
+//     mRandom(&mEntropy, "Stuff", 6),
+//     mCommandListener(commandListener),
+//     mDecoder(commandListener),
+//     mDefragmenter(&mDecoder),
+//     mCommandConnection(nullptr)
+// {
+//     mConfiguration.setDefaults(Endpoint::server, Transport::stream, Preset::default_);
+//     mConfiguration.setRandomGenerator(&mRandom);
+//     mConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
+//     mConfiguration.setOwnCertificate(&mCertificate, &mPrivateKey);
+//     mConfiguration.setCertificateVerificationCallback(certificate_verification_callback);
+//     //mConfiguration.enableDebug()
 
-    tcp_accept(mTcpListeningConnection, [](void * argument, tcp_pcb * newConnection, err_t error) -> err_t {
-        auto self = reinterpret_cast<ControlChannel *>(argument);
-        return self->acceptConnection(newConnection, error);
-    });
-}
+//     ESP_LOGI(TAG, "Init");
 
-err_t ControlChannel::acceptConnection(tcp_pcb * newConnection, err_t error)
-{
-    if (nullptr == mCommandConnection) {
-        ESP_LOGI(TAG, "Accept");
+//     mTcpListeningConnection = tcp_new();
+//     auto error = tcp_bind(mTcpListeningConnection, IP_ADDR_ANY, mListeningPort);
+//     mTcpListeningConnection = tcp_listen(mTcpListeningConnection);
 
-        mCommandConnection.reset(new TlsInputOutput(
-            newConnection,
-            &mConfiguration,
-            &mDefragmenter,
-            this
-        ));
-    } else {
-        ESP_LOGI(TAG, "Refuse connection");
-        tcp_close(newConnection);
-    }
+//     tcp_arg(mTcpListeningConnection, reinterpret_cast<void *>(this));
 
-    return ERR_OK;
-}
+//     tcp_accept(mTcpListeningConnection, [](void * argument, tcp_pcb * newConnection, err_t error) -> err_t {
+//         auto self = reinterpret_cast<ControlChannel *>(argument);
+//         return self->acceptConnection(newConnection, error);
+//     });
+// }
 
-luna::server::Encoder ControlChannel::commandEncoder()
-{
-    return luna::server::Encoder(mCommandConnection.get());
-}
+// err_t ControlChannel::acceptConnection(tcp_pcb * newConnection, err_t error)
+// {
+//     if (nullptr == mCommandConnection) {
+//         ESP_LOGI(TAG, "Accept");
 
-void ControlChannel::streamClosed()
-{
-    ESP_LOGI(TAG, "Closing");
+//         mCommandConnection.reset(new TlsInputOutput(
+//             newConnection,
+//             &mConfiguration,
+//             &mDefragmenter,
+//             this
+//         ));
+//     } else {
+//         ESP_LOGI(TAG, "Refuse connection");
+//         tcp_close(newConnection);
+//     }
 
-    mCommandConnection.reset();
-    mDefragmenter.reset();
+//     return ERR_OK;
+// }
 
-    mCommandListener->disconnected();
-}
+// luna::server::Encoder ControlChannel::commandEncoder()
+// {
+//     return luna::server::Encoder(mCommandConnection.get());
+// }
 
-}}
+// void ControlChannel::streamClosed()
+// {
+//     ESP_LOGI(TAG, "Closing");
+
+//     mCommandConnection.reset();
+//     mDefragmenter.reset();
+
+//     mCommandListener->disconnected();
+// }
+
+// }}
