@@ -5,13 +5,13 @@
 
 // #include <luna/server/StrandDecoder.hpp>
 
-#include "../mbedtls-cpp/BasicInputOutput.hpp"
-#include "../mbedtls-cpp/Configuration.hpp"
-#include "../mbedtls-cpp/CounterDeterministicRandomGenerator.hpp"
-#include "../mbedtls-cpp/Ssl.hpp"
-#include "../mbedtls-cpp/StandardCookie.hpp"
-#include "../mbedtls-cpp/StandardEntropy.hpp"
-#include "../mbedtls-cpp/Timer.hpp"
+#include "mbedtls-cpp/BasicInputOutput.hpp"
+#include "mbedtls-cpp/Configuration.hpp"
+#include "mbedtls-cpp/CounterDeterministicRandomGenerator.hpp"
+#include "mbedtls-cpp/Ssl.hpp"
+#include "mbedtls-cpp/StandardCookie.hpp"
+#include "mbedtls-cpp/StandardEntropy.hpp"
+#include "mbedtls-cpp/Timer.hpp"
 #include "mbedtls-cpp/PrivateKey.hpp"
 #include "mbedtls-cpp/Certificate.hpp"
 
@@ -28,6 +28,7 @@ class DtlsInputOutput : private tls::BasicInputOutput
 {
 public:
     using DataReadCallback = std::function<void(DtlsInputOutput&, uint8_t const*, size_t)>;
+    using DisconnectedCallback = std::function<void(DtlsInputOutput&)>;
 
     explicit DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ownCertificate, tls::Certificate & caCertificate);
     ~DtlsInputOutput() override;
@@ -36,6 +37,10 @@ public:
     void onDataRead(DataReadCallback value) {
         mDataReadCallback = std::move(value);
     }
+
+    void onDisconnected(DisconnectedCallback value) {
+        mDisconnectedCallback = value;
+    } 
 
     int write(uint8_t const * data, size_t length);
 private:
@@ -52,6 +57,12 @@ private:
     bool handshakeStep(ip_addr_t const * address, u16_t port);
     bool readDataStep(ip_addr_t const * address, u16_t port);
 
+    static void timeoutCallback(void * data);
+
+    void startHeartbeat();
+    void stopHeartbeat();
+    void reset();
+
     udp_pcb * mUdp;
     PbufStream mBuffer;
 
@@ -66,6 +77,7 @@ private:
     tls::Ssl mSsl;
 
     DataReadCallback mDataReadCallback;
+    DisconnectedCallback mDisconnectedCallback;
 };
 
 };

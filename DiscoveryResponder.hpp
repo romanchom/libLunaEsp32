@@ -1,10 +1,11 @@
 #pragma once
 
+#include "luna/proto/Discovery_generated.h"
+
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <cstdint>
 
-#include <luna/proto/Discovery_generated.h>
 
 struct udp_pcb;
 

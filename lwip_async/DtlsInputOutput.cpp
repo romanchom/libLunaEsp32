@@ -5,6 +5,8 @@
 
 #include <esp_log.h>
 
+#include <lwip/timeouts.h>
+
 static auto const TAG = "DTLS_IO";
 
 namespace lwip_async
@@ -92,6 +94,9 @@ int DtlsInputOutput::socketWrite(unsigned char const * data, size_t length)
 
 void DtlsInputOutput::udpReceive(pbuf * buffer, ip_addr_t const * address, u16_t port)
 {
+    stopHeartbeat();
+    startHeartbeat();
+    
     if (nullptr == buffer) {
         return;
     }
@@ -133,12 +138,55 @@ bool DtlsInputOutput::readDataStep(ip_addr_t const * address, u16_t port)
 {
     uint8_t buffer[1024];
     auto const bytesRead = mSsl.read(buffer, sizeof(buffer));
-    if(bytesRead <= 0) return false;
 
-    mDataReadCallback(*this, buffer, bytesRead);
+    if (bytesRead > 0) {
+        if (mDataReadCallback) {
+            mDataReadCallback(*this, buffer, bytesRead);
+        }
+        return false;
+    } else {
+        ESP_LOGI(TAG, "Read error %x.", -bytesRead);
 
-    return false;
+        switch(bytesRead) {
+        case -1:
+            reset();
+            return true;
+        case MBEDTLS_ERR_SSL_CLIENT_RECONNECT:
+            ESP_LOGI(TAG, "Reconnect.");
+            mCurrentStep = &DtlsInputOutput::handshakeStep;
+            return true;
+        default:
+            return false;
+        }
+    }
 }
 
+void DtlsInputOutput::timeoutCallback(void * data)
+{
+    static_cast<DtlsInputOutput *>(data)->reset();
+}
+
+void DtlsInputOutput::startHeartbeat()
+{
+    sys_timeout(10000, &DtlsInputOutput::timeoutCallback, this);
+}
+
+void DtlsInputOutput::stopHeartbeat()
+{
+    sys_untimeout(&DtlsInputOutput::timeoutCallback, this);
+}
+
+void DtlsInputOutput::reset()
+{
+    ESP_LOGI(TAG, "Reset.");
+    stopHeartbeat();
+    mSsl.resetSession();
+    mSsl.setInputOutput(this);
+    udp_disconnect(mUdp);
+    mCurrentStep = &DtlsInputOutput::handshakeStep;
+    if (mDisconnectedCallback) {
+        mDisconnectedCallback(*this);
+    }
+}
 
 }

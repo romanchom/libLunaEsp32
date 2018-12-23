@@ -2,13 +2,13 @@
 
 #include <lwip/udp.h>
 
+#include <luna/proto/Discovery_generated.h>
 
-#include <esp_log.h>
 using namespace luna::proto;
-
 
 namespace luna {
 namespace esp32 {
+
 
 DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, std::vector<luna::proto::Strand> const & strands) :
     mUdp(udp_new())

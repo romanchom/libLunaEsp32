@@ -5,7 +5,6 @@ namespace luna
 namespace esp32
 {
 
-
 struct Point
 {
     float x = 0.0f;
