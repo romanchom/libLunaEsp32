@@ -55,6 +55,12 @@ uint16_t DtlsInputOutput::port() const
     return mUdp->local_port;
 }
 
+
+int DtlsInputOutput::write(uint8_t const * data, size_t size)
+{
+    return mSsl.write(data, size);
+}
+
 mbedtls_ssl_send_t * DtlsInputOutput::getSender()
 {
     return [](void * context, const unsigned char * data, size_t length) {

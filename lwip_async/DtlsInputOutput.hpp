@@ -42,7 +42,7 @@ public:
         mDisconnectedCallback = value;
     } 
 
-    int write(uint8_t const * data, size_t length);
+    int write(uint8_t const * data, size_t size);
 private:
     using StepFunctionType = bool (DtlsInputOutput::*)(ip_addr_t const * address, u16_t port);
 

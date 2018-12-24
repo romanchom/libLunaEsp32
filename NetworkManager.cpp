@@ -87,6 +87,19 @@ void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
         ESP_LOGI(TAG, "Unrecognized command.");
         break;
     }
+
+    if (command->id() != 0) {
+        flatbuffers::FlatBufferBuilder builder(64);
+
+        using namespace luna::proto;
+
+        auto ack = CreateCommand(builder, 0, command->id()); 
+        builder.Finish(ack);
+
+        auto data = builder.GetBufferPointer();
+        auto size = builder.GetSize();
+        mSocket->write(data, size);
+    }
 }
 
 class ProtoDataProducer : public StrandDataProducer
