@@ -1,6 +1,6 @@
 #pragma once
 
-#include "luna/proto/Discovery_generated.h"
+#include "luna/esp32/HardwareController.hpp"
 
 #include <cstdint>
 #include <string>
@@ -15,7 +15,7 @@ namespace esp32 {
 class DiscoveryResponder
 {
 public:
-    explicit DiscoveryResponder(uint16_t port, std::string const & name, std::vector<luna::proto::Strand> const & strands);
+    explicit DiscoveryResponder(uint16_t port, std::string const & name, HardwareController const & hardware);
     ~DiscoveryResponder();
 
 private:

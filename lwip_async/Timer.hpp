@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <functional>
 #include "../mbedtls-cpp/Timer.hpp"
 
 namespace lwip_async
@@ -16,10 +15,6 @@ public:
     mbedtls_ssl_set_timer_t * getDelaySetter() override;
     mbedtls_ssl_get_timer_t * getDelayGetter() override;
     void * getContext() override;
-
-    void setOnTimedOut(std::function<void()> callback) {
-        mOnTimedOutCallback = std::move(callback);
-    }
 private:
     enum TimerState : int8_t {
         canceled = -1,
@@ -34,7 +29,6 @@ private:
     void stopTimers();
     void startTimers(uint32_t intermediateDelayMilliseconds, uint32_t finalDelayMilliseconds);
 
-    std::function<void()> mOnTimedOutCallback;
     TimerState mTimerState;
 };
 

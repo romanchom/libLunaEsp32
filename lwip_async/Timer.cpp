@@ -75,8 +75,6 @@ void Timer::finalTimeoutHandler(void * argument)
 {
     auto const self = reinterpret_cast<Timer *>(argument);
     self->mTimerState = TimerState::final_passed;
-
-    self->mOnTimedOutCallback();
 }
 
 }

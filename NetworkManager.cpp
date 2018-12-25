@@ -3,32 +3,17 @@
 #include "DiscoveryResponder.hpp"
 #include "luna/esp32/StrandDataProducer.hpp"
 
-#include <luna/proto/Commands_generated.h>
-#include <luna/proto/Discovery_generated.h>
+#include <luna/proto/Builder.hpp>
+#include <luna/proto/Command.hpp>
 
 #include <esp_log.h>
+
+#include <cstring>
 
 static char const TAG[] = "Luna";
 
 namespace luna {
 namespace esp32 {
-
-static luna::proto::Point toProto(Point const & point) {
-    return luna::proto::Point(point.x, point.y, point.z);
-}
-
-static luna::proto::UV toProto(CieColorCoordinates const & uv) {
-    return luna::proto::UV(uv.u, uv.v);
-}   
-
-static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
-    return luna::proto::ColorSpace(
-        toProto(colorSpace.white),
-        toProto(colorSpace.red),
-        toProto(colorSpace.green),
-        toProto(colorSpace.blue)
-    );
-}
 
 NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
     mController(controller),
@@ -50,24 +35,8 @@ void NetworkManager::enable()
         turnOff();
     });
 
-    auto & strands = mController->strands();
 
-    std::vector<luna::proto::Strand> strandConfigs;
-    strandConfigs.reserve(strands.size());
-
-    for (int i = 0; i < strands.size(); ++i) {
-        auto const & config = strands[i]->configuration();
-        strandConfigs.emplace_back(
-            i,
-            (luna::proto::ColorChannels)config.colorChannels,
-            config.pixelCount,
-            toProto(config.begin),
-            toProto(config.end),
-            toProto(config.colorSpace)
-        );
-    }
-
-    mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", strandConfigs);
+    mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", *mController);
 }
 
 void NetworkManager::disable()
@@ -78,55 +47,46 @@ void NetworkManager::disable()
 
 void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
 {
-    auto command = luna::proto::GetCommand(data);
-    switch (command->command_type()) {
-    case luna::proto::AnyCommand_SetColor:
-        setColor(command->command_as_SetColor());
-        break;
-    default:
-        ESP_LOGI(TAG, "Unrecognized command.");
-        break;
-    }
+    auto command = reinterpret_cast<luna::proto::Command const*>(data);
+    command->command.call(this, &NetworkManager::setColor);
 
-    if (command->id() != 0) {
-        flatbuffers::FlatBufferBuilder builder(64);
-
+    if (command->id != 0) {
         using namespace luna::proto;
 
-        auto ack = CreateCommand(builder, 0, command->id()); 
-        builder.Finish(ack);
+        uint8_t buffer[32];
+        auto builder = Builder(buffer);
 
-        auto data = builder.GetBufferPointer();
-        auto size = builder.GetSize();
-        mSocket->write(data, size);
+        auto response = builder.allocate<Command>(); 
+        response->ack = command->id;
+        
+        mSocket->write(builder.data(), builder.size());
     }
 }
 
 class ProtoDataProducer : public StrandDataProducer
 {
 public:
-    explicit ProtoDataProducer(luna::proto::StrandData const * data) :
+    explicit ProtoDataProducer(luna::proto::StrandData const& data) :
         mData(data)
     {}
 
     void produceRGB(StrandConfiguration const & config, RGB * rgb) const 
     {
-        auto rgbData = mData->data_as_RGBData()->data();
+        auto rgbData = mData.data.as<luna::proto::Array<luna::proto::RGB>>();
         memcpy(rgb, rgbData->data(), rgbData->size() * 3);
     }
 private:
-    luna::proto::StrandData const * mData;
+    luna::proto::StrandData const& mData;
 };
 
-void NetworkManager::setColor(luna::proto::SetColor const * cmd)
+void NetworkManager::setColor(luna::proto::SetColor const& cmd)
 {
-    auto const strandDatas = cmd->strands();
-    if (strandDatas == nullptr) return;
+    auto & strandDatas = cmd.strands;
 
     auto & strands = mController->strands();
 
-    for (auto strandData : *strandDatas) {
-        auto index = strandData->id();
+    for (auto & strandData : strandDatas) {
+        auto index = strandData.id;
         if (index >= strands.size()) continue;
         
         auto & strand = strands[index];

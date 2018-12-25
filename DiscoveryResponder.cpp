@@ -1,37 +1,71 @@
 #include "DiscoveryResponder.hpp"
 
+#include <luna/proto/Builder.hpp>
+#include <luna/proto/Discovery.hpp>
+
 #include <lwip/udp.h>
 
-#include <luna/proto/Discovery_generated.h>
+#include <cstring>
 
-using namespace luna::proto;
 
 namespace luna {
 namespace esp32 {
 
+static luna::proto::Point toProto(Point const & point) {
+    auto ret = luna::proto::Point();
+    ret.x = point.x;
+    ret.y = point.y;
+    ret.z = point.z;
+    return ret;
+}
 
-DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, std::vector<luna::proto::Strand> const & strands) :
+static luna::proto::UV toProto(CieColorCoordinates const & uv) {
+    auto ret = luna::proto::UV();
+    ret.u = uv.u;
+    ret.v = uv.v;
+    return ret;
+}   
+
+static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
+    auto ret = luna::proto::ColorSpace();
+    ret.white = toProto(colorSpace.white);
+    ret.red = toProto(colorSpace.red);
+    ret.green = toProto(colorSpace.green);
+    ret.blue = toProto(colorSpace.blue);
+    return ret;
+}
+
+DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, HardwareController const & hardware) :
     mUdp(udp_new())
 {
-    flatbuffers::FlatBufferBuilder builder(512);
-
     using namespace luna::proto;
-
-    auto flatStrands = builder.CreateVectorOfStructs(strands); 
-    auto flatName = builder.CreateString(name);
     
-    auto discoveryBuilder = DiscoveryBuilder(builder);
-    discoveryBuilder.add_port(port);
-    discoveryBuilder.add_name(flatName);
-    discoveryBuilder.add_strands(flatStrands);
+    uint8_t buffer[512];
+    auto builder = Builder(buffer);
+    auto discovery = builder.allocate<Discovery>();
 
-    auto response = discoveryBuilder.Finish();
-    builder.Finish(response);
+    discovery->port = port;
+    auto nameBuf = builder.allocate<char>(name.size() + 1);
+    memcpy(nameBuf, name.c_str(), name.size() + 1);
+    discovery->name = nameBuf;
 
-    auto data = builder.GetBufferPointer();
-    auto size = builder.GetSize();
+    auto strandCount = hardware.strands().size();
+    auto strandProperties = builder.allocate<StrandProperties>(strandCount);
 
-    mResponse = std::vector<uint8_t>(data, data + size);
+    for (size_t i = 0; i < strandCount; ++i) {
+        auto & strand = hardware.strands()[i]->configuration();
+        auto & property = strandProperties[i];
+        property.id = i;
+        property.channels = (luna::proto::ColorChannels) strand.colorChannels;
+        property.pixelCount = strand.pixelCount;
+        property.begin = toProto(strand.begin);
+        property.end = toProto(strand.end);
+        property.colorSpace = toProto(strand.colorSpace);
+    }
+
+    discovery->strands.set(strandProperties, strandCount);
+
+    mResponse = std::vector<uint8_t>(builder.data(), builder.data() + builder.size());
 
     udp_recv(mUdp,
         [](void * arg, udp_pcb * pcb, pbuf * buffer, ip_addr_t const * addr, u16_t port) {

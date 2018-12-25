@@ -2,8 +2,6 @@
 
 #include "StrandConfiguration.hpp"
 
-#include "luna/proto/SetColor_generated.h"
-
 #include <cstdint>
 #include <cstddef>
 

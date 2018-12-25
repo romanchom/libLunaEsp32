@@ -41,7 +41,7 @@ public:
 private:
     void dispatchCommand(uint8_t const * data, size_t size);
 
-    void setColor(luna::proto::SetColor const * cmd);
+    void setColor(luna::proto::SetColor const& cmd);
     void turnOff();
     
     HardwareController * mController;
