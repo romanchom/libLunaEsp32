@@ -16,9 +16,11 @@ class StrandWS281x : public Strand
 {
 public:
     explicit StrandWS281x(WS2812Configuration const & configuration);
-    virtual void takeData(StrandDataProducer const * producer);
+    void takeData(StrandDataProducer const * producer) override;
+    void render() override;
 protected:
     WS281xDriver mDriver;
+    bool mDirty;
 };
 
 class StrandWS2811 : public StrandWS281x

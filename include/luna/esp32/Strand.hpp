@@ -23,7 +23,7 @@ public:
     }
     
     virtual void takeData(StrandDataProducer const * producer) = 0;
-
+    virtual void render() = 0;
 protected:
     explicit Strand(StrandConfiguration const & configuration) :
         mConfiguration(configuration)

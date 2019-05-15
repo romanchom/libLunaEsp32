@@ -93,6 +93,10 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
         auto producer = ProtoDataProducer(strandData);
         strand->takeData(&producer);
     }
+
+    for (auto & strand : strands) {
+        strand->render();   
+    }
 }
 
 class BlackDataProducer : public StrandDataProducer
@@ -108,6 +112,11 @@ void NetworkManager::turnOff()
 {
     auto producer = BlackDataProducer();
     mController->setAll(&producer);
+    
+    auto & strands = mController->strands();
+    for (auto & strand : strands) {
+        strand->render();   
+    }
 }
 
 }
