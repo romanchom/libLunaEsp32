@@ -31,10 +31,13 @@ void NetworkManager::enable()
         dispatchCommand(data, size);
     });
 
-    mSocket->onDisconnected([this](lwip_async::DtlsInputOutput& sender){
-        turnOff();
+    mSocket->onConnected([this](lwip_async::DtlsInputOutput& sender, bool connected){
+        if (connected) {
+            mController->enabled(true);
+        } else {
+            turnOff();
+        }
     });
-
 
     mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", *mController);
 }
@@ -56,9 +59,9 @@ void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
         uint8_t buffer[32];
         auto builder = Builder(buffer);
 
-        auto response = builder.allocate<Command>(); 
+        auto response = builder.allocate<Command>();
         response->ack = command->id;
-        
+
         mSocket->write(builder.data(), builder.size());
     }
 }
@@ -70,7 +73,7 @@ public:
         mData(data)
     {}
 
-    void produceRGB(StrandConfiguration const & config, RGB * rgb) const 
+    void produceRGB(StrandConfiguration const & config, RGB * rgb) const
     {
         auto rgbData = mData.data.as<luna::proto::Array<luna::proto::RGB>>();
         memcpy(rgb, rgbData->data(), rgbData->size() * 3);
@@ -88,21 +91,21 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
     for (auto & strandData : strandDatas) {
         auto index = strandData.id;
         if (index >= strands.size()) continue;
-        
+
         auto & strand = strands[index];
         auto producer = ProtoDataProducer(strandData);
         strand->takeData(&producer);
     }
 
     for (auto & strand : strands) {
-        strand->render();   
+        strand->render();
     }
 }
 
 class BlackDataProducer : public StrandDataProducer
 {
 public:
-    void produceRGB(StrandConfiguration const & config, RGB * rgb) const 
+    void produceRGB(StrandConfiguration const & config, RGB * rgb) const
     {
         memset(rgb, 0, config.pixelCount * 3);
     }
@@ -112,10 +115,11 @@ void NetworkManager::turnOff()
 {
     auto producer = BlackDataProducer();
     mController->setAll(&producer);
-    
+    mController->enabled(false);
+
     auto & strands = mController->strands();
     for (auto & strand : strands) {
-        strand->render();   
+        strand->render();
     }
 }
 

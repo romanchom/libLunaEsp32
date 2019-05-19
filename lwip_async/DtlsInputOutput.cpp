@@ -102,7 +102,7 @@ void DtlsInputOutput::udpReceive(pbuf * buffer, ip_addr_t const * address, u16_t
 {
     stopHeartbeat();
     startHeartbeat();
-    
+
     if (nullptr == buffer) {
         return;
     }
@@ -135,6 +135,9 @@ bool DtlsInputOutput::handshakeStep(ip_addr_t const * address, u16_t port)
 
     if (mSsl.inHandshakeOver()) {
         ESP_LOGI(TAG, "Handshake successful");
+        if (mConnectedCallback) {
+            mConnectedCallback(*this, true);
+        }
         mCurrentStep = &DtlsInputOutput::readDataStep;
     }
     return true;
@@ -190,8 +193,8 @@ void DtlsInputOutput::reset()
     mSsl.setInputOutput(this);
     udp_disconnect(mUdp);
     mCurrentStep = &DtlsInputOutput::handshakeStep;
-    if (mDisconnectedCallback) {
-        mDisconnectedCallback(*this);
+    if (mConnectedCallback) {
+        mConnectedCallback(*this, false);
     }
 }
 

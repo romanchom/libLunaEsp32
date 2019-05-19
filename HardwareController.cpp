@@ -14,5 +14,17 @@ void HardwareController::setAll(StrandDataProducer const * producer)
     }
 }
 
+void HardwareController::enabled(bool value)
+{
+    if (mOnEnabled) {
+        mOnEnabled(value);
+    }
+}
+
+void HardwareController::onEnabled(std::function<void(bool)> value)
+{
+    mOnEnabled = value;
+}
+
 }
 }

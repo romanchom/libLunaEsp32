@@ -43,7 +43,7 @@ private:
 
     void setColor(luna::proto::SetColor const& cmd);
     void turnOff();
-    
+
     HardwareController * mController;
 
     tls::PrivateKey mOwnKey;

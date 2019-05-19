@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace luna {
 namespace esp32 {
@@ -25,8 +26,13 @@ public:
     }
 
     void setAll(StrandDataProducer const * producer);
+
+    void enabled(bool value);
+
+    void onEnabled(std::function<void(bool)> value);
 private:
     std::vector<std::unique_ptr<Strand>> mStrands;
+    std::function<void(bool)> mOnEnabled;
 };
 
 }

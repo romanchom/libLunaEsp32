@@ -28,7 +28,7 @@ class DtlsInputOutput : private tls::BasicInputOutput
 {
 public:
     using DataReadCallback = std::function<void(DtlsInputOutput&, uint8_t const*, size_t)>;
-    using DisconnectedCallback = std::function<void(DtlsInputOutput&)>;
+    using DisconnectedCallback = std::function<void(DtlsInputOutput&, bool)>;
 
     explicit DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ownCertificate, tls::Certificate & caCertificate);
     ~DtlsInputOutput() override;
@@ -38,9 +38,9 @@ public:
         mDataReadCallback = std::move(value);
     }
 
-    void onDisconnected(DisconnectedCallback value) {
-        mDisconnectedCallback = value;
-    } 
+    void onConnected(DisconnectedCallback value) {
+        mConnectedCallback = value;
+    }
 
     int write(uint8_t const * data, size_t size);
 private:
@@ -77,7 +77,7 @@ private:
     tls::Ssl mSsl;
 
     DataReadCallback mDataReadCallback;
-    DisconnectedCallback mDisconnectedCallback;
+    DisconnectedCallback mConnectedCallback;
 };
 
 };
