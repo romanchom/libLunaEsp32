@@ -1,11 +1,10 @@
 #pragma once
 
-#include "luna/esp32/HardwareController.hpp"
+#include "luna/esp32/Strand.hpp"
 
 #include <cstdint>
 #include <string>
 #include <vector>
-
 
 struct udp_pcb;
 
@@ -15,7 +14,7 @@ namespace esp32 {
 class DiscoveryResponder
 {
 public:
-    explicit DiscoveryResponder(uint16_t port, std::string const & name, HardwareController const & hardware);
+    explicit DiscoveryResponder(uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands);
     ~DiscoveryResponder();
 
 private:

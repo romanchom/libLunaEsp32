@@ -1,42 +1,44 @@
 #include "luna/esp32/StrandWS281x.hpp"
 
-#include "luna/esp32/StrandDataProducer.hpp"
-
-#include <esp_log.h>
-
 #include <algorithm>
 #include <cstring>
-
-static char const TAG[] = "WS2811";
+#include <cassert>
 
 namespace luna {
 namespace esp32 {
 
-StrandWS281x::StrandWS281x(WS2812Configuration const & configuration) :
-    Strand(configuration),
-    mDriver(configuration.gpioPin, configuration.pixelCount),
+StrandWS281x::StrandWS281x(Location location, size_t pixelCount, int gpioPin) :
+    Strand<RGB<uint8_t>>(location),
+    mDriver(gpioPin, pixelCount),
     mDirty(true)
+{}
+
+void StrandWS281x::setLight(RGB<uint8_t> const * data, size_t size, size_t offset) 
 {
-    mConfiguration.bitDepth = luna::esp32::BitDepth::integer8;
-    mConfiguration.colorChannels = luna::esp32::ColorChannels::RedGreenBlue;
+
+    assert(offset < pixelCount());
+    assert(offset + size <= pixelCount());
+
+    memcpy(mDriver.data() + offset * 3, data, size * 3);
+    mDirty = true;
 }
 
-void StrandWS281x::takeData(StrandDataProducer const * producer)
+size_t StrandWS281x::pixelCount() const noexcept
 {
-    producer->produceRGB(mConfiguration, reinterpret_cast<RGB *>(mDriver.data()));
-    mDirty = true;
+    return mDriver.size() / 3;
 }
 
 void StrandWS281x::render()
 {
-    mDriver.send();
-    mDirty = false;
+    if (mDirty) {
+        mDriver.send();
+        mDirty = false;
+    }
 }
 
-StrandWS2811::StrandWS2811(WS2812Configuration const & configuration) :
-    StrandWS281x(configuration)
+ColorSpace StrandWS2811::colorSpace() const noexcept
 {
-    mConfiguration.colorSpace = {
+    return {
         { 0.28623f, 0.27455f },
         { 0.13450f, 0.04598f },
         { 0.68934f, 0.31051f },
@@ -44,10 +46,9 @@ StrandWS2811::StrandWS2811(WS2812Configuration const & configuration) :
     };
 }
 
-StrandWS2812::StrandWS2812(WS2812Configuration const & configuration) :
-    StrandWS281x(configuration)
+ColorSpace StrandWS2812::colorSpace() const noexcept
 {
-    mConfiguration.colorSpace = {
+    return {
         { 0.28623f, 0.27455f },
         { 0.13173f, 0.77457f },
         { 0.68934f, 0.31051f },

@@ -7,7 +7,6 @@
 
 #include <cstring>
 
-
 namespace luna {
 namespace esp32 {
 
@@ -17,6 +16,13 @@ static luna::proto::Point toProto(Point const & point) {
     ret.y = point.y;
     ret.z = point.z;
     return ret;
+}
+
+static luna::proto::Location toProto(Location const & location) {
+    return {
+        toProto(location.begin),
+        toProto(location.end)
+    };
 }
 
 static luna::proto::UV toProto(CieColorCoordinates const & uv) {
@@ -35,7 +41,7 @@ static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
     return ret;
 }
 
-DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, HardwareController const & hardware) :
+DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands) :
     mUdp(udp_new())
 {
     using namespace luna::proto;
@@ -49,18 +55,17 @@ DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, 
     memcpy(nameBuf, name.c_str(), name.size() + 1);
     discovery->name = nameBuf;
 
-    auto strandCount = hardware.strands().size();
+    auto strandCount = strands.size();
     auto strandProperties = builder.allocate<StrandProperties>(strandCount);
 
     for (size_t i = 0; i < strandCount; ++i) {
-        auto & strand = hardware.strands()[i]->configuration();
+        auto strand = strands[i];
         auto & property = strandProperties[i];
         property.id = i;
-        property.channels = (luna::proto::ColorChannels) strand.colorChannels;
-        property.pixelCount = strand.pixelCount;
-        property.begin = toProto(strand.begin);
-        property.end = toProto(strand.end);
-        property.colorSpace = toProto(strand.colorSpace);
+        property.format = strand->format();
+        property.pixelCount = strand->pixelCount();
+        property.location = toProto(strand->location());
+        property.colorSpace = toProto(strand->colorSpace());
     }
 
     discovery->strands.set(strandProperties, strandCount);

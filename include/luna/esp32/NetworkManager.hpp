@@ -7,6 +7,7 @@
 
 #include "Strand.hpp"
 #include "HardwareController.hpp"
+#include "Updater.hpp"
 
 #include <memory>
 #include <vector>
@@ -52,6 +53,7 @@ private:
 
     std::unique_ptr<lwip_async::DtlsInputOutput> mSocket;
     std::unique_ptr<luna::esp32::DiscoveryResponder> mDiscoveryResponder;
+    Updater mUpdater;
 };
 
 }

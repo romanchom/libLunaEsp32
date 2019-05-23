@@ -7,7 +7,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-set(COMPONENT_REQUIRES "ws281x-driver-esp32 mbedtls")
+set(COMPONENT_REQUIRES "ws281x-driver-esp32 mbedtls app_update")
 
 register_component()
 

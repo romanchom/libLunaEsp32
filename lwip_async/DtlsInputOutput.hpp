@@ -80,4 +80,4 @@ private:
     DisconnectedCallback mConnectedCallback;
 };
 
-};
+}

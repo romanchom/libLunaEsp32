@@ -3,15 +3,22 @@
 namespace luna {
 namespace esp32 {
 
-HardwareController::HardwareController() = default;
+HardwareController::HardwareController(std::vector<std::unique_ptr<StrandBase>> strands) :
+    mStrands(std::move(strands))
+{}
 
 HardwareController::~HardwareController() = default;
 
-void HardwareController::setAll(StrandDataProducer const * producer)
+std::vector<StrandBase *> HardwareController::strands() const
 {
+    std::vector<StrandBase *> ret;
+    ret.reserve(mStrands.size());
+    
     for (auto & strand : mStrands) {
-        strand->takeData(producer);
+        ret.emplace_back(strand.get());
     }
+
+    return ret;
 }
 
 void HardwareController::enabled(bool value)

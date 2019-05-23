@@ -9,7 +9,7 @@
 #include <mbedtls/ssl.h>
 #include <mbedtls/net_sockets.h>
 
-#include "exception.hpp"
+#include "Exception.hpp"
 
 namespace tls {
 
@@ -50,6 +50,7 @@ struct Address {
 class SocketInputOutput : public BasicInputOutput {
 private:
     mbedtls_net_context mNet;
+    bool mInitialized;
 public:
     SocketInputOutput()
     {
@@ -58,12 +59,20 @@ public:
 
     ~SocketInputOutput() override
     {
-        close();
+        mbedtls_net_free(&mNet);
     }
 
-    void close()
+    SocketInputOutput(SocketInputOutput && orig) :
+        mNet(orig.mNet)
+    {
+        mbedtls_net_init(&orig.mNet);
+    }
+
+    void operator=(SocketInputOutput && orig)
     {
         mbedtls_net_free(&mNet);
+        mNet = orig.mNet;
+        mbedtls_net_init(&orig.mNet);
     }
 
     mbedtls_ssl_send_t * getSender() override
@@ -86,30 +95,48 @@ public:
         return reinterpret_cast<void *>(&mNet);
     }
 
-    void bind(const char * bind_ip, const char *port, protocol proto)
+    void bind(const char * bind_ip, const char *port, Protocol proto)
     {
         auto error = mbedtls_net_bind(&mNet, bind_ip, port, static_cast<int>(proto));
         if (0 != error) {
-            throw tls::exception(error);
+            throw tls::Exception(error);
         }
     }
 
-    void accept(SocketInputOutput * client, address * address)
+    SocketInputOutput accept()
     {
-        auto error = mbedtls_net_accept(&mNet, &client->mNet,
-            reinterpret_cast<void *>(&address->data),
-            sizeof(address->data),
-            &address->size);
+        SocketInputOutput ret;
+        
+        auto error = mbedtls_net_accept(&mNet, &ret.mNet,
+            nullptr, //reinterpret_cast<void *>(&address->data),
+            0, //sizeof(address->data),
+            nullptr);//&address->size);
+        
         if (0 != error) {
-            throw tls::exception(error);
+            throw tls::Exception(error);
         }
+
+        return ret;
     }
 
-    void connect(const char * ip, const char *port, protocol proto)
+    void connect(const char * ip, const char *port, Protocol proto)
     {
         int error = mbedtls_net_connect(&mNet, ip, port, static_cast<int>(proto));
         if (0 != error) {
-            throw tls::exception(error);
+            throw tls::Exception(error);
+        }
+    }
+
+    void blocking(bool value)
+    {
+        int error;
+        if (value) {
+            error = mbedtls_net_set_block(&mNet);
+        } else {
+            error = mbedtls_net_set_nonblock(&mNet);
+        }
+        if (0 != error) {
+            throw tls::Exception(error);
         }
     }
 };

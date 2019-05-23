@@ -1,6 +1,5 @@
 #pragma once
 
-#include "StrandDataProducer.hpp"
 #include "Strand.hpp"
 
 #include <vector>
@@ -13,25 +12,16 @@ namespace esp32 {
 class HardwareController
 {
 public:
-    explicit HardwareController();
+    explicit HardwareController(std::vector<std::unique_ptr<StrandBase>> strands);
     ~HardwareController();
-    std::vector<std::unique_ptr<Strand>> & strands()
-    {
-        return mStrands;
-    }
 
-    std::vector<std::unique_ptr<Strand>> const& strands() const
-    {
-        return mStrands;
-    }
-
-    void setAll(StrandDataProducer const * producer);
+    std::vector<StrandBase *> strands() const;
 
     void enabled(bool value);
 
     void onEnabled(std::function<void(bool)> value);
 private:
-    std::vector<std::unique_ptr<Strand>> mStrands;
+    std::vector<std::unique_ptr<StrandBase>> mStrands;
     std::function<void(bool)> mOnEnabled;
 };
 

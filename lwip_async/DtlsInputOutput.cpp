@@ -121,9 +121,7 @@ bool DtlsInputOutput::handshakeStep(ip_addr_t const * address, u16_t port)
     auto const ret = mSsl.handshakeStep();
 
     if (ret != ERR_OK) {
-        ESP_LOGI(TAG, "Handshake step, %x", -ret);
         if (!(ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE)) {
-            ESP_LOGI(TAG, "Reset");
             mSsl.resetSession();
             mSsl.setInputOutput(this);
 
@@ -154,8 +152,6 @@ bool DtlsInputOutput::readDataStep(ip_addr_t const * address, u16_t port)
         }
         return false;
     } else {
-        ESP_LOGI(TAG, "Read error %x.", -bytesRead);
-
         switch(bytesRead) {
         case -1:
             reset();
@@ -187,7 +183,6 @@ void DtlsInputOutput::stopHeartbeat()
 
 void DtlsInputOutput::reset()
 {
-    ESP_LOGI(TAG, "Reset.");
     stopHeartbeat();
     mSsl.resetSession();
     mSsl.setInputOutput(this);

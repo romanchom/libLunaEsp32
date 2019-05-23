@@ -1,7 +1,7 @@
 #include "luna/esp32/NetworkManager.hpp"
 
 #include "DiscoveryResponder.hpp"
-#include "luna/esp32/StrandDataProducer.hpp"
+#include "luna/esp32/RGB.hpp"
 
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
@@ -19,7 +19,8 @@ NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration
     mController(controller),
     mOwnKey(configuration.ownKey, configuration.ownKeySize),
     mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
-    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize)
+    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
+    mUpdater(&mOwnKey, &mOwnCertificate, &mCaCertificate)
 {}
 
 NetworkManager::~NetworkManager() = default;
@@ -39,11 +40,14 @@ void NetworkManager::enable()
         }
     });
 
-    mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", *mController);
+    mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", mController->strands());
+
+    mUpdater.start();
 }
 
 void NetworkManager::disable()
 {
+    mUpdater.stop();
     mDiscoveryResponder.reset();
     mSocket.reset();
 }
@@ -66,35 +70,21 @@ void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
     }
 }
 
-class ProtoDataProducer : public StrandDataProducer
-{
-public:
-    explicit ProtoDataProducer(luna::proto::StrandData const& data) :
-        mData(data)
-    {}
-
-    void produceRGB(StrandConfiguration const & config, RGB * rgb) const
-    {
-        auto rgbData = mData.data.as<luna::proto::Array<luna::proto::RGB>>();
-        memcpy(rgb, rgbData->data(), rgbData->size() * 3);
-    }
-private:
-    luna::proto::StrandData const& mData;
-};
-
 void NetworkManager::setColor(luna::proto::SetColor const& cmd)
 {
     auto & strandDatas = cmd.strands;
 
-    auto & strands = mController->strands();
+    auto strands = mController->strands();
 
-    for (auto & strandData : strandDatas) {
-        auto index = strandData.id;
+    for (auto & data : strandDatas) {
+        auto index = data.id;
         if (index >= strands.size()) continue;
+        auto strand = strands[index];
 
-        auto & strand = strands[index];
-        auto producer = ProtoDataProducer(strandData);
-        strand->takeData(&producer);
+        if (auto rgb = data.data.as<proto::Array<proto::RGB>>()) {
+            static_cast<Strand<RGB<uint8_t>> *>(strand)->setLight(reinterpret_cast<RGB<uint8_t> const *>(rgb->data()), rgb->size(), 0);
+        }
+
     }
 
     for (auto & strand : strands) {
@@ -102,22 +92,12 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
     }
 }
 
-class BlackDataProducer : public StrandDataProducer
-{
-public:
-    void produceRGB(StrandConfiguration const & config, RGB * rgb) const
-    {
-        memset(rgb, 0, config.pixelCount * 3);
-    }
-};
 
 void NetworkManager::turnOff()
 {
-    auto producer = BlackDataProducer();
-    mController->setAll(&producer);
     mController->enabled(false);
 
-    auto & strands = mController->strands();
+    auto strands = mController->strands();
     for (auto & strand : strands) {
         strand->render();
     }
