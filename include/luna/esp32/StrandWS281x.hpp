@@ -14,6 +14,7 @@ struct StrandWS281x : Strand<RGB<uint8_t>>
     size_t pixelCount() const noexcept final;
     void setLight(RGB<uint8_t> const * data, size_t size, size_t offset) final;
     void render() final;
+    proto::Format format() const noexcept final;
 protected:
     WS281xDriver mDriver;
     bool mDirty;

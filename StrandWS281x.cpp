@@ -13,14 +13,18 @@ StrandWS281x::StrandWS281x(Location location, size_t pixelCount, int gpioPin) :
     mDirty(true)
 {}
 
-void StrandWS281x::setLight(RGB<uint8_t> const * data, size_t size, size_t offset) 
+void StrandWS281x::setLight(RGB<uint8_t> const * data, size_t size, size_t offset)
 {
-
     assert(offset < pixelCount());
     assert(offset + size <= pixelCount());
 
     memcpy(mDriver.data() + offset * 3, data, size * 3);
     mDirty = true;
+}
+
+proto::Format StrandWS281x::format() const noexcept
+{
+    return proto::Format::RGB8;
 }
 
 size_t StrandWS281x::pixelCount() const noexcept

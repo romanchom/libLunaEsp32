@@ -48,8 +48,8 @@ private:
     HardwareController * mController;
 
     tls::PrivateKey mOwnKey;
-    tls::Certificate mOwnCertificate;
-    tls::Certificate mCaCertificate;
+    tls::Certificate::Pem mOwnCertificate;
+    tls::Certificate::Pem mCaCertificate;
 
     std::unique_ptr<lwip_async::DtlsInputOutput> mSocket;
     std::unique_ptr<luna::esp32::DiscoveryResponder> mDiscoveryResponder;

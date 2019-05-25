@@ -55,7 +55,10 @@ void NetworkManager::disable()
 void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
 {
     auto command = reinterpret_cast<luna::proto::Command const*>(data);
-    command->command.call(this, &NetworkManager::setColor);
+
+    if ( auto cmd = command->command.as<luna::proto::SetColor>()) {
+        setColor(*cmd);
+    }
 
     if (command->id != 0) {
         using namespace luna::proto;
@@ -83,6 +86,9 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
 
         if (auto rgb = data.data.as<proto::Array<proto::RGB>>()) {
             static_cast<Strand<RGB<uint8_t>> *>(strand)->setLight(reinterpret_cast<RGB<uint8_t> const *>(rgb->data()), rgb->size(), 0);
+        } else if (auto light = data.data.as<proto::Array<proto::Scalar<uint16_t>>>()) {
+            uint16_t data = *light->begin();
+            static_cast<Strand<uint16_t> *>(strand)->setLight(&data, 1, 0);
         }
 
     }

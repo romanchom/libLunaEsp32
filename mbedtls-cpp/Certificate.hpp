@@ -13,43 +13,22 @@ namespace tls {
     class Certificate {
     private:
         mbedtls_x509_crt mCertificate;
+    protected:
         explicit Certificate()
         {
             mbedtls_x509_crt_init(&mCertificate);
         }
 
-        void parse(uint8_t const * buffer, size_t bufferLength)
-        {
-            int error = mbedtls_x509_crt_parse(&mCertificate, buffer, bufferLength);
-            if (0 != error) {
-                throw tls::Exception(error);
-            }
-        }
-
-        void parseFile(char const * fileName)
-        {
-            int error = mbedtls_x509_crt_parse_file(&mCertificate, fileName);
-            if (0 != error) {
-                throw tls::Exception(error);
-            }
-        }
     public:
-        explicit Certificate(uint8_t const * buffer, size_t bufferLength) :
-            Certificate()
-        {
-            parse(buffer, bufferLength);
-        }
-
-        explicit Certificate(char const * fileName) :
-            Certificate()
-        {
-            parseFile(fileName);
-        }
+        struct Der;
+        struct Pem;
 
         ~Certificate()
         {
             mbedtls_x509_crt_free(&mCertificate);
         }
+
+        Certificate(Certificate &) = delete;
 
         mbedtls_x509_crt * get()
         {
@@ -59,6 +38,30 @@ namespace tls {
         Certificate * next()
         {
             return reinterpret_cast<Certificate *>(mCertificate.next);
+        }
+    };
+
+    struct Certificate::Der : Certificate
+    {
+        explicit Der(uint8_t const * buffer, size_t bufferLength) :
+            Certificate()
+        {
+            int error = mbedtls_x509_crt_parse_der(&mCertificate, buffer, bufferLength);
+            if (0 != error) {
+                throw tls::Exception(error);
+            }
+        }
+    };
+
+    struct Certificate::Pem : Certificate
+    {
+        explicit Pem(uint8_t const * buffer, size_t bufferLength) :
+            Certificate()
+        {
+            int error = mbedtls_x509_crt_parse(&mCertificate, buffer, bufferLength);
+            if (0 != error) {
+                throw tls::Exception(error);
+            }
         }
     };
 }
