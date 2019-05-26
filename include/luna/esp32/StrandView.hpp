@@ -12,9 +12,10 @@ template<typename T>
 struct StrandView : Strand<T>
 {
     explicit StrandView(Location location, std::shared_ptr<Strand<T>> child, size_t offset, size_t pixelCount);
-    virtual size_t pixelCount() const noexcept final;
-    virtual ColorSpace colorSpace() const noexcept final;
-    void render() override;
+    size_t pixelCount() const noexcept final;
+    proto::Format format() const noexcept final;
+    ColorSpace colorSpace() const noexcept final;
+    void render() final;
     void setLight(T const * data, size_t size, size_t offset) final;
 protected:
     std::shared_ptr<Strand<T>> mChild;
@@ -34,6 +35,12 @@ template<typename T>
 size_t StrandView<T>::pixelCount() const noexcept
 {
     return mPixelCount;
+}
+
+template<typename T>
+proto::Format StrandView<T>::format() const noexcept 
+{
+    return mChild->format();
 }
 
 template<typename T>
