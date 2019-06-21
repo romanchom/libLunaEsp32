@@ -5,8 +5,7 @@
 namespace luna::esp32
 {
 
-PWMLight::PWMLight(Location const & location, int pin, PWMTimer * timer) :
-    Strand<proto::Scalar<uint16_t>>(location),
+PWMLight::PWMLight(int pin, PWMTimer * timer) :
     mPWM(timer, pin)
 {}
 

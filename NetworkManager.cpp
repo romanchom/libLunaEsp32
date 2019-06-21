@@ -92,6 +92,8 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
     for (auto & strand : strands) {
         strand->render();
     }
+
+    mController->update();
 }
 
 }

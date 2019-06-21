@@ -16,6 +16,7 @@ public:
 
     virtual std::vector<StrandBase *> strands() = 0;
     virtual void enabled(bool value) = 0;
+    virtual void update() = 0;
 };
 
 }

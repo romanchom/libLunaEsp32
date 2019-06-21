@@ -7,8 +7,7 @@
 namespace luna {
 namespace esp32 {
 
-StrandWS281x::StrandWS281x(Location location, size_t pixelCount, int gpioPin) :
-    Strand<proto::RGB>(location),
+StrandWS281x::StrandWS281x(size_t pixelCount, int gpioPin) :
     mDriver(gpioPin, pixelCount),
     mDirty(true)
 {}

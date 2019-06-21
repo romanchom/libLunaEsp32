@@ -1,6 +1,7 @@
 #pragma once
 
-#include "luna/esp32/Strand.hpp"
+#include "Strand.hpp"
+#include "Located.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -8,14 +9,14 @@
 namespace luna::esp32 {
 
 template<typename T>
-struct StrandView : Strand<T>
+struct StrandView : Located<Strand<T>>
 {
     explicit StrandView(Location location, Strand<T> * child, size_t offset, size_t pixelCount);
-    size_t pixelCount() const noexcept final;
-    proto::Format format() const noexcept final;
-    ColorSpace colorSpace() const noexcept final;
-    void render() final;
-    void setLight(T const * data, size_t size, size_t offset) final;
+    size_t pixelCount() const noexcept override;
+    proto::Format format() const noexcept override;
+    ColorSpace colorSpace() const noexcept override;
+    void render() override;
+    void setLight(T const * data, size_t size, size_t offset) override;
 protected:
     Strand<T> * mChild;
     size_t mOffset;
@@ -24,7 +25,7 @@ protected:
 
 template<typename T>
 StrandView<T>::StrandView(Location location, Strand<T> * child, size_t offset, size_t pixelCount) :
-    Strand<T>(location),
+    Located<Strand<T>>(location),
     mChild(child),
     mOffset(offset),
     mPixelCount(pixelCount)
@@ -57,8 +58,6 @@ void StrandView<T>::render()
 template<typename T>
 void StrandView<T>::setLight(T const * data, size_t size, size_t offset)
 {
-    // std::cout << "Strand: " << mPixelCount << " + " << mOffset << std::endl;
-    // std::cout << "In: " << size << " + " << offset << std::endl;
     assert(offset < mPixelCount);
     assert(offset + size <= mPixelCount);
 
