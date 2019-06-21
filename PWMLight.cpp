@@ -32,7 +32,8 @@ void PWMLight::setLight(proto::Scalar<uint16_t> const * data, size_t size, size_
 {
     assert(size == 1);
     assert(offset == 0);
-    mPWM.duty(float(*data) / float(std::numeric_limits<uint16_t>::max()));
+    float value = float(*data) / float(std::numeric_limits<uint16_t>::max());
+    mPWM.duty(value);
 }
 
 }

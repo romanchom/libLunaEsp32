@@ -48,6 +48,7 @@ void NetworkManager::disable()
 
 void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
 {
+
     using namespace luna::proto;
     auto packet = reinterpret_cast<Command const*>(data);
     auto & command = packet->command;
