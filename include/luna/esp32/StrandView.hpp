@@ -2,7 +2,6 @@
 
 #include "luna/esp32/Strand.hpp"
 
-#include <memory>
 #include <cassert>
 #include <iostream>
 
@@ -11,22 +10,22 @@ namespace luna::esp32 {
 template<typename T>
 struct StrandView : Strand<T>
 {
-    explicit StrandView(Location location, std::shared_ptr<Strand<T>> child, size_t offset, size_t pixelCount);
+    explicit StrandView(Location location, Strand<T> * child, size_t offset, size_t pixelCount);
     size_t pixelCount() const noexcept final;
     proto::Format format() const noexcept final;
     ColorSpace colorSpace() const noexcept final;
     void render() final;
     void setLight(T const * data, size_t size, size_t offset) final;
 protected:
-    std::shared_ptr<Strand<T>> mChild;
+    Strand<T> * mChild;
     size_t mOffset;
     size_t mPixelCount;
 };
 
 template<typename T>
-StrandView<T>::StrandView(Location location, std::shared_ptr<Strand<T>> child, size_t offset, size_t pixelCount) :
+StrandView<T>::StrandView(Location location, Strand<T> * child, size_t offset, size_t pixelCount) :
     Strand<T>(location),
-    mChild(std::move(child)),
+    mChild(child),
     mOffset(offset),
     mPixelCount(pixelCount)
 {}

@@ -1,18 +1,18 @@
 #pragma once
 
 #include "luna/esp32/Strand.hpp"
-#include "RGB.hpp"
+#include "luna/proto/SetColor.hpp"
 
 #include <WS281xDriver.hpp>
 
 namespace luna {
 namespace esp32 {
 
-struct StrandWS281x : Strand<RGB<uint8_t>>
+struct StrandWS281x : Strand<proto::RGB>
 {
     explicit StrandWS281x(Location location, size_t pixelCount, int gpioPin);
     size_t pixelCount() const noexcept final;
-    void setLight(RGB<uint8_t> const * data, size_t size, size_t offset) final;
+    void setLight(proto::RGB const * data, size_t size, size_t offset) final;
     void render() final;
     proto::Format format() const noexcept final;
 protected:

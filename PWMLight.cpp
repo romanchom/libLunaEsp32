@@ -6,7 +6,7 @@ namespace luna::esp32
 {
 
 PWMLight::PWMLight(Location const & location, int pin, PWMTimer * timer) :
-    Strand<uint16_t>(location),
+    Strand<proto::Scalar<uint16_t>>(location),
     mPWM(timer, pin)
 {}
 
@@ -28,7 +28,7 @@ ColorSpace PWMLight::colorSpace() const noexcept
 void PWMLight::render()
 {}
 
-void PWMLight::setLight(uint16_t const * data, size_t size, size_t offset)
+void PWMLight::setLight(proto::Scalar<uint16_t> const * data, size_t size, size_t offset)
 {
     assert(size == 1);
     assert(offset == 0);

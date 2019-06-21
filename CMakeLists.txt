@@ -13,4 +13,4 @@ register_component()
 
 add_subdirectory(lunaProto)
 
-target_link_libraries(${COMPONENT_TARGET} lunaProto)
+target_link_libraries(${COMPONENT_TARGET} PUBLIC lunaProto)

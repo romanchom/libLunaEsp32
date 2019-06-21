@@ -1,7 +1,6 @@
 #include "luna/esp32/NetworkManager.hpp"
 
 #include "DiscoveryResponder.hpp"
-#include "luna/esp32/RGB.hpp"
 
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
@@ -12,8 +11,7 @@
 
 static char const TAG[] = "Luna";
 
-namespace luna {
-namespace esp32 {
+namespace luna::esp32 {
 
 NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
     mController(controller),
@@ -33,11 +31,7 @@ void NetworkManager::enable()
     });
 
     mSocket->onConnected([this](lwip_async::DtlsInputOutput& sender, bool connected){
-        if (connected) {
-            mController->enabled(true);
-        } else {
-            turnOff();
-        }
+        mController->enabled(connected);
     });
 
     mDiscoveryResponder = std::make_unique<luna::esp32::DiscoveryResponder>(mSocket->port(), "Loszek", mController->strands());
@@ -54,20 +48,21 @@ void NetworkManager::disable()
 
 void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
 {
-    auto command = reinterpret_cast<luna::proto::Command const*>(data);
+    using namespace luna::proto;
+    auto packet = reinterpret_cast<Command const*>(data);
+    auto & command = packet->command;
 
-    if ( auto cmd = command->command.as<luna::proto::SetColor>()) {
+    if (auto cmd = command.as<SetColor>()) {
         setColor(*cmd);
     }
 
-    if (command->id != 0) {
-        using namespace luna::proto;
+    if (packet->id != 0) {
 
         uint8_t buffer[32];
         auto builder = Builder(buffer);
 
         auto response = builder.allocate<Command>();
-        response->ack = command->id;
+        response->ack = packet->id;
 
         mSocket->write(builder.data(), builder.size());
     }
@@ -75,6 +70,8 @@ void NetworkManager::dispatchCommand(uint8_t const * data, size_t size)
 
 void NetworkManager::setColor(luna::proto::SetColor const& cmd)
 {
+    using namespace luna::proto;
+
     auto & strandDatas = cmd.strands;
 
     auto strands = mController->strands();
@@ -84,13 +81,11 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
         if (index >= strands.size()) continue;
         auto strand = strands[index];
 
-        if (auto rgb = data.data.as<proto::Array<proto::RGB>>()) {
-            static_cast<Strand<RGB<uint8_t>> *>(strand)->setLight(reinterpret_cast<RGB<uint8_t> const *>(rgb->data()), rgb->size(), 0);
-        } else if (auto light = data.data.as<proto::Array<proto::Scalar<uint16_t>>>()) {
-            uint16_t data = *light->begin();
-            static_cast<Strand<uint16_t> *>(strand)->setLight(&data, 1, 0);
+        if (auto array = data.data.as<Array<RGB>>()) {
+            static_cast<Strand<RGB> *>(strand)->setLight(array->data(), array->size(), 0);
+        } else if (auto array = data.data.as<Array<Scalar<uint16_t>>>()) {
+            static_cast<Strand<Scalar<uint16_t>> *>(strand)->setLight(array->data(), array->size(), 0);
         }
-
     }
 
     for (auto & strand : strands) {
@@ -98,16 +93,4 @@ void NetworkManager::setColor(luna::proto::SetColor const& cmd)
     }
 }
 
-
-void NetworkManager::turnOff()
-{
-    mController->enabled(false);
-
-    auto strands = mController->strands();
-    for (auto & strand : strands) {
-        strand->render();
-    }
-}
-
-}
 }

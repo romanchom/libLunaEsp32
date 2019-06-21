@@ -12,17 +12,10 @@ namespace esp32 {
 class HardwareController
 {
 public:
-    explicit HardwareController(std::vector<std::unique_ptr<StrandBase>> strands);
-    ~HardwareController();
+    virtual ~HardwareController() = default;
 
-    std::vector<StrandBase *> strands() const;
-
-    void enabled(bool value);
-
-    void onEnabled(std::function<void(bool)> value);
-private:
-    std::vector<std::unique_ptr<StrandBase>> mStrands;
-    std::function<void(bool)> mOnEnabled;
+    virtual std::vector<StrandBase *> strands() = 0;
+    virtual void enabled(bool value) = 0;
 };
 
 }

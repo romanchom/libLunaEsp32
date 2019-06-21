@@ -8,12 +8,12 @@ namespace luna {
 namespace esp32 {
 
 StrandWS281x::StrandWS281x(Location location, size_t pixelCount, int gpioPin) :
-    Strand<RGB<uint8_t>>(location),
+    Strand<proto::RGB>(location),
     mDriver(gpioPin, pixelCount),
     mDirty(true)
 {}
 
-void StrandWS281x::setLight(RGB<uint8_t> const * data, size_t size, size_t offset)
+void StrandWS281x::setLight(proto::RGB const * data, size_t size, size_t offset)
 {
     assert(offset < pixelCount());
     assert(offset + size <= pixelCount());
