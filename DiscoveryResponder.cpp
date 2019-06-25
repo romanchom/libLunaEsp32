@@ -3,12 +3,13 @@
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Discovery.hpp>
 
-#include <lwip/udp.h>
+#include <asio/buffer.hpp>
+#include <esp_log.h>
 
 #include <cstring>
 
-namespace luna {
-namespace esp32 {
+namespace luna::esp32
+{
 
 static luna::proto::Point toProto(Point const & point) {
     auto ret = luna::proto::Point();
@@ -41,12 +42,12 @@ static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
     return ret;
 }
 
-DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands) :
-    mUdp(udp_new())
+DiscoveryResponder::DiscoveryResponder(asio::io_service & ioService, uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands) :
+    mSocket(ioService, asio::ip::udp::endpoint(asio::ip::udp::v4(), 9510))
 {
     using namespace luna::proto;
     
-    uint8_t buffer[512];
+    std::byte buffer[512];
     auto builder = Builder(buffer);
     auto discovery = builder.allocate<Discovery>();
 
@@ -70,32 +71,24 @@ DiscoveryResponder::DiscoveryResponder(uint16_t port, std::string const & name, 
 
     discovery->strands.set(strandProperties, strandCount);
 
-    mResponse = std::vector<uint8_t>(builder.data(), builder.data() + builder.size());
+    mResponse = std::vector<std::byte>(builder.data(), builder.data() + builder.size());
 
-    udp_recv(mUdp,
-        [](void * arg, udp_pcb * pcb, pbuf * buffer, ip_addr_t const * addr, u16_t port) {
-            auto & responseData = *static_cast<std::vector<uint8_t>  *>(arg);
-
-            auto response = pbuf_alloc(PBUF_TRANSPORT, responseData.size(), PBUF_REF);
-            response->payload = responseData.data();
-            response->len = static_cast<uint16_t>(responseData.size());
-            response->tot_len = static_cast<uint16_t>(responseData.size());
-            
-            udp_sendto(pcb, response, addr, port);
-            
-            pbuf_free(response);
-
-            pbuf_free(buffer);
-        },
-        &mResponse
-    );
-
-    udp_bind(mUdp, reinterpret_cast<ip_addr_t const *>(IP4_ADDR_ANY), 9510);
+    startRespond();
 }
 
-DiscoveryResponder::~DiscoveryResponder()
+DiscoveryResponder::~DiscoveryResponder() = default;
+
+void DiscoveryResponder::startRespond()
 {
-    udp_remove(mUdp);
+    mSocket.async_receive_from(asio::buffer(mReadBuffer), mRemote,
+        [this](asio::error_code const & error, std::size_t bytesTransferred) {
+            ESP_LOGI("DiRe", "Responding");
+            if (!error || error == asio::error::message_size) {
+                mSocket.send_to(asio::buffer(mResponse), mRemote);
+            }
+            startRespond();
+        }
+    );
 }
 
-}}
+}

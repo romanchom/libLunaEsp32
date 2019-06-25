@@ -98,10 +98,10 @@ public:
     }
 
 
-    int read(uint8_t * data, size_t dataLength)
+    int read(std::byte * data, size_t dataLength)
     {
         int ret;
-        ret = mbedtls_ssl_read(&mSsl, data, dataLength);
+        ret = mbedtls_ssl_read(&mSsl, (unsigned char *) data, dataLength);
 
         if (ret < 0) {
             switch (ret) {
@@ -121,11 +121,11 @@ public:
         return ret;
     }
 
-    int write(const uint8_t * data, size_t dataLength)
+    int write(std::byte const * data, size_t dataLength)
     {
         int ret;
         do {
-            ret = mbedtls_ssl_write(&mSsl, data, dataLength);
+            ret = mbedtls_ssl_write(&mSsl, (unsigned char const *)data, dataLength);
         } while (MBEDTLS_ERR_SSL_WANT_READ == ret
                 || MBEDTLS_ERR_SSL_WANT_WRITE == ret);
 

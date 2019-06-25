@@ -27,7 +27,7 @@ namespace lwip_async
 class DtlsInputOutput : private tls::BasicInputOutput
 {
 public:
-    using DataReadCallback = std::function<void(DtlsInputOutput&, uint8_t const*, size_t)>;
+    using DataReadCallback = std::function<void(DtlsInputOutput&, std::byte const*, size_t)>;
     using DisconnectedCallback = std::function<void(DtlsInputOutput&, bool)>;
 
     explicit DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ownCertificate, tls::Certificate & caCertificate);
@@ -42,7 +42,7 @@ public:
         mConnectedCallback = value;
     }
 
-    int write(uint8_t const * data, size_t size);
+    int write(std::byte const * data, size_t size);
 private:
     using StepFunctionType = bool (DtlsInputOutput::*)(ip_addr_t const * address, u16_t port);
 

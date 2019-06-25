@@ -8,6 +8,9 @@
 #include "Strand.hpp"
 #include "HardwareController.hpp"
 #include "Updater.hpp"
+#include "MqttClient.hpp"
+
+#include <asio/io_service.hpp>
 
 #include <memory>
 #include <vector>
@@ -40,9 +43,14 @@ public:
     void enable();
     void disable();
 private:
-    void dispatchCommand(uint8_t const * data, size_t size);
+    void dispatchCommand(std::byte const * data, size_t size);
 
     void setColor(luna::proto::SetColor const& cmd);
+
+    void startDaemon();
+    void stopDaemon();
+
+    void daemonTask();
 
     HardwareController * mController;
 
@@ -51,8 +59,12 @@ private:
     tls::Certificate::Pem mCaCertificate;
 
     std::unique_ptr<lwip_async::DtlsInputOutput> mSocket;
-    std::unique_ptr<luna::esp32::DiscoveryResponder> mDiscoveryResponder;
-    Updater mUpdater;
+
+    // MqttClient mMqtt;
+    // bool mEnabled;
+    // float mWhiteness;
+    TaskHandle_t mTaskHandle;
+    asio::io_service * mIoService;
 };
 
 }

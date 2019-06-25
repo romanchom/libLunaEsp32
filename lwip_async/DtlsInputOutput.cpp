@@ -56,7 +56,7 @@ uint16_t DtlsInputOutput::port() const
 }
 
 
-int DtlsInputOutput::write(uint8_t const * data, size_t size)
+int DtlsInputOutput::write(std::byte const * data, size_t size)
 {
     return mSsl.write(data, size);
 }
@@ -143,7 +143,7 @@ bool DtlsInputOutput::handshakeStep(ip_addr_t const * address, u16_t port)
 
 bool DtlsInputOutput::readDataStep(ip_addr_t const * address, u16_t port)
 {
-    uint8_t buffer[1024];
+    std::byte buffer[1024];
     auto const bytesRead = mSsl.read(buffer, sizeof(buffer));
 
     if (bytesRead > 0) {
