@@ -4,11 +4,11 @@
 
 #include "mbedtls-cpp/PrivateKey.hpp"
 #include "mbedtls-cpp/Certificate.hpp"
+#include "mbedtls-cpp/Configuration.hpp"
+#include "mbedtls-cpp/CounterDeterministicRandomGenerator.hpp"
+#include "mbedtls-cpp/StandardEntropy.hpp"
 
-#include "Strand.hpp"
 #include "HardwareController.hpp"
-#include "Updater.hpp"
-#include "MqttClient.hpp"
 
 #include <asio/io_service.hpp>
 
@@ -57,12 +57,12 @@ private:
     tls::PrivateKey mOwnKey;
     tls::Certificate::Pem mOwnCertificate;
     tls::Certificate::Pem mCaCertificate;
+    tls::StandardEntropy mEntropy;
+    tls::CounterDeterministicRandomGenerator mRandom;
+    tls::Configuration mUpdaterConfiguration;
 
     std::unique_ptr<lwip_async::DtlsInputOutput> mSocket;
 
-    // MqttClient mMqtt;
-    // bool mEnabled;
-    // float mWhiteness;
     TaskHandle_t mTaskHandle;
     asio::io_service * mIoService;
 };

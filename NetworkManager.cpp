@@ -1,10 +1,7 @@
 #include "luna/esp32/NetworkManager.hpp"
 
 #include "DiscoveryResponder.hpp"
-
-#include "mbedtls-cpp/Configuration.hpp"
-#include "mbedtls-cpp/CounterDeterministicRandomGenerator.hpp"
-#include "mbedtls-cpp/StandardEntropy.hpp"
+#include "luna/esp32/Updater.hpp"
 
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
@@ -21,21 +18,15 @@ NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration
     mController(controller),
     mOwnKey(configuration.ownKey, configuration.ownKeySize),
     mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
-    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize)//,
-    // mUpdater(&mOwnKey, &mOwnCertificate, &mCaCertificate),
-    // mMqtt("mqtt://192.168.1.1")
+    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize)
 {
-    // mMqtt.subscribe("/on", [this](void * data, size_t length) {
-    //     if (length >= 1) {
-    //         mEnabled = (*static_cast<char *>(data) == '1');
-    //     }
-    // });
+    mRandom.seed(&mEntropy, "asdqwe", 6);
 
-    // mMqtt.subscribe("/whiteness", [this](void * data, size_t length) {
-    //     std::string text(static_cast<char *>(data), length);
-    //     mWhiteness = std::stof(text);
-    // });
-
+    mUpdaterConfiguration.setRandomGenerator(&mRandom);
+    mUpdaterConfiguration.setDefaults(tls::Endpoint::server, tls::Transport::stream, tls::Preset::default_);
+    mUpdaterConfiguration.setOwnCertificate(&mOwnCertificate, &mOwnKey);
+    mUpdaterConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
+    mUpdaterConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
 }
 
 NetworkManager::~NetworkManager() = default;
@@ -52,7 +43,6 @@ void NetworkManager::enable()
     });
 
     startDaemon();
-    // mMqtt.connect();
 }
 
 void NetworkManager::disable()
@@ -122,24 +112,11 @@ void NetworkManager::stopDaemon()
 
 void NetworkManager::daemonTask()
 {
-    tls::StandardEntropy mEntropy;
-    tls::CounterDeterministicRandomGenerator mRandom;
-
-    mRandom.seed(&mEntropy, "asdqwe", 6);
-
-    tls::Configuration updaterConfiguration;
-
-    updaterConfiguration.setRandomGenerator(&mRandom);
-    updaterConfiguration.setDefaults(tls::Endpoint::server, tls::Transport::stream, tls::Preset::default_);
-    updaterConfiguration.setOwnCertificate(&mOwnCertificate, &mOwnKey);
-    updaterConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
-    updaterConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
-
     asio::io_service ioService;
     mIoService = &ioService;
     
     luna::esp32::DiscoveryResponder discoveryResponder(ioService, mSocket->port(), "Loszek", mController->strands());
-    luna::esp32::Updater updater(ioService, &updaterConfiguration);
+    luna::esp32::Updater updater(ioService, &mUpdaterConfiguration);
 
     ioService.run();
 
