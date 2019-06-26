@@ -12,17 +12,15 @@ static auto const TAG = "DTLS_IO";
 namespace lwip_async
 {
 
-DtlsInputOutput::DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ownCertificate, tls::Certificate & caCertificate) :
+DtlsInputOutput::DtlsInputOutput(tls::PrivateKey * ownKey, tls::Certificate * ownCertificate, tls::Certificate * caCertificate) :
     mUdp(udp_new()),
     mCurrentStep(&DtlsInputOutput::handshakeStep)
 {
-    ESP_LOGI(TAG, "Ctor");
-
     udp_recv(mUdp,
         [](void * arg, udp_pcb * pcb, pbuf * buffer, ip_addr_t const * addr, u16_t port) {
-            reinterpret_cast<DtlsInputOutput *>(arg)->udpReceive(buffer, addr, port);
+            static_cast<DtlsInputOutput *>(arg)->udpReceive(buffer, addr, port);
         },
-        reinterpret_cast<void *>(this)
+        static_cast<void *>(this)
     );
     udp_bind(mUdp, reinterpret_cast<ip_addr_t const *>(IP4_ADDR_ANY), 0);
 
@@ -33,8 +31,8 @@ DtlsInputOutput::DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ow
     mTlsConfiguration.setRandomGenerator(&mRandom);
     mTlsConfiguration.setDefaults(tls::Endpoint::server, tls::Transport::datagram, tls::Preset::default_);
     mTlsConfiguration.setDtlsCookies(&mCookie);
-    mTlsConfiguration.setOwnCertificate(&ownCertificate, &ownKey);
-    mTlsConfiguration.setCertifiateAuthorityChain(&caCertificate);
+    mTlsConfiguration.setOwnCertificate(ownCertificate, ownKey);
+    mTlsConfiguration.setCertifiateAuthorityChain(caCertificate);
     mTlsConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
 
     mSsl.setup(&mTlsConfiguration);
@@ -54,7 +52,6 @@ uint16_t DtlsInputOutput::port() const
 {
     return mUdp->local_port;
 }
-
 
 int DtlsInputOutput::write(std::byte const * data, size_t size)
 {

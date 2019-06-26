@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lwip_async/DtlsInputOutput.hpp"
-
 #include "mbedtls-cpp/PrivateKey.hpp"
 #include "mbedtls-cpp/Certificate.hpp"
 #include "mbedtls-cpp/Configuration.hpp"
@@ -9,6 +7,7 @@
 #include "mbedtls-cpp/StandardEntropy.hpp"
 
 #include "HardwareController.hpp"
+#include "RealtimeController.hpp"
 
 #include <asio/io_service.hpp>
 
@@ -43,9 +42,6 @@ public:
     void enable();
     void disable();
 private:
-    void dispatchCommand(std::byte const * data, size_t size);
-
-    void setColor(luna::proto::SetColor const& cmd);
 
     void startDaemon();
     void stopDaemon();
@@ -61,7 +57,7 @@ private:
     tls::CounterDeterministicRandomGenerator mRandom;
     tls::Configuration mUpdaterConfiguration;
 
-    std::unique_ptr<lwip_async::DtlsInputOutput> mSocket;
+    std::unique_ptr<RealtimeController> mRealtime;
 
     TaskHandle_t mTaskHandle;
     asio::io_service * mIoService;

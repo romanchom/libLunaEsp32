@@ -30,7 +30,7 @@ public:
     using DataReadCallback = std::function<void(DtlsInputOutput&, std::byte const*, size_t)>;
     using DisconnectedCallback = std::function<void(DtlsInputOutput&, bool)>;
 
-    explicit DtlsInputOutput(tls::PrivateKey & ownKey, tls::Certificate & ownCertificate, tls::Certificate & caCertificate);
+    explicit DtlsInputOutput(tls::PrivateKey * ownKey, tls::Certificate * ownCertificate, tls::Certificate * caCertificate);
     ~DtlsInputOutput() override;
 
     uint16_t port() const;
