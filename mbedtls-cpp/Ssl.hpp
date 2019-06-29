@@ -52,9 +52,9 @@ public:
             timer->getDelayGetter());
     }
 
-    void setClientId(const unsigned char * data, size_t dataLength)
+    void setClientId(void const * data, size_t dataLength)
     {
-        auto error = mbedtls_ssl_set_client_transport_id(&mSsl, data, dataLength);
+        auto error = mbedtls_ssl_set_client_transport_id(&mSsl, static_cast<unsigned char const *>(data), dataLength);
         if (0 != error) {
             throw tls::Exception(error);
         }
