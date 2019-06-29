@@ -1,18 +1,20 @@
 # project(libLunaEsp32)
 
-# set(COMPONENT_SRCS
-#     "ATX.cpp"
-#     "DiscoveryResponder.cpp"
-#     "MqttClient.cpp"
-#     "NetworkManager.cpp"
-#     "PWM.cpp"
-#     "PWMLight.cpp"
-#     "StrandWS281x.cpp"
-#     "Updater.cpp"
-#     "mbedtls-cpp/Exception.cpp"
-# )
-
-file(GLOB_RECURSE COMPONENT_SRCS "*.cpp")
+set(COMPONENT_SRCS
+    "ATX.cpp"
+    "AsioTcpInputOutput.cpp"
+    "AsioUdpInputOutput.cpp"
+    "AsioTimer.cpp"
+    "DiscoveryResponder.cpp"
+    "RealtimeController.cpp"
+    # "MqttClient.cpp"
+    "NetworkManager.cpp"
+    "PWM.cpp"
+    "PWMLight.cpp"
+    "StrandWS281x.cpp"
+    "Updater.cpp"
+    "mbedtls-cpp/Exception.cpp"
+)
 
 set(COMPONENT_ADD_INCLUDEDIRS 
     ${CMAKE_CURRENT_SOURCE_DIR}

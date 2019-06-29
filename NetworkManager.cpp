@@ -1,5 +1,6 @@
 #include "luna/esp32/NetworkManager.hpp"
 
+#include "luna/esp32/RealtimeController.hpp"
 #include "DiscoveryResponder.hpp"
 #include "luna/esp32/Updater.hpp"
 
@@ -19,19 +20,26 @@ NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration
 {
     mRandom.seed(&mEntropy, "asdqwe", 6);
 
+    mCookie.setup(&mRandom);
+
     mUpdaterConfiguration.setRandomGenerator(&mRandom);
     mUpdaterConfiguration.setDefaults(tls::Endpoint::server, tls::Transport::stream, tls::Preset::default_);
     mUpdaterConfiguration.setOwnCertificate(&mOwnCertificate, &mOwnKey);
     mUpdaterConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
     mUpdaterConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
+
+    mRealtimeConfiguration.setRandomGenerator(&mRandom);
+    mRealtimeConfiguration.setDefaults(tls::Endpoint::server, tls::Transport::datagram, tls::Preset::default_);
+    mRealtimeConfiguration.setOwnCertificate(&mOwnCertificate, &mOwnKey);
+    mRealtimeConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
+    mRealtimeConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
+    mRealtimeConfiguration.setDtlsCookies(&mCookie);
 }
 
 NetworkManager::~NetworkManager() = default;
 
 void NetworkManager::enable()
 {
-    mRealtime = std::make_unique<RealtimeController>(mController, &mOwnKey, &mOwnCertificate, &mCaCertificate);
-
     startDaemon();
 }
 
@@ -42,7 +50,7 @@ void NetworkManager::disable()
 
 void NetworkManager::startDaemon()
 {
-    xTaskCreate((TaskFunction_t) &NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle);
+    xTaskCreatePinnedToCore((TaskFunction_t) &NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
 }
 
 void NetworkManager::stopDaemon()
@@ -53,13 +61,14 @@ void NetworkManager::stopDaemon()
 
 void NetworkManager::daemonTask()
 {
-    asio::io_service ioService;
-    mIoService = &ioService;
+    asio::io_context ioContext;
+    mIoService = &ioContext;
     
-    luna::esp32::DiscoveryResponder discoveryResponder(ioService, mRealtime->port(), "Loszek", mController->strands());
-    luna::esp32::Updater updater(ioService, &mUpdaterConfiguration);
+    luna::esp32::Updater updater(ioContext, &mUpdaterConfiguration);
+    luna::esp32::RealtimeController realtime(&ioContext, &mRealtimeConfiguration, mController);
+    luna::esp32::DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
 
-    ioService.run();
+    ioContext.run();
 
     vTaskDelete(nullptr);
 }

@@ -5,21 +5,16 @@
 #include "mbedtls-cpp/Configuration.hpp"
 #include "mbedtls-cpp/CounterDeterministicRandomGenerator.hpp"
 #include "mbedtls-cpp/StandardEntropy.hpp"
+#include "mbedtls-cpp/StandardCookie.hpp"
 
 #include "HardwareController.hpp"
-#include "RealtimeController.hpp"
 
-#include <asio/io_service.hpp>
+#include <asio/io_context.hpp>
 
 #include <memory>
 #include <vector>
 
-namespace luna {
-namespace proto {
-    struct SetColor;
-}
-
-namespace esp32 {
+namespace luna::esp32 {
 
 class DiscoveryResponder;
 
@@ -55,13 +50,14 @@ private:
     tls::Certificate::Pem mCaCertificate;
     tls::StandardEntropy mEntropy;
     tls::CounterDeterministicRandomGenerator mRandom;
+    
     tls::Configuration mUpdaterConfiguration;
 
-    std::unique_ptr<RealtimeController> mRealtime;
+    tls::StandardCookie mCookie;
+    tls::Configuration mRealtimeConfiguration;
 
     TaskHandle_t mTaskHandle;
-    asio::io_service * mIoService;
+    asio::io_context * mIoService;
 };
 
-}
 }

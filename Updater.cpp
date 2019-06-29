@@ -6,9 +6,9 @@ static char const TAG[] = "OTA";
 
 namespace luna::esp32
 {
-    Updater::Updater(asio::io_service & ioService, tls::Configuration * tlsConfiguration) : 
-        mListeningSocket(ioService, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
-        mStreamSocket(ioService),
+    Updater::Updater(asio::io_context & ioContext, tls::Configuration * tlsConfiguration) : 
+        mListeningSocket(ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
+        mStreamSocket(ioContext),
         mIo(&mStreamSocket)
     {
         mSsl.setup(tlsConfiguration);

@@ -3,18 +3,19 @@
 #include "mbedtls-cpp/Configuration.hpp"
 #include "mbedtls-cpp/Ssl.hpp"
 
-#include <lwip_async/AsioTcpInputOutput.hpp>
+#include <asio/io_context.hpp>
+#include <asio/ip/tcp.hpp>
+
+#include "AsioTcpInputOutput.hpp"
 
 #include <esp_ota_ops.h>
-#include <asio/io_service.hpp>
-#include <asio/ip/tcp.hpp>
 
 namespace luna::esp32
 {
 
     struct Updater
     {
-        explicit Updater(asio::io_service & ioService, tls::Configuration * tlsConfiguration);
+        explicit Updater(asio::io_context & ioContext, tls::Configuration * tlsConfiguration);
     private:
         void acceptConnection();
         void doHandshake();

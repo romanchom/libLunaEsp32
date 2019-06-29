@@ -2,7 +2,7 @@
 
 #include "luna/esp32/Strand.hpp"
 
-#include <asio/io_service.hpp>
+#include <asio/io_context.hpp>
 #include <asio/ip/udp.hpp>
 
 #include <cstddef>
@@ -18,7 +18,7 @@ namespace luna::esp32 {
 class DiscoveryResponder
 {
 public:
-    explicit DiscoveryResponder(asio::io_service & ioService, uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands);
+    explicit DiscoveryResponder(asio::io_context & ioContext, uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands);
     ~DiscoveryResponder();
 
 private:
