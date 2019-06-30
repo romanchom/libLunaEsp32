@@ -1,9 +1,10 @@
 #include "luna/esp32/NetworkManager.hpp"
 
-#include "luna/esp32/RealtimeService.hpp"
 #include "DiscoveryResponder.hpp"
 #include "luna/esp32/Updater.hpp"
 #include "luna/esp32/ServiceManager.hpp"
+#include "luna/esp32/RealtimeService.hpp"
+#include "luna/esp32/MqttService.hpp"
 
 #include <esp_log.h>
 
@@ -75,10 +76,13 @@ void NetworkManager::run()
             Updater updater(ioContext, &mUpdaterConfiguration);
             RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
             DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
+            MqttService mqtt(&ioContext);
 
             ServiceManager serviceManager(mController);
             serviceManager.manage(&realtime, 10);
+            serviceManager.manage(&mqtt, 1);
 
+            mqtt.start();
             ioContext.run();
             break;
         } catch (std::exception const & exception) {
