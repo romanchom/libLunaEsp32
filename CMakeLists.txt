@@ -12,6 +12,8 @@ set(COMPONENT_SRCS
     "PWM.cpp"
     "PWMLight.cpp"
     "StrandWS281x.cpp"
+    "Service.cpp"
+    "ServiceManager.cpp"
     "Updater.cpp"
     "mbedtls-cpp/Exception.cpp"
 )

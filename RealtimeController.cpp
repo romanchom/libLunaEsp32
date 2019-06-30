@@ -12,8 +12,8 @@ static char const TAG[] = "RT";
 
 namespace luna::esp32
 {
-    RealtimeController::RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, HardwareController * controller) :
-        mController(controller),
+    RealtimeController::RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
+        mController(nullptr),
         mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*ioContext),
         mTimer(ioContext),
@@ -31,6 +31,8 @@ namespace luna::esp32
         ESP_LOGI(TAG, "Up on port %d", int(port()));
     }
 
+    RealtimeController::~RealtimeController() = default;
+
     uint16_t RealtimeController::port()
     {
         return mSocket.local_endpoint().port();
@@ -39,7 +41,7 @@ namespace luna::esp32
     void RealtimeController::reset() 
     {
         ESP_LOGI(TAG, "Reset");
-        mController->enabled(false);
+        serviceEnabled(false);
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
@@ -120,10 +122,24 @@ namespace luna::esp32
         });
     }
 
+    void RealtimeController::takeOwnership(HardwareController * controller)
+    {
+        ESP_LOGI(TAG, "Enabled");
+        mController = controller;
+        mController->enabled(true);
+    }
+    
+    void RealtimeController::releaseOwnership()
+    {
+        ESP_LOGI(TAG, "Disabled");
+        mController->enabled(false);
+        mController = nullptr;
+    }
+
     void RealtimeController::activate()
     {
         ESP_LOGI(TAG, "Peer connected and authenticated");
-        mController->enabled(true);
+        serviceEnabled(true);
         startRead();
     }
 
@@ -150,6 +166,10 @@ namespace luna::esp32
 
     void RealtimeController::setColor(luna::proto::SetColor const& cmd)
     {
+        if (!mController) {
+            return;
+        }
+
         using namespace luna::proto;
 
         auto & strandDatas = cmd.strands;

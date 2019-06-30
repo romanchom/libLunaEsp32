@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HardwareController.hpp"
+#include "Service.hpp"
 
 #include "luna/esp32/AsioUdpInputOutput.hpp"
 #include "luna/esp32/AsioTimer.hpp"
@@ -15,10 +16,13 @@
 
 namespace luna::esp32
 {
-    struct RealtimeController
+    struct RealtimeController : Service
     {
-        RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, HardwareController * controller);
+        RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
+        ~RealtimeController() override;
+
         uint16_t port();
+
     private:
         void reset();
         void startHandshake();
@@ -26,6 +30,8 @@ namespace luna::esp32
         void startRead();
 
         void activate();
+        void takeOwnership(HardwareController * controller) final;
+        void releaseOwnership() final;
 
         void dispatchCommand(std::byte const * data, size_t size);
 
