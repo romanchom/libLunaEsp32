@@ -3,10 +3,12 @@
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
 
-#include <iostream>
+#include <esp_log.h>
 #include <chrono>
 
 char* if_indextoname(unsigned int , char* ) { return nullptr; }
+
+static char const TAG[] = "RT";
 
 namespace luna::esp32
 {
@@ -26,6 +28,7 @@ namespace luna::esp32
         mSsl.setTimer(&mTimer);
 
         startHandshake();
+        ESP_LOGI(TAG, "Up on port %d", int(port()));
     }
 
     uint16_t RealtimeController::port()
@@ -35,6 +38,7 @@ namespace luna::esp32
 
     void RealtimeController::reset() 
     {
+        ESP_LOGI(TAG, "Reset");
         mController->enabled(false);
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);
@@ -76,6 +80,7 @@ namespace luna::esp32
                 startHandshake();
                 break;
             } else if (ret != ERR_OK) {
+                ESP_LOGI(TAG, "Handshake -%04x", -ret);
                 reset();
                 break;
             } else if (mSsl.inHandshakeOver()) {
@@ -90,30 +95,34 @@ namespace luna::esp32
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
                 std::byte buffer[1024];
-                auto read = mSsl.read(buffer, sizeof(buffer));
-                if (read > 0) {
-                    dispatchCommand(buffer, read);
-                    startRead();
-                } else {
-                    mSsl.closeNotify();
-                    reset();
+                try {
+                    auto read = mSsl.read(buffer, sizeof(buffer));
+                    if (read > 0) {
+                        dispatchCommand(buffer, read);
+                        startRead();
+                        return;
+                    } else {
+                        mSsl.closeNotify();
+                    }
+                } catch (tls::Exception const & e) {
+                    ESP_LOGW(TAG, "Exception int startRead() %s", e.what());
                 }
-            } else {
-                reset();
-            }
+            } 
+            reset();
         });
 
         mHeartbeat.expires_after(std::chrono::milliseconds(1000));
         mHeartbeat.async_wait([this](asio::error_code const & error) {
             if (!error) {
+                ESP_LOGI(TAG, "Peer died");
                 mSocket.cancel();
-                reset();
             }
         });
     }
 
     void RealtimeController::activate()
     {
+        ESP_LOGI(TAG, "Peer connected and authenticated");
         mController->enabled(true);
         startRead();
     }

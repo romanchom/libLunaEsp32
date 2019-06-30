@@ -50,7 +50,7 @@ void NetworkManager::disable()
 
 void NetworkManager::startDaemon()
 {
-    xTaskCreatePinnedToCore((TaskFunction_t) &NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
+    xTaskCreatePinnedToCore(&NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
 }
 
 void NetworkManager::stopDaemon()
@@ -59,18 +59,28 @@ void NetworkManager::stopDaemon()
     mTaskHandle = 0;
 }
 
-void NetworkManager::daemonTask()
-{
-    asio::io_context ioContext;
-    mIoService = &ioContext;
-    
-    luna::esp32::Updater updater(ioContext, &mUpdaterConfiguration);
-    luna::esp32::RealtimeController realtime(&ioContext, &mRealtimeConfiguration, mController);
-    luna::esp32::DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
-
-    ioContext.run();
-
+void NetworkManager::daemonTask(void * context) {
+    static_cast<NetworkManager *>(context)->run();
     vTaskDelete(nullptr);
+}
+
+void NetworkManager::run()
+{
+    for (;;) {
+        try {
+            asio::io_context ioContext;
+            mIoService = &ioContext;
+            
+            luna::esp32::Updater updater(ioContext, &mUpdaterConfiguration);
+            luna::esp32::RealtimeController realtime(&ioContext, &mRealtimeConfiguration, mController);
+            luna::esp32::DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
+
+            ioContext.run();
+            break;
+        } catch (std::exception const & exception) {
+            std::cout << "Exception in NetworkManager: " << exception.what() << std::endl;
+        }
+    }
 }
 
 }

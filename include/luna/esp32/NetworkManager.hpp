@@ -41,7 +41,8 @@ private:
     void startDaemon();
     void stopDaemon();
 
-    void daemonTask();
+    static void daemonTask(void * context);
+    void run();
 
     HardwareController * mController;
 
