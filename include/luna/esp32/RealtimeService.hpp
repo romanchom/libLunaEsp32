@@ -16,10 +16,10 @@
 
 namespace luna::esp32
 {
-    struct RealtimeController : Service
+    struct RealtimeService : Service
     {
-        RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
-        ~RealtimeController() override;
+        RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
+        ~RealtimeService() override;
 
         uint16_t port();
 

@@ -1,6 +1,6 @@
 #include "luna/esp32/NetworkManager.hpp"
 
-#include "luna/esp32/RealtimeController.hpp"
+#include "luna/esp32/RealtimeService.hpp"
 #include "DiscoveryResponder.hpp"
 #include "luna/esp32/Updater.hpp"
 #include "luna/esp32/ServiceManager.hpp"
@@ -73,7 +73,7 @@ void NetworkManager::run()
             mIoService = &ioContext;
             
             Updater updater(ioContext, &mUpdaterConfiguration);
-            RealtimeController realtime(&ioContext, &mRealtimeConfiguration);
+            RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
             DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
 
             ServiceManager serviceManager(mController);

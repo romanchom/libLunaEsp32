@@ -6,7 +6,7 @@ set(COMPONENT_SRCS
     "AsioUdpInputOutput.cpp"
     "AsioTimer.cpp"
     "DiscoveryResponder.cpp"
-    "RealtimeController.cpp"
+    "RealtimeService.cpp"
     # "MqttClient.cpp"
     "NetworkManager.cpp"
     "PWM.cpp"

@@ -1,4 +1,4 @@
-#include "luna/esp32/RealtimeController.hpp"
+#include "luna/esp32/RealtimeService.hpp"
 
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
@@ -12,7 +12,7 @@ static char const TAG[] = "RT";
 
 namespace luna::esp32
 {
-    RealtimeController::RealtimeController(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
+    RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
         mController(nullptr),
         mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*ioContext),
@@ -31,14 +31,14 @@ namespace luna::esp32
         ESP_LOGI(TAG, "Up on port %d", int(port()));
     }
 
-    RealtimeController::~RealtimeController() = default;
+    RealtimeService::~RealtimeService() = default;
 
-    uint16_t RealtimeController::port()
+    uint16_t RealtimeService::port()
     {
         return mSocket.local_endpoint().port();
     }
 
-    void RealtimeController::reset() 
+    void RealtimeService::reset() 
     {
         ESP_LOGI(TAG, "Reset");
         serviceEnabled(false);
@@ -50,7 +50,7 @@ namespace luna::esp32
         startHandshake();
     }
 
-    void RealtimeController::startHandshake() 
+    void RealtimeService::startHandshake() 
     {
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
@@ -61,7 +61,7 @@ namespace luna::esp32
         });
     }
 
-    void RealtimeController::doHandshake()
+    void RealtimeService::doHandshake()
     {
         for (;;) {
             // workaround lwip recvmsg not returning sender address
@@ -92,7 +92,7 @@ namespace luna::esp32
         }
     }
 
-    void RealtimeController::startRead()
+    void RealtimeService::startRead()
     {
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
@@ -122,28 +122,28 @@ namespace luna::esp32
         });
     }
 
-    void RealtimeController::takeOwnership(HardwareController * controller)
+    void RealtimeService::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "Enabled");
         mController = controller;
         mController->enabled(true);
     }
     
-    void RealtimeController::releaseOwnership()
+    void RealtimeService::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
         mController->enabled(false);
         mController = nullptr;
     }
 
-    void RealtimeController::activate()
+    void RealtimeService::activate()
     {
         ESP_LOGI(TAG, "Peer connected and authenticated");
         serviceEnabled(true);
         startRead();
     }
 
-    void RealtimeController::dispatchCommand(std::byte const * data, size_t size)
+    void RealtimeService::dispatchCommand(std::byte const * data, size_t size)
     {
         using namespace luna::proto;
         auto packet = reinterpret_cast<Command const*>(data);
@@ -164,7 +164,7 @@ namespace luna::esp32
         }
     }
 
-    void RealtimeController::setColor(luna::proto::SetColor const& cmd)
+    void RealtimeService::setColor(luna::proto::SetColor const& cmd)
     {
         if (!mController) {
             return;
