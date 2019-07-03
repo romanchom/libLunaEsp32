@@ -18,12 +18,12 @@ namespace luna::esp32 {
 class DiscoveryResponder
 {
 public:
-    explicit DiscoveryResponder(asio::io_context & ioContext, uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands);
+    explicit DiscoveryResponder(asio::io_context & ioContext, uint16_t port, std::string const & name, std::vector<Strand *> const & strands);
     ~DiscoveryResponder();
 
 private:
     void startRespond();
-    
+
     asio::ip::udp::socket mSocket;
     asio::ip::udp::endpoint mRemote;
 

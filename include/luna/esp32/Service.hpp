@@ -1,9 +1,10 @@
 #pragma once
 
+#include "HardwareController.hpp"
+
 namespace luna::esp32
 {
     struct ServiceManager;
-    struct HardwareController;
 
     struct Service
     {
@@ -18,7 +19,7 @@ namespace luna::esp32
 
     private:
         friend ServiceManager;
-        
+
         void setManager(ServiceManager * manager);
 
         ServiceManager * mManager;

@@ -6,13 +6,16 @@
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
 namespace luna::esp32
 {
     struct HardwareController;
 
     struct MqttService : Service
     {
-        explicit MqttService(asio::io_context * ioContext);
+        explicit MqttService(asio::io_context * ioContext, std::string const & address);
 
         void start();
     private:
@@ -26,7 +29,7 @@ namespace luna::esp32
         asio::steady_timer mTick;
         HardwareController * mController;
 
-        bool mEnabled;
+        SemaphoreHandle_t mMutex;
         float mWhiteness;
         float mSmoothWhiteness;
     };

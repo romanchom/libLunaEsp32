@@ -11,7 +11,7 @@ namespace luna::esp32
     {
         explicit ServiceManager(HardwareController * controller);
 
-        void manage(Service * service, int priority);
+        void manage(Service * service, int priority, bool enabled = false);
     private:
         friend Service;
 

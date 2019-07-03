@@ -26,14 +26,14 @@ static luna::proto::Location toProto(Location const & location) {
     };
 }
 
-static luna::proto::UV toProto(CieColorCoordinates const & uv) {
+static luna::proto::UV toProto(prism::CieXY const & xy) {
     auto ret = luna::proto::UV();
-    ret.u = uv.u;
-    ret.v = uv.v;
+    ret.u = xy.x();
+    ret.v = xy.y();
     return ret;
-}   
+}
 
-static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
+static luna::proto::ColorSpace toProto(prism::RGBColorSpace const & colorSpace) {
     auto ret = luna::proto::ColorSpace();
     ret.white = toProto(colorSpace.white);
     ret.red = toProto(colorSpace.red);
@@ -42,11 +42,11 @@ static luna::proto::ColorSpace toProto(ColorSpace const & colorSpace) {
     return ret;
 }
 
-DiscoveryResponder::DiscoveryResponder(asio::io_context & ioContext, uint16_t port, std::string const & name, std::vector<StrandBase *> const & strands) :
+DiscoveryResponder::DiscoveryResponder(asio::io_context & ioContext, uint16_t port, std::string const & name, std::vector<Strand *> const & strands) :
     mSocket(ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 9510))
 {
     using namespace luna::proto;
-    
+
     std::byte buffer[512];
     auto builder = Builder(buffer);
     auto discovery = builder.allocate<Discovery>();

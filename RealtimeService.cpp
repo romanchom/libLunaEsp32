@@ -38,7 +38,7 @@ namespace luna::esp32
         return mSocket.local_endpoint().port();
     }
 
-    void RealtimeService::reset() 
+    void RealtimeService::reset()
     {
         ESP_LOGI(TAG, "Reset");
         serviceEnabled(false);
@@ -50,7 +50,7 @@ namespace luna::esp32
         startHandshake();
     }
 
-    void RealtimeService::startHandshake() 
+    void RealtimeService::startHandshake()
     {
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
@@ -109,7 +109,7 @@ namespace luna::esp32
                 } catch (tls::Exception const & e) {
                     ESP_LOGW(TAG, "Exception int startRead() %s", e.what());
                 }
-            } 
+            }
             reset();
         });
 
@@ -128,11 +128,10 @@ namespace luna::esp32
         mController = controller;
         mController->enabled(true);
     }
-    
+
     void RealtimeService::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        mController->enabled(false);
         mController = nullptr;
     }
 
@@ -182,14 +181,10 @@ namespace luna::esp32
             auto strand = strands[index];
 
             if (auto array = data.data.as<Array<RGB>>()) {
-                static_cast<Strand<RGB> *>(strand)->setLight(array->data(), array->size(), 0);
+                strand->rawBytes((std::byte const *) array->data(), array->size() * 3);
             } else if (auto array = data.data.as<Array<Scalar<uint16_t>>>()) {
-                static_cast<Strand<Scalar<uint16_t>> *>(strand)->setLight(array->data(), array->size(), 0);
+                strand->rawBytes((std::byte const *) array->data(), array->size() * 2);
             }
-        }
-
-        for (auto & strand : strands) {
-            strand->render();
         }
 
         mController->update();

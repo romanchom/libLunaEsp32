@@ -1,35 +1,37 @@
 #pragma once
 
-#include "luna/esp32/Strand.hpp"
-#include "luna/proto/SetColor.hpp"
+#include "Strand.hpp"
+
+#include <prism/Prism.hpp>
 
 #include <WS281xDriver.hpp>
 
-namespace luna {
-namespace esp32 {
+namespace luna::esp32 {
+    struct StrandWS281x : Strand
+    {
+        size_t pixelCount() const noexcept final;
+        proto::Format format() const noexcept final;
+        void rawBytes(std::byte const * data, size_t size) final;
+        void fill(Generator const * generator) final;
+    protected:
+        explicit StrandWS281x(Location const & location, WS281xDriver * driver, size_t size, size_t offset, prism::RGBColorSpace const & colorSpace);
 
-struct StrandWS281x : Strand<proto::RGB>
-{
-    explicit StrandWS281x(size_t pixelCount, int gpioPin);
-    size_t pixelCount() const noexcept override;
-    void setLight(proto::RGB const * data, size_t size, size_t offset) override;
-    void render() override;
-    proto::Format format() const noexcept override;
-protected:
-    WS281xDriver mDriver;
-    bool mDirty;
-};
+        WS281xDriver * mDriver;
+        size_t mSize;
+        size_t mOffset;
+        Eigen::Matrix<prism::ColorScalar, 3, 3> mCieToRgbMatrix;
+        Eigen::Matrix<prism::ColorScalar, 3, 1> mError;
+    };
 
-struct StrandWS2811 : StrandWS281x
-{
-    using StrandWS281x::StrandWS281x;
-    ColorSpace colorSpace() const noexcept override;
-};
+    struct StrandWS2811 : StrandWS281x
+    {
+        explicit StrandWS2811(Location const & location, WS281xDriver * driver, size_t size, size_t offset = 0);
+        prism::RGBColorSpace colorSpace() const noexcept final;
+    };
 
-struct StrandWS2812 : StrandWS281x
-{
-    using StrandWS281x::StrandWS281x;
-    ColorSpace colorSpace() const noexcept override;
-};
-
-}}
+    struct StrandWS2812 : StrandWS281x
+    {
+        explicit StrandWS2812(Location const & location, WS281xDriver * driver, size_t size, size_t offset = 0);
+        prism::RGBColorSpace colorSpace() const noexcept final;
+    };
+}

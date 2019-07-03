@@ -13,10 +13,11 @@ namespace luna::esp32
         mController(controller)
     {}
 
-    void ServiceManager::manage(Service * service, int priority)
+    void ServiceManager::manage(Service * service, int priority, bool enabled)
     {
         mRecords.push_back({service, priority, false});
         service->setManager(this);
+        serviceEnabled(service, enabled);
     }
 
     void ServiceManager::serviceEnabled(Service * service, bool enabled)
@@ -45,8 +46,8 @@ namespace luna::esp32
             }
         }
     }
-    
-    ServiceManager::Record * ServiceManager::maxEnabled() 
+
+    ServiceManager::Record * ServiceManager::maxEnabled()
     {
         auto record = std::max_element(mRecords.begin(), mRecords.end(), [](auto const & l, auto const & r) {
             if (l.enabled ^ r.enabled) {

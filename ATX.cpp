@@ -15,7 +15,7 @@ namespace luna::esp32
     {
         for (auto load : loads) {
             mLoadProperties[load] = { Rail::volts5, 0.0f };
-            load->powerObserver(this);
+            load->observer(this);
         }
     }
 
@@ -23,7 +23,7 @@ namespace luna::esp32
     {
         for (auto load : loads) {
             mLoadProperties[load] = { Rail::volts12, 0.0f };
-            load->powerObserver(this);
+            load->observer(this);
         }
     }
 

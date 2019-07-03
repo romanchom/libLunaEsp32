@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Metered.hpp"
+#include "ElectricalLoad.hpp"
 #include "GPIO.hpp"
 #include "PWM.hpp"
 
@@ -8,7 +8,7 @@
 
 namespace luna::esp32
 {
-    struct ATX : private PowerObserver
+    struct ATX : private LoadObserver
     {
         explicit ATX(PWMTimer * timer, int powerEnablePin, int dummyLoadPin, float dummyResistance, float ratio12RailTo5Rail);
 
@@ -24,7 +24,7 @@ namespace luna::esp32
             volts12,
             size,
         };
-        
+
         struct LoadProperties
         {
             Rail rail;

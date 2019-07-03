@@ -2,19 +2,17 @@
 
 #include "Strand.hpp"
 #include "PWM.hpp"
-#include "luna/proto/Scalar.hpp"
 
 namespace luna::esp32
 {
 
-struct PWMLight : Strand<proto::Scalar<uint16_t>>
+struct PWMLight : Strand
 {
-    explicit PWMLight(int pin, PWMTimer * timer);
+    explicit PWMLight(Location const & location, int pin, PWMTimer * timer);
     size_t pixelCount() const noexcept override;
     proto::Format format() const noexcept override;
-    ColorSpace colorSpace() const noexcept override;
-    void render() override;
-    void setLight(proto::Scalar<uint16_t> const * data, size_t size, size_t offset) override;
+    prism::RGBColorSpace colorSpace() const noexcept override;
+    void rawBytes(std::byte const * data, size_t size) override;
 private:
     PWM mPWM;
 };

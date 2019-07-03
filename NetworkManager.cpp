@@ -3,6 +3,7 @@
 #include "DiscoveryResponder.hpp"
 #include "luna/esp32/Updater.hpp"
 #include "luna/esp32/ServiceManager.hpp"
+#include "luna/esp32/IdleService.hpp"
 #include "luna/esp32/RealtimeService.hpp"
 #include "luna/esp32/MqttService.hpp"
 
@@ -16,11 +17,13 @@ namespace luna::esp32 {
 
 NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
     mController(controller),
+    mName(configuration.name),
+    mMqttAddress(configuration.mqttAddress),
     mOwnKey(configuration.ownKey, configuration.ownKeySize),
     mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
     mCaCertificate(configuration.caCertificate, configuration.caCertificateSize)
 {
-    mRandom.seed(&mEntropy, "asdqwe", 6);
+    mRandom.seed(&mEntropy, mName.data(), mName.size());
 
     mCookie.setup(&mRandom);
 
@@ -72,21 +75,24 @@ void NetworkManager::run()
         try {
             asio::io_context ioContext;
             mIoService = &ioContext;
-            
+
             Updater updater(ioContext, &mUpdaterConfiguration);
             RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
-            DiscoveryResponder discoveryResponder(ioContext, realtime.port(), "Loszek", mController->strands());
-            MqttService mqtt(&ioContext);
+            DiscoveryResponder discoveryResponder(ioContext, realtime.port(), mName, mController->strands());
+
+            IdleService idle;
+            MqttService mqtt(&ioContext, mMqttAddress);
 
             ServiceManager serviceManager(mController);
             serviceManager.manage(&realtime, 10);
             serviceManager.manage(&mqtt, 1);
+            serviceManager.manage(&idle, 0, true);
 
             mqtt.start();
             ioContext.run();
             break;
         } catch (std::exception const & exception) {
-            std::cout << "Exception in NetworkManager: " << exception.what() << std::endl;
+            ESP_LOGE(TAG, "Exception in NetworkManager: %s", exception.what());
         }
     }
 }

@@ -1,16 +1,14 @@
 #pragma once
 
-#include "RGB.hpp"
+#include "Strand.hpp"
 
-#include <cstdint>
+#include <prism/Prism.hpp>
 
 namespace luna::esp32
 {
-
-struct Generator
-{
-    virtual ~Generator() = default;
-    virtual RGB<uint8_t> generateRGB() = 0;
-};
-
+    struct Generator
+    {
+        virtual ~Generator() = default;
+        virtual prism::CieXYZ generate(float ratio, Location const & location) const noexcept = 0;
+    };
 }

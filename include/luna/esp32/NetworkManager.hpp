@@ -20,6 +20,8 @@ class DiscoveryResponder;
 
 struct NetworkManagerConfiguration
 {
+    std::string name;
+    std::string mqttAddress;
     uint8_t const * ownKey;
     size_t ownKeySize;
     uint8_t const * ownCertificate;
@@ -46,12 +48,15 @@ private:
 
     HardwareController * mController;
 
+    std::string mName;
+    std::string mMqttAddress;
+
     tls::PrivateKey mOwnKey;
     tls::Certificate::Pem mOwnCertificate;
     tls::Certificate::Pem mCaCertificate;
     tls::StandardEntropy mEntropy;
     tls::CounterDeterministicRandomGenerator mRandom;
-    
+
     tls::Configuration mUpdaterConfiguration;
 
     tls::StandardCookie mCookie;
