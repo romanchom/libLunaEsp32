@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MqttTopic.hpp"
+
 #include <mqtt_client.h>
 
 #include <map>
@@ -10,7 +12,7 @@ namespace luna::esp32
 {
     struct MqttClient
     {
-        using Callback = std::function<void(void *, size_t)>;
+        using Callback = std::function<void(MqttTopic const & topic, void *, size_t)>;
         MqttClient(std::string const & broker);
         void subscribe(std::string const & topic, Callback callback);
         void connect();
@@ -19,6 +21,6 @@ namespace luna::esp32
         void handle(esp_mqtt_event_handle_t event);
 
         esp_mqtt_client_handle_t mMqttHandle;
-        std::map<std::string, Callback, std::less<>> mSubscriptions;
+        std::map<MqttTopic, Callback> mSubscriptions;
     };
 }

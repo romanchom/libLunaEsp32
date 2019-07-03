@@ -29,7 +29,7 @@ namespace {
         SemaphoreHandle_t const mMutex;
     };
 }
-
+#include <iostream>
 namespace luna::esp32
 {
     MqttService::MqttService(asio::io_context * ioContext, std::string const & address) :
@@ -40,21 +40,20 @@ namespace luna::esp32
         mWhiteness(0.0f),
         mSmoothWhiteness(0.0f)
     {
-        mMqtt.subscribe("/on", [this](void * data, size_t size) {
-            int on = atoi((char *) data);
-            bool enabled = (on > 0);
-            serviceEnabled(enabled);
-            ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
+        mMqtt.subscribe("led/#", [this](MqttTopic const & topic, void * data, size_t size) {
+            if (topic[1].str() == "on") {
+                int on = atoi((char *) data);
+                bool enabled = (on > 0);
+                serviceEnabled(enabled);
+                ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
+            } else if (topic[1].str() == "whiteness") {
+                Lock l(mMutex);
+
+                ESP_LOGI(TAG, "whiteness");
+                float value = atof((char *) data);
+                mWhiteness = std::clamp<float>(value, 0.0f, 1.0f);
+            }
         });
-
-        mMqtt.subscribe("/whiteness", [this](void * data, size_t size) {
-            Lock l(mMutex);
-
-            ESP_LOGI(TAG, "whiteness");
-            float value = atof((char *) data);
-            mWhiteness = std::clamp<float>(value, 0.0f, 1.0f);
-        });
-
     }
 
     void MqttService::start()

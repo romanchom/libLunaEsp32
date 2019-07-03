@@ -1,5 +1,7 @@
 #include "luna/esp32/MqttClient.hpp"
 
+#include <iostream>
+
 namespace luna::esp32
 {
     MqttClient::MqttClient(std::string const & broker)
@@ -14,7 +16,7 @@ namespace luna::esp32
 
     void MqttClient::subscribe(std::string const & topic, Callback callback)
     {
-        mSubscriptions[topic] = std::move(callback);
+        mSubscriptions[MqttTopic(topic)] = std::move(callback);
     }
 
     void MqttClient::connect()
@@ -32,14 +34,16 @@ namespace luna::esp32
         switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
             for (auto & [topic, callback] : mSubscriptions) {
-                esp_mqtt_client_subscribe(mMqttHandle, topic.c_str(), 0);
+                esp_mqtt_client_subscribe(mMqttHandle, topic.str().c_str(), 0);
             }
             break;
         case MQTT_EVENT_DATA:
             {
-                std::string_view topic(static_cast<char const *>(event->topic), event->topic_len);
-                if (auto subscription = mSubscriptions.find(topic); subscription != mSubscriptions.end()) {
-                    subscription->second(event->data, event->data_len);
+                std::string topic(static_cast<char const *>(event->topic), event->topic_len);
+                MqttTopic mqttTopic(topic);
+
+                if (auto subscription = mSubscriptions.find(mqttTopic); subscription != mSubscriptions.end()) {
+                    subscription->second(mqttTopic, event->data, event->data_len);
                 }
             }
             break;
