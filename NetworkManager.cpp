@@ -6,6 +6,7 @@
 #include "luna/esp32/IdleService.hpp"
 #include "luna/esp32/RealtimeService.hpp"
 #include "luna/esp32/MqttService.hpp"
+#include "luna/esp32/ConstantMqttEffect.hpp"
 
 #include <esp_log.h>
 
@@ -81,7 +82,9 @@ void NetworkManager::run()
             DiscoveryResponder discoveryResponder(ioContext, realtime.port(), mName, mController->strands());
 
             IdleService idle;
-            MqttService mqtt(&ioContext, mMqttAddress);
+            ConstantMqttEffect lightEffect;
+            MqttService mqtt(&ioContext, mMqttAddress, mName);
+            mqtt.addEffect("light", &lightEffect);
 
             ServiceManager serviceManager(mController);
             serviceManager.manage(&realtime, 10);

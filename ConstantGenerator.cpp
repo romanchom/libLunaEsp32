@@ -14,5 +14,9 @@ namespace luna::esp32
     void ConstantGenerator::color(prism::CieXYZ const & value)
     {
         mColor = value;
+        auto maximum = mColor.maxCoeff();
+        if (maximum > 1.0f) {
+            mColor /= maximum;
+        }
     }
 }
