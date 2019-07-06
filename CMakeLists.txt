@@ -7,6 +7,7 @@ set(COMPONENT_SRCS
     "AsioTimer.cpp"
     "ConstantGenerator.cpp"
     "DiscoveryResponder.cpp"
+    "WS281xMeter.cpp"
     "IdleService.cpp"
     "MqttClient.cpp"
     "MqttService.cpp"

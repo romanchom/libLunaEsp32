@@ -2,8 +2,7 @@
 
 namespace luna::esp32
 {
-
-    explicit WS281xMeter::WS281xMeter(WS281xDriver * driver, float currentPerDiode) :
+    WS281xMeter::WS281xMeter(WS281xDriver * driver, float currentPerDiode) :
         mDriver(driver),
         mCurrentPerDiode(currentPerDiode / 255.0f)
     {}
@@ -16,6 +15,6 @@ namespace luna::esp32
             total = uint32_t(*it);
         }
 
-        notify(total * currentPerDiode);
+        notify(total * mCurrentPerDiode);
     }
 }
