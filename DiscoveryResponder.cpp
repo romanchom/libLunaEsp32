@@ -13,9 +13,9 @@ namespace luna::esp32
 
 static luna::proto::Point toProto(Point const & point) {
     auto ret = luna::proto::Point();
-    ret.x = point.x;
-    ret.y = point.y;
-    ret.z = point.z;
+    ret.x = point.x();
+    ret.y = point.y();
+    ret.z = point.z();
     return ret;
 }
 

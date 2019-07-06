@@ -12,7 +12,7 @@ namespace luna::esp32 {
         size_t pixelCount() const noexcept final;
         proto::Format format() const noexcept final;
         void rawBytes(std::byte const * data, size_t size) final;
-        void fill(Generator const * generator) final;
+        void fill(Generator * generator) final;
     protected:
         explicit StrandWS281x(Location const & location, WS281xDriver * driver, size_t size, size_t offset, prism::RGBColorSpace const & colorSpace);
 

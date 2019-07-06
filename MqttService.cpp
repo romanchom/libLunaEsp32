@@ -4,7 +4,9 @@
 #include "luna/esp32/Strand.hpp"
 #include "luna/esp32/ConstantGenerator.hpp"
 #include "luna/esp32/InterpolatingGenerator.hpp"
-#include "luna/proto/Scalar.hpp"
+#include "luna/esp32/Parse.hpp"
+
+#include <luna/proto/Scalar.hpp>
 
 #include <esp_log.h>
 
@@ -51,7 +53,7 @@ namespace luna::esp32
         }
     }
 
-    void MqttService::switchTo(std::string const & effectName)
+    void MqttService::switchTo(std::string_view effectName)
     {
         if (auto it = mEffects.find(effectName); it != mEffects.end()) {
             mActiveEffect = it->second;
@@ -60,21 +62,21 @@ namespace luna::esp32
 
     void MqttService::start()
     {
-        mMqtt.subscribe(mName + "/enabled", [this](MqttTopic const & topic, void * data, size_t size) {
-            int on = atoi((char *) data);
-            bool enabled = (on > 0);
-            serviceEnabled(enabled);
-            ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
+        mMqtt.subscribe(mName + "/enabled", [this](MqttTopic const & topic, std::string_view payload) {
+            if (auto value = tryParse<int>(payload)) {
+                bool enabled = (*value > 0);
+                serviceEnabled(enabled);
+                ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
+            }
         });
 
-        mMqtt.subscribe(mName + "/effect", [this](MqttTopic const & topic, void * data, size_t size) {
-            std::string name((char *) data, size);
-            switchTo(name);
+        mMqtt.subscribe(mName + "/effect", [this](MqttTopic const & topic, std::string_view payload) {
+            switchTo(payload);
         });
 
         for (auto & [effectName, effect] : mEffects) {
-            mMqtt.subscribe(mName + "/effects/" + effectName + "/#", [effect](MqttTopic const & topic, void * data, size_t size) {
-                effect->configure(topic, data, size);
+            mMqtt.subscribe(mName + "/effects/" + effectName + "/#", [effect](MqttTopic const & topic, std::string_view payload) {
+                effect->configure(topic, payload);
             });
         }
 

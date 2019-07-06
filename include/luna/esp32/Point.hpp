@@ -1,16 +1,8 @@
 #pragma once
 
-namespace luna
-{
-namespace esp32
-{
+#include <Eigen/Dense>
 
-struct Point
+namespace luna::esp32
 {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-};
-
-}
+    using Point = Eigen::Matrix<float, 3, 1>;
 }

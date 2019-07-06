@@ -12,7 +12,7 @@ namespace luna::esp32
         uint32_t total = 0;
         auto const end = mDriver->data() + mDriver->size();
         for (auto it = mDriver->data(); it != end; ++it) {
-            total = uint32_t(*it);
+            total += uint32_t(*it);
         }
 
         notify(total * mCurrentPerDiode);

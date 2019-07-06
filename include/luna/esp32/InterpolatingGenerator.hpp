@@ -6,19 +6,26 @@ namespace luna::esp32
 {
     struct InterpolatingGenerator : Generator
     {
-        InterpolatingGenerator(Generator const * first, Generator const * second, float ratio) :
+        InterpolatingGenerator(Generator * first, Generator * second, float ratio) :
             mFirst(first),
             mSecond(second),
             mRatio(ratio)
         {}
 
-        prism::CieXYZ generate(float ratio, Location const & location) const noexcept final
+        prism::CieXYZ generate(float ratio) const noexcept final
         {
-            return mFirst->generate(ratio, location) * (1 - mRatio) + mSecond->generate(ratio, location) * mRatio;
+            return mFirst->generate(ratio) * (1 - mRatio) + mSecond->generate(ratio) * mRatio;
         }
-    private:
-        Generator const * mFirst;
-        Generator const * mSecond;
+        
+        void setup(Location const & location) final
+        {
+            mFirst->setup(location);
+            mSecond->setup(location);
+        }
+
+    protected:
+        Generator * mFirst;
+        Generator * mSecond;
         float mRatio;
     };
 }

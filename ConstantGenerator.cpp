@@ -6,7 +6,7 @@ namespace luna::esp32
         mColor(0, 0, 0, 0)
     {}
 
-    prism::CieXYZ ConstantGenerator::generate(float ratio, Location const & location) const noexcept
+    prism::CieXYZ ConstantGenerator::generate(float ratio) const noexcept
     {
         return mColor;
     }
@@ -19,4 +19,7 @@ namespace luna::esp32
             mColor /= maximum;
         }
     }
+
+    void ConstantGenerator::setup(Location const & location) 
+    {}
 }

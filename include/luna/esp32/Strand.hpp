@@ -22,7 +22,7 @@ namespace luna::esp32
         virtual prism::RGBColorSpace colorSpace() const noexcept = 0;
         Location location() const noexcept { return mLocation; }
         virtual void rawBytes(std::byte const * data, size_t size) = 0;
-        virtual void fill(Generator const * generator) = 0;
+        virtual void fill(Generator * generator) = 0;
     private:
         Location mLocation;
     };

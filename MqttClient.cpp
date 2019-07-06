@@ -43,7 +43,8 @@ namespace luna::esp32
                 MqttTopic mqttTopic(topic);
 
                 if (auto subscription = mSubscriptions.find(mqttTopic); subscription != mSubscriptions.end()) {
-                    subscription->second(mqttTopic, event->data, event->data_len);
+                    std::string_view text(static_cast<char const *>(event->data), event->data_len);
+                    subscription->second(mqttTopic, text);
                 }
             }
             break;

@@ -1,24 +1,36 @@
 # project(libLunaEsp32)
 
 set(COMPONENT_SRCS
-    "ATX.cpp"
     "AsioTcpInputOutput.cpp"
     "AsioUdpInputOutput.cpp"
     "AsioTimer.cpp"
-    "ConstantGenerator.cpp"
-    "DiscoveryResponder.cpp"
-    "WS281xMeter.cpp"
-    "IdleService.cpp"
-    "MqttClient.cpp"
-    "MqttService.cpp"
-    "NetworkManager.cpp"
+
+    "ATX.cpp"
     "PWM.cpp"
     "PWMLight.cpp"
-    "RealtimeService.cpp"
     "StrandWS281x.cpp"
+    "WS281xMeter.cpp"
+    
+    "NetworkManager.cpp"
+    "DiscoveryResponder.cpp"
+    "Updater.cpp"
+    
     "Service.cpp"
     "ServiceManager.cpp"
-    "Updater.cpp"
+    "IdleService.cpp"
+    "MqttService.cpp"
+    "RealtimeService.cpp"
+    
+    "Noise.cpp"
+    "ConstantGenerator.cpp"
+    "FlameGenerator.cpp"
+    "PlasmaGenerator.cpp"
+
+    "FlameMqttEffect.cpp"
+    "ConstantMqttEffect.cpp"
+    "PlasmaMqttEffect.cpp"
+    
+    "MqttClient.cpp"
     "mbedtls-cpp/Exception.cpp"
 )
 

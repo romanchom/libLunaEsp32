@@ -5,8 +5,11 @@
 #include "luna/esp32/ServiceManager.hpp"
 #include "luna/esp32/IdleService.hpp"
 #include "luna/esp32/RealtimeService.hpp"
+
 #include "luna/esp32/MqttService.hpp"
+#include "luna/esp32/FlameMqttEffect.hpp"
 #include "luna/esp32/ConstantMqttEffect.hpp"
+#include "luna/esp32/PlasmaMqttEffect.hpp"
 
 #include <esp_log.h>
 
@@ -83,8 +86,12 @@ void NetworkManager::run()
 
             IdleService idle;
             ConstantMqttEffect lightEffect;
+            FlameMqttEffect flameEffect;
+            PlasmaMqttEffect plasmaEffect;
             MqttService mqtt(&ioContext, mMqttAddress, mName);
             mqtt.addEffect("light", &lightEffect);
+            mqtt.addEffect("flame", &flameEffect);
+            mqtt.addEffect("plasma", &plasmaEffect);
 
             ServiceManager serviceManager(mController);
             serviceManager.manage(&realtime, 10);

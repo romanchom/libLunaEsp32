@@ -38,10 +38,12 @@ namespace luna::esp32
         set(duty);
     }
 
-    void PWMLight::fill(Generator const * generator)
+    void PWMLight::fill(Generator * generator)
     {
-        auto cie = generator->generate(0.5f, location());
-        set(cie[3]);
+        generator->prepare(location(), [this](Generator * generator){
+            auto cie = generator->generate(0.5f);
+            set(cie[3]);
+        });
     }
 
     void PWMLight::set(float duty)

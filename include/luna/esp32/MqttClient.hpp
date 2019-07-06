@@ -12,7 +12,7 @@ namespace luna::esp32
 {
     struct MqttClient
     {
-        using Callback = std::function<void(MqttTopic const & topic, void *, size_t)>;
+        using Callback = std::function<void(MqttTopic const & topic, std::string_view)>;
         MqttClient(std::string const & broker);
         void subscribe(std::string const & topic, Callback callback);
         void connect();

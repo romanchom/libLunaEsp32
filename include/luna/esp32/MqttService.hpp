@@ -25,7 +25,7 @@ namespace luna::esp32
 
         void start();
     private:
-        void switchTo(std::string const & effectName);
+        void switchTo(std::string_view effectName);
 
         void takeOwnership(HardwareController * controller) final;
         void releaseOwnership() final;
@@ -41,7 +41,7 @@ namespace luna::esp32
         std::string mName;
         // std::string mLastActiveName;
         // ConstantMqttEffect mOffEffect;
-        std::map<std::string, MqttEffect *> mEffects;
+        std::map<std::string, MqttEffect *, std::less<>> mEffects;
         MqttEffect * mActiveEffect;
         // MqttEffect * mActiveEffects[3];
         // float mEffectTransitionRatio;

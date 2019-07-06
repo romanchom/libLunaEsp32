@@ -8,7 +8,16 @@ namespace luna::esp32
 {
     struct Generator
     {
-        virtual ~Generator() = default;
-        virtual prism::CieXYZ generate(float ratio, Location const & location) const noexcept = 0;
+        template<typename F>
+        void prepare(Location const & location, F && callback)
+        {
+            setup(location);
+            callback(this);
+        }
+
+        virtual prism::CieXYZ generate(float ratio) const noexcept = 0;
+        virtual void setup(Location const & location) = 0;
+    protected:
+        ~Generator() = default;
     };
 }

@@ -14,7 +14,7 @@ struct PWMLight : Strand, ElectricalLoad
     proto::Format format() const noexcept override;
     prism::RGBColorSpace colorSpace() const noexcept override;
     void rawBytes(std::byte const * data, size_t size) override;
-    void fill(Generator const * generator) final;
+    void fill(Generator * generator) final;
 private:
     void set(float duty);
     PWM mPWM;
