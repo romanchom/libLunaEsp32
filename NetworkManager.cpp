@@ -68,7 +68,8 @@ void NetworkManager::stopDaemon()
     mTaskHandle = 0;
 }
 
-void NetworkManager::daemonTask(void * context) {
+void NetworkManager::daemonTask(void * context)
+{
     static_cast<NetworkManager *>(context)->run();
     vTaskDelete(nullptr);
 }

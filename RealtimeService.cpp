@@ -169,22 +169,14 @@ namespace luna::esp32
             return;
         }
 
-        using namespace luna::proto;
-
-        auto & strandDatas = cmd.strands;
-
         auto strands = mController->strands();
 
-        for (auto & data : strandDatas) {
-            auto index = data.id;
+        for (auto & strandData : cmd.strands) {
+            size_t index = strandData.id;
             if (index >= strands.size()) continue;
             auto strand = strands[index];
 
-            if (auto array = data.data.as<Array<RGB>>()) {
-                strand->rawBytes((std::byte const *) array->data(), array->size() * 3);
-            } else if (auto array = data.data.as<Array<Scalar<uint16_t>>>()) {
-                strand->rawBytes((std::byte const *) array->data(), array->size() * 2);
-            }
+            strand->rawBytes(strandData.rawBytes.data(), strandData.rawBytes.size());
         }
 
         mController->update();
