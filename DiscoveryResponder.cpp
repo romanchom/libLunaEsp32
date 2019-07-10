@@ -8,7 +8,7 @@
 
 #include <cstring>
 
-namespace luna::esp32
+namespace luna
 {
 
 static luna::proto::Point toProto(Point const & point) {

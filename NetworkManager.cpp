@@ -1,15 +1,15 @@
-#include "luna/esp32/NetworkManager.hpp"
+#include "NetworkManager.hpp"
 
 #include "DiscoveryResponder.hpp"
-#include "luna/esp32/Updater.hpp"
-#include "luna/esp32/ServiceManager.hpp"
-#include "luna/esp32/IdleService.hpp"
-#include "luna/esp32/RealtimeService.hpp"
+#include "Updater.hpp"
+#include "IdleService.hpp"
+#include "RealtimeService.hpp"
 
-#include "luna/esp32/MqttService.hpp"
-#include "luna/esp32/FlameMqttEffect.hpp"
-#include "luna/esp32/ConstantMqttEffect.hpp"
-#include "luna/esp32/PlasmaMqttEffect.hpp"
+#include <luna/ServiceManager.hpp>
+#include <luna/MqttService.hpp>
+#include <luna/FlameMqttEffect.hpp>
+#include <luna/ConstantMqttEffect.hpp>
+#include <luna/PlasmaMqttEffect.hpp>
 
 #include <esp_log.h>
 
@@ -17,7 +17,7 @@
 
 static char const TAG[] = "Luna";
 
-namespace luna::esp32 {
+namespace luna {
 
 NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
     mController(controller),
@@ -25,7 +25,9 @@ NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration
     mMqttAddress(configuration.mqttAddress),
     mOwnKey(configuration.ownKey, configuration.ownKeySize),
     mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
-    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize)
+    mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
+    mTaskHandle(0),
+    mIoService(nullptr)
 {
     mRandom.seed(&mEntropy, mName.data(), mName.size());
 
@@ -49,23 +51,23 @@ NetworkManager::~NetworkManager() = default;
 
 void NetworkManager::enable()
 {
-    startDaemon();
+    xTaskCreatePinnedToCore(&NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
 }
 
 void NetworkManager::disable()
 {
-    stopDaemon();
+    if (mIoService) {
+        mIoService->stop();
+        mTaskHandle = 0;
+    }
 }
 
 void NetworkManager::startDaemon()
 {
-    xTaskCreatePinnedToCore(&NetworkManager::daemonTask, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
 }
 
 void NetworkManager::stopDaemon()
 {
-    mIoService->stop();
-    mTaskHandle = 0;
 }
 
 void NetworkManager::daemonTask(void * context)

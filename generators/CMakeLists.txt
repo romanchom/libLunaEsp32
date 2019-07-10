@@ -1,0 +1,17 @@
+project(luna.generators)
+
+add_library(${PROJECT_NAME}
+    "ConstantGenerator.cpp"
+    "FlameGenerator.cpp"
+    "Noise.cpp"
+    "PlasmaGenerator.cpp"
+)
+
+target_include_directories(${PROJECT_NAME}
+    INTERFACE "include"
+    PRIVATE "include/luna"
+)
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC luna.core Eigen3::Eigen prism
+)

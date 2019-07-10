@@ -1,12 +1,12 @@
-#include "luna/esp32/IdleService.hpp"
+#include "IdleService.hpp"
 
-#include "luna/esp32/ConstantGenerator.hpp"
+#include <luna/ConstantGenerator.hpp>
 
 #include <esp_log.h>
 
 static char const TAG[] = "Idle";
 
-namespace luna::esp32
+namespace luna
 {
     void IdleService::takeOwnership(HardwareController * controller)
     {

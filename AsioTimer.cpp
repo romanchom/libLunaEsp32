@@ -1,8 +1,8 @@
-#include "luna/esp32/AsioTimer.hpp"
+#include "AsioTimer.hpp"
 
 #include <chrono>
 
-namespace luna::esp32
+namespace luna
 {
     AsioTimer::AsioTimer(asio::io_context * ioContext) :
         mTimer(*ioContext)

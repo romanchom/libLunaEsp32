@@ -1,6 +1,6 @@
 #pragma once
 
-#include "luna/esp32/Strand.hpp"
+#include <luna/Strand.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/ip/udp.hpp>
@@ -13,7 +13,7 @@
 
 struct udp_pcb;
 
-namespace luna::esp32 {
+namespace luna {
 
 class DiscoveryResponder
 {

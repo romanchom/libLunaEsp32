@@ -1,4 +1,4 @@
-#include "luna/esp32/RealtimeService.hpp"
+#include "RealtimeService.hpp"
 
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
@@ -10,7 +10,7 @@ char* if_indextoname(unsigned int , char* ) { return nullptr; }
 
 static char const TAG[] = "RT";
 
-namespace luna::esp32
+namespace luna
 {
     RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
         mController(nullptr),

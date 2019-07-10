@@ -1,8 +1,8 @@
-#include "luna/esp32/AsioUdpInputOutput.hpp"
+#include "AsioUdpInputOutput.hpp"
 
 #include <mbedtls/net_sockets.h>
 
-namespace luna::esp32
+namespace luna
 {
     AsioUdpInputOutput::AsioUdpInputOutput(asio::ip::udp::socket * socket) :
         mSocket(socket)
@@ -46,7 +46,7 @@ namespace luna::esp32
         } else if (error == asio::error::interrupted) {
             return MBEDTLS_ERR_SSL_WANT_WRITE;
         } else {
-            return MBEDTLS_ERR_NET_SEND_FAILED; 
+            return MBEDTLS_ERR_NET_SEND_FAILED;
         }
     }
 
@@ -62,7 +62,7 @@ namespace luna::esp32
         } else if (error == asio::error::interrupted || error == asio::error::would_block) {
             return MBEDTLS_ERR_SSL_WANT_READ;
         } else {
-            return MBEDTLS_ERR_NET_RECV_FAILED; 
+            return MBEDTLS_ERR_NET_RECV_FAILED;
         }
     }
 }

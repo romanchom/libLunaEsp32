@@ -1,12 +1,12 @@
-#include "luna/esp32/Updater.hpp"
+#include "Updater.hpp"
 
 #include <esp_log.h>
 
 static char const TAG[] = "OTA";
 
-namespace luna::esp32
+namespace luna
 {
-    Updater::Updater(asio::io_context & ioContext, tls::Configuration * tlsConfiguration) : 
+    Updater::Updater(asio::io_context & ioContext, tls::Configuration * tlsConfiguration) :
         mListeningSocket(ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
         mStreamSocket(ioContext),
         mIo(&mStreamSocket)
