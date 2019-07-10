@@ -29,6 +29,10 @@ namespace luna::esp32
             if (auto value = tryParse<float>(payload)) {
                 mGenerator.brightness(*value);
             }
+        } else if (property == "frequency") {
+            if (auto value = tryParse<float>(payload)) {
+                mGenerator.frequency(*value);
+            }
         }
     }
 }

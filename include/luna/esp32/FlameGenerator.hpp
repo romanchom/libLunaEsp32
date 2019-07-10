@@ -11,12 +11,13 @@ namespace luna::esp32
 
         prism::CieXYZ generate(float ratio) const noexcept final;
         void setup(Location const & location) final;
-        
+
         void time(float t) { mTime = t; }
         float time() const noexcept { return mTime; }
         void temperatureLow(float value) noexcept { mTemperatureLow = value; }
         void temperatureHigh(float value) noexcept { mTemperatureHigh = value; }
         void brightness(float value) noexcept { mBrightness = value; }
+        void frequency(float value) noexcept { mFrequency = value; }
 
     private:
         float mTime;
