@@ -8,9 +8,7 @@
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
-
+#include <mutex>
 #include <map>
 
 namespace luna
@@ -36,7 +34,7 @@ namespace luna
         MqttClient mMqtt;
         asio::steady_timer mTick;
         HardwareController * mController;
-        SemaphoreHandle_t mMutex;
+        std::mutex mMutex;
 
         std::string mName;
         std::map<std::string, MqttEffect *, std::less<>> mEffects;

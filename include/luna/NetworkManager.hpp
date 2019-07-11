@@ -8,62 +8,43 @@
 #include <mbedtls-cpp/StandardCookie.hpp>
 
 #include <luna/HardwareController.hpp>
+#include <luna/NetworkManagerConfiguration.hpp>
 
 #include <asio/io_context.hpp>
 
-#include <memory>
-#include <vector>
-
-namespace luna {
-
-class DiscoveryResponder;
-
-struct NetworkManagerConfiguration
+namespace luna
 {
-    std::string name;
-    std::string mqttAddress;
-    uint8_t const * ownKey;
-    size_t ownKeySize;
-    uint8_t const * ownCertificate;
-    size_t ownCertificateSize;
-    uint8_t const * caCertificate;
-    size_t caCertificateSize;
-};
+    struct DiscoveryResponder;
 
-class NetworkManager
-{
-public:
-    explicit NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller);
-    ~NetworkManager();
+    struct NetworkManager
+    {
+    public:
+        explicit NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller);
+        ~NetworkManager();
 
-    void enable();
-    void disable();
-private:
+        void enable();
+        void disable();
+    private:
+        static void daemonTask(void * context);
+        void run();
 
-    void startDaemon();
-    void stopDaemon();
+        HardwareController * mController;
 
-    static void daemonTask(void * context);
-    void run();
+        std::string mName;
+        std::string mMqttAddress;
 
-    HardwareController * mController;
+        tls::PrivateKey mOwnKey;
+        tls::Certificate::Pem mOwnCertificate;
+        tls::Certificate::Pem mCaCertificate;
+        tls::StandardEntropy mEntropy;
+        tls::CounterDeterministicRandomGenerator mRandom;
 
-    std::string mName;
-    std::string mMqttAddress;
+        tls::Configuration mUpdaterConfiguration;
 
-    tls::PrivateKey mOwnKey;
-    tls::Certificate::Pem mOwnCertificate;
-    tls::Certificate::Pem mCaCertificate;
-    tls::StandardEntropy mEntropy;
-    tls::CounterDeterministicRandomGenerator mRandom;
+        tls::StandardCookie mCookie;
+        tls::Configuration mRealtimeConfiguration;
 
-    tls::Configuration mUpdaterConfiguration;
-
-    tls::StandardCookie mCookie;
-    tls::Configuration mRealtimeConfiguration;
-
-    TaskHandle_t mTaskHandle;
-    asio::io_context * mIoService;
-};
-
+        TaskHandle_t mTaskHandle;
+        asio::io_context * mIoService;
+    };
 }

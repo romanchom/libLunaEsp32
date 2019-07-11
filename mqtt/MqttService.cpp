@@ -1,6 +1,5 @@
 #include "MqttService.hpp"
 
-// #include "InterpolatingGenerator.hpp"
 #include "Parse.hpp"
 
 #include <luna/HardwareController.hpp>
@@ -10,28 +9,9 @@
 
 #include <esp_log.h>
 
-#include <algorithm>
 #include <chrono>
 
 static char const TAG[] = "MqttSvc";
-
-namespace {
-    struct Lock
-    {
-        explicit Lock(SemaphoreHandle_t mutex) :
-            mMutex(mutex)
-        {
-            xSemaphoreTake(mMutex, portMAX_DELAY);
-        }
-
-        ~Lock()
-        {
-            xSemaphoreGive(mMutex);
-        }
-    private:
-        SemaphoreHandle_t const mMutex;
-    };
-}
 
 namespace luna
 {
@@ -39,9 +19,7 @@ namespace luna
         mMqtt(address),
         mTick(*ioContext),
         mController(nullptr),
-        mMutex(xSemaphoreCreateMutex()),
-        mName(name),
-        mActiveEffect(nullptr)
+        mName(name)
     {
     }
 
@@ -94,7 +72,7 @@ namespace luna
     void MqttService::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        Lock l(mMutex);
+        auto l = std::lock_guard(mMutex);
         mTick.cancel();
         mController = nullptr;
     }
@@ -113,41 +91,18 @@ namespace luna
 
     void MqttService::update()
     {
-        Lock l(mMutex);
+        auto l = std::lock_guard(mMutex);
 
         if (!mController) {
             return;
         }
 
-        // bool const isTransitionInProgress = (mActiveEffects[0] != mActiveEffects[1]);
-        // bool const isTransitionInPending = (mActiveEffects[1] != mActiveEffects[2]);
-
-        // if (isTransitionInProgress) {
-        //     mEffectTransitionRatio += 0.02f;
-        // }
-
-        // if (mEffectTransitionRatio >= 1.0f || (isTransitionInPending && !isTransitionInProgress)) {
-        //     mEffectTransitionRatio = 0.0f;
-        //     mActiveEffects[0] = mActiveEffects[1];
-        //     mActiveEffects[1] = mActiveEffects[2];
-
-        //     serviceEnabled(mActiveEffects[0] != &mOffEffect);
-        // }
-
-        // if (mEffectTransitionRatio > 0.0f) {
-        //     InterpolatingGenerator gen(mActiveEffects[0]->generator(), mActiveEffects[1]->generator(), mEffectTransitionRatio);
-
-        //     for (auto strand : mController->strands()) {
-        //         strand->fill(&gen);
-        //     }
-        // } else {
         mActiveEffect->update(0.02f);
         auto gen = mActiveEffect->generator();
 
         for (auto strand : mController->strands()) {
             strand->fill(gen);
         }
-        // }
 
         mController->update();
     }
