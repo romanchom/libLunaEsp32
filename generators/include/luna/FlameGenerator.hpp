@@ -13,8 +13,8 @@ namespace luna
         explicit FlameGenerator();
 
         prism::CieXYZ generate(float ratio) const noexcept final;
-        void setup(Location const & location) final;
 
+        void location(Location const & location);
         void time(float t) { mTime = t; }
         float time() const noexcept { return mTime; }
         void temperatureLow(float value) noexcept { mTemperatureLow = value; }

@@ -23,7 +23,7 @@ namespace luna
         return ret;
     }
 
-    void PlasmaGenerator::setup(Location const & location)
+    void PlasmaGenerator::location(Location const & location)
     {
         mDiff = (location.end - location.begin) * mFrequency;
         mBegin = location.begin;

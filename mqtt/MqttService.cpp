@@ -20,21 +20,20 @@ namespace luna
         mTick(*ioContext),
         mController(nullptr),
         mName(name)
-    {
-    }
+    {}
 
     void MqttService::addEffect(std::string name, MqttEffect * effect)
     {
         mEffects.try_emplace(std::move(name), effect);
         if (mEffects.size() == 1) {
-            mActiveEffect = effect;
+            mEffectMixer.switchTo(effect);
         }
     }
 
     void MqttService::switchTo(std::string_view effectName)
     {
         if (auto it = mEffects.find(effectName); it != mEffects.end()) {
-            mActiveEffect = it->second;
+            mEffectMixer.switchTo(it->second);
         }
     }
 
@@ -97,10 +96,10 @@ namespace luna
             return;
         }
 
-        mActiveEffect->update(0.02f);
-        auto gen = mActiveEffect->generator();
+        mEffectMixer.update(0.02f);
 
         for (auto strand : mController->strands()) {
+            auto gen = mEffectMixer.generator(strand->location());
             strand->fill(gen);
         }
 

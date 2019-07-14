@@ -6,26 +6,17 @@ namespace luna
 {
     struct InterpolatingGenerator : Generator
     {
-        InterpolatingGenerator(Generator * first, Generator * second, float ratio) :
-            mFirst(first),
-            mSecond(second),
-            mRatio(ratio)
-        {}
+        explicit InterpolatingGenerator();
 
-        prism::CieXYZ generate(float ratio) const noexcept final
-        {
-            return mFirst->generate(ratio) * (1 - mRatio) + mSecond->generate(ratio) * mRatio;
-        }
+        void first(Generator * generator, float ratio);
+        void second(Generator * generator, float ratio);
 
-        void setup(Location const & location) final
-        {
-            mFirst->setup(location);
-            mSecond->setup(location);
-        }
+        prism::CieXYZ generate(float ratio) const noexcept final;
 
     protected:
         Generator * mFirst;
+        float mFirstRatio;
         Generator * mSecond;
-        float mRatio;
+        float mSecondRatio;
     };
 }

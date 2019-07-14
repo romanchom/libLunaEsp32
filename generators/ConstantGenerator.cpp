@@ -19,7 +19,4 @@ namespace luna
             mColor /= maximum;
         }
     }
-
-    void ConstantGenerator::setup(Location const & location)
-    {}
 }

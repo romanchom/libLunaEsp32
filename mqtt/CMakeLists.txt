@@ -2,6 +2,7 @@ project(luna.mqtt)
 
 add_library(${PROJECT_NAME}
     "ConstantMqttEffect.cpp"
+    "EffectMixer.cpp"
     "FlameMqttEffect.cpp"
     "MqttClient.cpp"
     "MqttService.cpp"

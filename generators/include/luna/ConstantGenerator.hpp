@@ -10,7 +10,6 @@ namespace luna
         prism::CieXYZ generate(float ratio) const noexcept final;
 
         void color(prism::CieXYZ const & value);
-        void setup(Location const & location) final;
 
     private:
         prism::CieXYZ mColor;

@@ -2,6 +2,7 @@
 
 #include "MqttClient.hpp"
 #include "MqttEffect.hpp"
+#include "EffectMixer.hpp"
 
 #include <luna/Service.hpp>
 
@@ -38,6 +39,6 @@ namespace luna
 
         std::string mName;
         std::map<std::string, MqttEffect *, std::less<>> mEffects;
-        MqttEffect * mActiveEffect;
+        EffectMixer mEffectMixer;
     };
 }

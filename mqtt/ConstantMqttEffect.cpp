@@ -16,7 +16,7 @@ namespace luna
         mGenerator.color(mCurrentColor);
     }
 
-    Generator * ConstantMqttEffect::generator()
+    Generator * ConstantMqttEffect::generator(Location const & location)
     {
         return &mGenerator;
     };

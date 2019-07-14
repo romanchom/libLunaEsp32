@@ -39,22 +39,20 @@ namespace luna {
     {
         using RGB = Eigen::Matrix<prism::ColorScalar, 3, 1>;
 
-        generator->prepare(location(), [this](Generator * generator){
-            auto destination = reinterpret_cast<Eigen::Matrix<uint8_t, 3, 1> *>(mDriver->data() + mOffset * 3);
-            float const step = 1.0f / float(pixelCount() - 1);
-            float constexpr maxError = 255.0f * 3;
+        auto destination = reinterpret_cast<Eigen::Matrix<uint8_t, 3, 1> *>(mDriver->data() + mOffset * 3);
+        float const step = 1.0f / float(pixelCount() - 1);
+        float constexpr maxError = 255.0f * 3;
 
-            for (size_t i = 0; i < pixelCount(); ++i) {
-                auto color = generator->generate(i * step);
+        for (size_t i = 0; i < pixelCount(); ++i) {
+            auto color = generator->generate(i * step);
 
-                RGB corrected = mCieToRgbMatrix * color.head<3>() + mError;
-                RGB rounded = corrected.array().round().max(0).min(255);
+            RGB corrected = mCieToRgbMatrix * color.head<3>() + mError;
+            RGB rounded = corrected.array().round().max(0).min(255);
 
-                mError = (corrected - rounded).cwiseMin(maxError).cwiseMax(-maxError);
+            mError = (corrected - rounded).cwiseMin(maxError).cwiseMax(-maxError);
 
-                destination[i] = rounded.cast<uint8_t>();
-            }
-        });
+            destination[i] = rounded.cast<uint8_t>();
+        }
     }
 
     StrandWS2811::StrandWS2811(Location const & location, WS281xDriver * driver, size_t size, size_t offset) :

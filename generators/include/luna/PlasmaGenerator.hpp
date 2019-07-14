@@ -12,8 +12,8 @@ namespace luna
     {
         explicit PlasmaGenerator();
         prism::CieXYZ generate(float ratio) const noexcept final;
-        void setup(Location const & location) final;
 
+        void location(Location const & location);
         void time(float t) { mTime = t; }
         float time() const noexcept { return mTime; }
         void saturation(float value) { mSaturation = value; }
