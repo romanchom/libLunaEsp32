@@ -9,8 +9,9 @@ namespace luna
         mGenerator.time(mGenerator.time() + timeStep);
     }
 
-    Generator * FlameMqttEffect::generator()
+    Generator * FlameMqttEffect::generator(Location const & location)
     {
+        mGenerator.location(location);
         return &mGenerator;
     };
 

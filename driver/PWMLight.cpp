@@ -40,10 +40,8 @@ namespace luna
 
     void PWMLight::fill(Generator * generator)
     {
-        generator->prepare(location(), [this](Generator * generator){
-            auto cie = generator->generate(0.5f);
-            set(cie[3]);
-        });
+        auto cie = generator->generate(0.5f);
+        set(cie[3]);
     }
 
     void PWMLight::set(float duty)

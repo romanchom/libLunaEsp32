@@ -27,7 +27,7 @@ namespace luna
         return color;
     }
 
-    void FlameGenerator::setup(Location const & location)
+    void FlameGenerator::location(Location const & location)
     {
         mDiff = (location.end - location.begin) * mFrequency;
         mIsHorizontal = (std::abs(mDiff.y()) < 0.5f);

@@ -3,6 +3,7 @@ project(luna.generators)
 add_library(${PROJECT_NAME}
     "ConstantGenerator.cpp"
     "FlameGenerator.cpp"
+    "InterpolatingGenerator.cpp"
     "Noise.cpp"
     "PlasmaGenerator.cpp"
 )
