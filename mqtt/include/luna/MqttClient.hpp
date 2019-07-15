@@ -2,6 +2,8 @@
 
 #include "MqttTopic.hpp"
 
+#include <luna/NetworkManagerConfiguration.hpp>
+
 #include <mqtt_client.h>
 
 #include <map>
@@ -13,7 +15,7 @@ namespace luna
     struct MqttClient
     {
         using Callback = std::function<void(MqttTopic const & topic, std::string_view)>;
-        explicit MqttClient(std::string const & broker);
+        explicit MqttClient(NetworkManagerConfiguration const & configuration);
         void subscribe(std::string const & topic, Callback callback);
         void connect();
     private:

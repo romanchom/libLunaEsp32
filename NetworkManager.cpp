@@ -21,15 +21,14 @@ namespace luna
 {
     NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
         mController(controller),
-        mName(configuration.name),
-        mMqttAddress(configuration.mqttAddress),
+        mConfiguration(configuration),
         mOwnKey(configuration.ownKey, configuration.ownKeySize),
         mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
         mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
         mTaskHandle(0),
         mIoService(nullptr)
     {
-        mRandom.seed(&mEntropy, mName.data(), mName.size());
+        mRandom.seed(&mEntropy, mConfiguration.name.data(), mConfiguration.name.size());
 
         mCookie.setup(&mRandom);
 
@@ -77,13 +76,13 @@ namespace luna
 
                 Updater updater(ioContext, &mUpdaterConfiguration);
                 RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
-                DiscoveryResponder discoveryResponder(ioContext, realtime.port(), mName, mController->strands());
+                DiscoveryResponder discoveryResponder(ioContext, realtime.port(), mConfiguration.name, mController->strands());
 
                 IdleService idle;
                 ConstantMqttEffect lightEffect;
                 FlameMqttEffect flameEffect;
                 PlasmaMqttEffect plasmaEffect;
-                MqttService mqtt(&ioContext, mMqttAddress, mName);
+                MqttService mqtt(&ioContext, mConfiguration);
                 mqtt.addEffect("light", &lightEffect);
                 mqtt.addEffect("flame", &flameEffect);
                 mqtt.addEffect("plasma", &plasmaEffect);

@@ -4,10 +4,13 @@
 
 namespace luna
 {
-    MqttClient::MqttClient(std::string const & broker)
+    MqttClient::MqttClient(NetworkManagerConfiguration const & configuration)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
-            .uri = broker.c_str(),
+            .uri = configuration.mqttAddress.c_str(),
+            .cert_pem = reinterpret_cast<char const *>(configuration.caCertificate),
+            .client_cert_pem = reinterpret_cast<char const *>(configuration.ownCertificate),
+            .client_key_pem = reinterpret_cast<char const *>(configuration.ownKey),
         };
 
         mMqttHandle = esp_mqtt_client_init(&mqtt_cfg);

@@ -15,11 +15,11 @@ static char const TAG[] = "MqttSvc";
 
 namespace luna
 {
-    MqttService::MqttService(asio::io_context * ioContext, std::string const & address, std::string name) :
-        mMqtt(address),
+    MqttService::MqttService(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration) :
+        mMqtt(configuration),
         mTick(*ioContext),
         mController(nullptr),
-        mName(name)
+        mName(configuration.name)
     {}
 
     void MqttService::addEffect(std::string name, MqttEffect * effect)

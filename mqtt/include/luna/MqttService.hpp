@@ -5,6 +5,7 @@
 #include "EffectMixer.hpp"
 
 #include <luna/Service.hpp>
+#include <luna/NetworkManagerConfiguration.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
@@ -18,7 +19,7 @@ namespace luna
 
     struct MqttService : Service
     {
-        explicit MqttService(asio::io_context * ioContext, std::string const & address, std::string name);
+        explicit MqttService(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
 
         void addEffect(std::string name, MqttEffect * effect);
 

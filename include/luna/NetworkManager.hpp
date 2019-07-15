@@ -30,8 +30,7 @@ namespace luna
 
         HardwareController * mController;
 
-        std::string mName;
-        std::string mMqttAddress;
+        NetworkManagerConfiguration mConfiguration;
 
         tls::PrivateKey mOwnKey;
         tls::Certificate::Pem mOwnCertificate;
