@@ -4,6 +4,8 @@
 
 #include <luna/InterpolatingGenerator.hpp>
 
+#include <deque>
+
 namespace luna
 {
     struct EffectMixer : MqttEffect
@@ -17,9 +19,7 @@ namespace luna
         void switchTo(MqttEffect * effect);
 
     private:
-        MqttEffect * mPrimary;
-        MqttEffect * mSecondary;
-        MqttEffect * mQueue;
+        std::deque<MqttEffect *> mEffects;
 
         float mTransitionProgress;
 

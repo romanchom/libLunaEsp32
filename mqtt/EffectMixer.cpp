@@ -1,28 +1,23 @@
 #include "EffectMixer.hpp"
-
+#include <iostream>
 namespace luna
 {
     EffectMixer::EffectMixer() :
-        mPrimary(nullptr),
-        mSecondary(nullptr),
-        mQueue(nullptr),
         mTransitionProgress(0.0f)
     {}
 
     void EffectMixer::update(float timeStep)
     {
-        mPrimary->update(timeStep);
-        if (mSecondary) {
-            mSecondary->update(timeStep);
+        mEffects[0]->update(timeStep);
+        if (mEffects.size() >= 2) {
+            mEffects[1]->update(timeStep);
 
             mTransitionProgress += timeStep;
             if (mTransitionProgress >= 1.0f) {
-                mPrimary = mSecondary;
-                mSecondary = mQueue;
-                mQueue = nullptr;
+                mEffects.pop_front();
                 mTransitionProgress -= 1.0f;
 
-                if (!mSecondary) {
+                if (mEffects.size() == 1) {
                     mTransitionProgress = 0.0f;
                     // transition ended
                 }
@@ -32,23 +27,21 @@ namespace luna
 
     Generator * EffectMixer::generator(Location const & location)
     {
-        if (mSecondary) {
-            mGenerator.first(mPrimary->generator(location), 1.0f - mTransitionProgress);
-            mGenerator.second(mSecondary->generator(location), mTransitionProgress);
+        if (mEffects.size() >= 2) {
+            mGenerator.first(mEffects[0]->generator(location), 1.0f - mTransitionProgress);
+            mGenerator.second(mEffects[1]->generator(location), mTransitionProgress);
             return &mGenerator;
         } else {
-            return mPrimary->generator(location);
+            return mEffects.front()->generator(location);
         }
     }
 
     void EffectMixer::switchTo(MqttEffect * effect)
     {
-        if (!mPrimary) {
-            mPrimary = effect;
-        } else if (!mSecondary && mPrimary != effect) {
-            mSecondary = effect;
-        } else if (mSecondary != effect) {
-            mQueue = effect;
+        if (mEffects.size() >= 3) {
+            mEffects.back() = effect;
+        } else if ((mEffects.size() >= 1 && mEffects.back() != effect) || mEffects.size() == 0) {
+            mEffects.emplace_back(effect);
         }
     }
 }
