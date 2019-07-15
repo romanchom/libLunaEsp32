@@ -62,7 +62,7 @@ namespace luna {
     prism::RGBColorSpace StrandWS2811::colorSpace() const noexcept
     {
         return {
-            { 0.28623f, 0.27455f },
+            { 0.24623f, 0.27455f },
             { 0.13450f, 0.04598f },
             { 0.68934f, 0.31051f },
             { 0.13173f, 0.77457f },
