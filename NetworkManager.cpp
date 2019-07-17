@@ -74,18 +74,15 @@ namespace luna
                 asio::io_context ioContext;
                 mIoService = &ioContext;
 
-                Updater updater(ioContext, &mUpdaterConfiguration);
+                Updater updater(&ioContext, &mUpdaterConfiguration);
                 RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
-                DiscoveryResponder discoveryResponder(ioContext, realtime.port(), mConfiguration.name, mController->strands());
+                DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), mConfiguration.name, mController->strands());
 
                 IdleService idle;
-                ConstantMqttEffect lightEffect;
-                FlameMqttEffect flameEffect;
-                PlasmaMqttEffect plasmaEffect;
                 MqttService mqtt(&ioContext, mConfiguration);
-                mqtt.addEffect("light", &lightEffect);
-                mqtt.addEffect("flame", &flameEffect);
-                mqtt.addEffect("plasma", &plasmaEffect);
+                ConstantMqttEffect lightEffect(&mqtt, "light");
+                FlameMqttEffect flameEffect(&mqtt, "flame");
+                PlasmaMqttEffect plasmaEffect(&mqtt, "plasma");
 
                 ServiceManager serviceManager(mController);
                 serviceManager.manage(&realtime, 10);

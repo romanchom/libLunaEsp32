@@ -4,7 +4,8 @@
 
 namespace luna
 {
-    ConstantMqttEffect::ConstantMqttEffect() :
+    ConstantMqttEffect::ConstantMqttEffect(MqttService * owner, std::string const & name) :
+        MqttEffect(owner, name),
         mCurrentColor(prism::CieXYZ::Zero()),
         mTargetColor(prism::CieXYZ::Zero()),
         mConverter(prism::rgbToXyzTransformationMatrix(prism::rec2020()))

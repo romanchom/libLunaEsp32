@@ -1,5 +1,5 @@
 #include "EffectMixer.hpp"
-#include <iostream>
+
 namespace luna
 {
     EffectMixer::EffectMixer() :
@@ -43,5 +43,10 @@ namespace luna
         } else if ((mEffects.size() >= 1 && mEffects.back() != effect) || mEffects.size() == 0) {
             mEffects.emplace_back(effect);
         }
+    }
+
+    void EffectMixer::configure(MqttTopic const & topic, std::string_view payload)
+    {
+
     }
 }

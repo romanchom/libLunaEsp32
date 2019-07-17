@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MqttEffect.hpp"
+#include "MqttConfigurable.hpp"
 
 #include <luna/InterpolatingGenerator.hpp>
 
@@ -8,14 +9,14 @@
 
 namespace luna
 {
-    struct EffectMixer : MqttEffect
+    struct EffectMixer : MqttConfigurable
     {
         explicit EffectMixer();
 
-        void update(float timeStep) final;
-        Generator * generator(Location const & location) final;
-        void configure(MqttTopic const & topic, std::string_view payload) final {};
+        void configure(MqttTopic const & topic, std::string_view payload) final;
 
+        void update(float timeStep);
+        Generator * generator(Location const & location);
         void switchTo(MqttEffect * effect);
 
     private:

@@ -1,16 +1,20 @@
 #pragma once
 
-#include "MqttTopic.hpp"
+#include "MqttConfigurable.hpp"
 
 #include <luna/Generator.hpp>
 
+#include <string>
+
 namespace luna
 {
-    struct MqttEffect
+    struct MqttService;
+
+    struct MqttEffect : MqttConfigurable
     {
+        explicit MqttEffect(MqttService * owner, std::string const & name);
         virtual void update(float timeStep) = 0;
         virtual Generator * generator(Location const & location) = 0;
-        virtual void configure(MqttTopic const & topic, std::string_view payload) = 0;
     protected:
         ~MqttEffect() = default;
     };

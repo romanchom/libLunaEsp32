@@ -57,6 +57,10 @@ namespace luna
             });
         }
 
+        mMqtt.subscribe(mName + "/config/#", [this](MqttTopic const & topic, std::string_view payload) {
+            mEffectMixer.configure(topic, payload);
+        });
+
         mMqtt.connect();
     }
 

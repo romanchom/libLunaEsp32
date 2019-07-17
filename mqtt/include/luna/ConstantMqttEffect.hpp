@@ -10,7 +10,7 @@ namespace luna
 {
     struct ConstantMqttEffect : MqttEffect
     {
-        explicit ConstantMqttEffect();
+        explicit ConstantMqttEffect(MqttService * owner, std::string const & name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
         void configure(MqttTopic const & topic, std::string_view payload) final;
