@@ -1,28 +1,28 @@
-#include "ConstantMqttEffect.hpp"
+#include "ConstantEffect.hpp"
 
 #include "Parse.hpp"
 
-namespace luna
+namespace luna::mqtt
 {
-    ConstantMqttEffect::ConstantMqttEffect(MqttService * owner, std::string const & name) :
-        MqttEffect(owner, name),
+    ConstantEffect::ConstantEffect(Service * owner, std::string const & name) :
+        Effect(owner, name),
         mCurrentColor(prism::CieXYZ::Zero()),
         mTargetColor(prism::CieXYZ::Zero()),
         mConverter(prism::rgbToXyzTransformationMatrix(prism::rec2020()))
     {}
 
-    void ConstantMqttEffect::update(float timeStep)
+    void ConstantEffect::update(float timeStep)
     {
         mCurrentColor = mCurrentColor * 0.98f + mTargetColor * 0.02f;
         mGenerator.color(mCurrentColor);
     }
 
-    Generator * ConstantMqttEffect::generator(Location const & location)
+    Generator * ConstantEffect::generator(Location const & location)
     {
         return &mGenerator;
     };
 
-    void ConstantMqttEffect::configure(MqttTopic const & topic, std::string_view payload)
+    void ConstantEffect::configure(Topic const & topic, std::string_view payload)
     {
         auto & property = topic[3].str();
         if (property == "color") {

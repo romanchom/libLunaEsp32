@@ -1,18 +1,18 @@
 project(luna.mqtt)
 
 add_library(${PROJECT_NAME}
-    "MqttClient.cpp"
-    "MqttEffect.cpp"
-    "MqttService.cpp"
+    "Client.cpp"
+    "Effect.cpp"
+    "Service.cpp"
     "EffectMixer.cpp"
-    "ConstantMqttEffect.cpp"
-    "FlameMqttEffect.cpp"
-    "PlasmaMqttEffect.cpp"
+    "ConstantEffect.cpp"
+    "FlameEffect.cpp"
+    "PlasmaEffect.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}
     INTERFACE "include"
-    PRIVATE "include/luna"
+    PRIVATE "include/luna/mqtt"
 )
 
 target_link_libraries(${PROJECT_NAME}

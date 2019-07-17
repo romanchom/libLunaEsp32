@@ -4,11 +4,11 @@
 #include <vector>
 #include <iostream>
 
-namespace luna
+namespace luna::mqtt
 {
-    struct MqttLevel
+    struct Level
     {
-        explicit MqttLevel(std::string level) :
+        explicit Level(std::string level) :
             mLevel(std::move(level))
         {}
 
@@ -22,7 +22,7 @@ namespace luna
             return mLevel[0] == '#';
         }
 
-        bool operator==(MqttLevel const & other) const noexcept
+        bool operator==(Level const & other) const noexcept
         {
             if (singleLevelWildcard() || other.singleLevelWildcard()) {
                 return true;
@@ -30,7 +30,7 @@ namespace luna
             return mLevel == other.mLevel;
         }
 
-        bool operator<(MqttLevel const & other) const noexcept
+        bool operator<(Level const & other) const noexcept
         {
             return mLevel < other.mLevel;
         }
@@ -43,15 +43,15 @@ namespace luna
         std::string mLevel;
     };
 
-    struct MqttTopic
+    struct Topic
     {
-        MqttTopic(MqttTopic && other) = default;
-        MqttTopic(MqttTopic const &) = delete;
+        Topic(Topic && other) = default;
+        Topic(Topic const &) = delete;
 
-        MqttTopic & operator=(MqttTopic &&) = default;
-        void operator=(MqttTopic const &) = delete;
+        Topic & operator=(Topic &&) = default;
+        void operator=(Topic const &) = delete;
 
-        MqttTopic(std::string const & topic)
+        Topic(std::string const & topic)
         {
             size_t begin = 0;
             for (size_t i = 0; i < topic.size(); ++i) {
@@ -74,12 +74,12 @@ namespace luna
             return ret;
         }
 
-        MqttLevel const & operator[](size_t index) const noexcept
+        Level const & operator[](size_t index) const noexcept
         {
             return mLevels[index];
         }
 
-        bool operator<(MqttTopic const & other) const noexcept
+        bool operator<(Topic const & other) const noexcept
         {
             int level = 0;
             for (;;) {
@@ -102,11 +102,11 @@ namespace luna
             }
         }
 
-        bool operator==(MqttTopic const & other) const noexcept
+        bool operator==(Topic const & other) const noexcept
         {
             return !(*this < other) && !(other < *this); // TODO optimize
         }
     private:
-        std::vector<MqttLevel> mLevels;
+        std::vector<Level> mLevels;
     };
 }

@@ -1,10 +1,10 @@
-#include "MqttClient.hpp"
+#include "Client.hpp"
 
 #include <iostream>
 
-namespace luna
+namespace luna::mqtt
 {
-    MqttClient::MqttClient(NetworkManagerConfiguration const & configuration)
+    Client::Client(NetworkManagerConfiguration const & configuration)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
             .uri = configuration.mqttAddress.c_str(),
@@ -13,37 +13,37 @@ namespace luna
             .client_key_pem = reinterpret_cast<char const *>(configuration.ownKey),
         };
 
-        mMqttHandle = esp_mqtt_client_init(&mqtt_cfg);
-        esp_mqtt_client_register_event(mMqttHandle, (esp_mqtt_event_id_t) ESP_EVENT_ANY_ID, &MqttClient::handler, this);
+        mHandle = esp_mqtt_client_init(&mqtt_cfg);
+        esp_mqtt_client_register_event(mHandle, (esp_mqtt_event_id_t) ESP_EVENT_ANY_ID, &Client::handler, this);
     }
 
-    void MqttClient::subscribe(std::string const & topic, Callback callback)
+    void Client::subscribe(std::string const & topic, Callback callback)
     {
-        mSubscriptions[MqttTopic(topic)] = std::move(callback);
+        mSubscriptions[Topic(topic)] = std::move(callback);
     }
 
-    void MqttClient::connect()
+    void Client::connect()
     {
-        esp_mqtt_client_start(mMqttHandle);
+        esp_mqtt_client_start(mHandle);
     }
 
-    void MqttClient::handler(void * context, esp_event_base_t base, int32_t eventId, void * eventData)
+    void Client::handler(void * context, esp_event_base_t base, int32_t eventId, void * eventData)
     {
-        static_cast<MqttClient *>(context)->handle(static_cast<esp_mqtt_event_handle_t>(eventData));
+        static_cast<Client *>(context)->handle(static_cast<esp_mqtt_event_handle_t>(eventData));
     }
 
-    void MqttClient::handle(esp_mqtt_event_handle_t event)
+    void Client::handle(esp_mqtt_event_handle_t event)
     {
         switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
             for (auto & [topic, callback] : mSubscriptions) {
-                esp_mqtt_client_subscribe(mMqttHandle, topic.str().c_str(), 0);
+                esp_mqtt_client_subscribe(mHandle, topic.str().c_str(), 0);
             }
             break;
         case MQTT_EVENT_DATA:
             {
                 std::string topic(static_cast<char const *>(event->topic), event->topic_len);
-                MqttTopic mqttTopic(topic);
+                Topic mqttTopic(topic);
 
                 if (auto subscription = mSubscriptions.find(mqttTopic); subscription != mSubscriptions.end()) {
                     std::string_view text(static_cast<char const *>(event->data), event->data_len);

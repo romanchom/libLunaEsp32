@@ -6,10 +6,11 @@
 #include "RealtimeService.hpp"
 
 #include <luna/ServiceManager.hpp>
-#include <luna/MqttService.hpp>
-#include <luna/FlameMqttEffect.hpp>
-#include <luna/ConstantMqttEffect.hpp>
-#include <luna/PlasmaMqttEffect.hpp>
+
+#include <luna/mqtt/Service.hpp>
+#include <luna/mqtt/FlameEffect.hpp>
+#include <luna/mqtt/ConstantEffect.hpp>
+#include <luna/mqtt/PlasmaEffect.hpp>
 
 #include <esp_log.h>
 
@@ -79,10 +80,10 @@ namespace luna
                 DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), mConfiguration.name, mController->strands());
 
                 IdleService idle;
-                MqttService mqtt(&ioContext, mConfiguration);
-                ConstantMqttEffect lightEffect(&mqtt, "light");
-                FlameMqttEffect flameEffect(&mqtt, "flame");
-                PlasmaMqttEffect plasmaEffect(&mqtt, "plasma");
+                mqtt::Service mqtt(&ioContext, mConfiguration);
+                mqtt::ConstantEffect lightEffect(&mqtt, "light");
+                mqtt::FlameEffect flameEffect(&mqtt, "flame");
+                mqtt::PlasmaEffect plasmaEffect(&mqtt, "plasma");
 
                 ServiceManager serviceManager(mController);
                 serviceManager.manage(&realtime, 10);

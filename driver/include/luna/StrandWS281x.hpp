@@ -20,7 +20,6 @@ namespace luna {
         size_t mSize;
         size_t mOffset;
         Eigen::Matrix<prism::ColorScalar, 3, 3> mCieToRgbMatrix;
-        Eigen::Matrix<prism::ColorScalar, 3, 1> mError;
     };
 
     struct StrandWS2811 : StrandWS281x

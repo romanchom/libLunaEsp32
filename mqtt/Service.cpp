@@ -1,4 +1,4 @@
-#include "MqttService.hpp"
+#include "Service.hpp"
 
 #include "Parse.hpp"
 
@@ -11,18 +11,18 @@
 
 #include <chrono>
 
-static char const TAG[] = "MqttSvc";
+static char const TAG[] = "Svc";
 
-namespace luna
+namespace luna::mqtt
 {
-    MqttService::MqttService(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration) :
-        mMqtt(configuration),
+    Service::Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration) :
+        m(configuration),
         mTick(*ioContext),
         mController(nullptr),
         mName(configuration.name)
     {}
 
-    void MqttService::addEffect(std::string name, MqttEffect * effect)
+    void Service::addEffect(std::string name, Effect * effect)
     {
         mEffects.try_emplace(std::move(name), effect);
         if (mEffects.size() == 1) {
@@ -30,16 +30,16 @@ namespace luna
         }
     }
 
-    void MqttService::switchTo(std::string_view effectName)
+    void Service::switchTo(std::string_view effectName)
     {
         if (auto it = mEffects.find(effectName); it != mEffects.end()) {
             mEffectMixer.switchTo(it->second);
         }
     }
 
-    void MqttService::start()
+    void Service::start()
     {
-        mMqtt.subscribe(mName + "/enabled", [this](MqttTopic const & topic, std::string_view payload) {
+        m.subscribe(mName + "/enabled", [this](Topic const & topic, std::string_view payload) {
             if (auto value = tryParse<int>(payload)) {
                 bool enabled = (*value > 0);
                 serviceEnabled(enabled);
@@ -47,24 +47,24 @@ namespace luna
             }
         });
 
-        mMqtt.subscribe(mName + "/effect", [this](MqttTopic const & topic, std::string_view payload) {
+        m.subscribe(mName + "/effect", [this](Topic const & topic, std::string_view payload) {
             switchTo(payload);
         });
 
         for (auto & [effectName, effect] : mEffects) {
-            mMqtt.subscribe(mName + "/effects/" + effectName + "/#", [effect](MqttTopic const & topic, std::string_view payload) {
+            m.subscribe(mName + "/effects/" + effectName + "/#", [effect](Topic const & topic, std::string_view payload) {
                 effect->configure(topic, payload);
             });
         }
 
-        mMqtt.subscribe(mName + "/config/#", [this](MqttTopic const & topic, std::string_view payload) {
+        m.subscribe(mName + "/config/#", [this](Topic const & topic, std::string_view payload) {
             mEffectMixer.configure(topic, payload);
         });
 
-        mMqtt.connect();
+        m.connect();
     }
 
-    void MqttService::takeOwnership(HardwareController * controller)
+    void Service::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "Enabled");
         mController = controller;
@@ -72,7 +72,7 @@ namespace luna
         startTick();
     }
 
-    void MqttService::releaseOwnership()
+    void Service::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
         auto l = std::lock_guard(mMutex);
@@ -80,7 +80,7 @@ namespace luna
         mController = nullptr;
     }
 
-    void MqttService::startTick()
+    void Service::startTick()
     {
         mTick.expires_after(std::chrono::milliseconds(20));
         update();
@@ -92,7 +92,7 @@ namespace luna
         });
     }
 
-    void MqttService::update()
+    void Service::update()
     {
         auto l = std::lock_guard(mMutex);
 

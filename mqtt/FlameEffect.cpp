@@ -1,21 +1,21 @@
-#include "FlameMqttEffect.hpp"
+#include "FlameEffect.hpp"
 
 #include "Parse.hpp"
 
-namespace luna
+namespace luna::mqtt
 {
-    void FlameMqttEffect::update(float timeStep)
+    void FlameEffect::update(float timeStep)
     {
         mGenerator.time(mGenerator.time() + timeStep);
     }
 
-    Generator * FlameMqttEffect::generator(Location const & location)
+    Generator * FlameEffect::generator(Location const & location)
     {
         mGenerator.location(location);
         return &mGenerator;
     };
 
-    void FlameMqttEffect::configure(MqttTopic const & topic, std::string_view payload)
+    void FlameEffect::configure(Topic const & topic, std::string_view payload)
     {
         auto & property = topic[3].str();
         if (property == "temperatureLow") {

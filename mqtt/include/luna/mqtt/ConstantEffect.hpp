@@ -1,19 +1,19 @@
 #pragma once
 
-#include "MqttEffect.hpp"
+#include "Effect.hpp"
 
 #include <luna/ConstantGenerator.hpp>
 
 #include <prism/Prism.hpp>
 
-namespace luna
+namespace luna::mqtt
 {
-    struct ConstantMqttEffect : MqttEffect
+    struct ConstantEffect : Effect
     {
-        explicit ConstantMqttEffect(MqttService * owner, std::string const & name);
+        explicit ConstantEffect(Service * owner, std::string const & name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
-        void configure(MqttTopic const & topic, std::string_view payload) final;
+        void configure(Topic const & topic, std::string_view payload) final;
 
     private:
         ConstantGenerator mGenerator;

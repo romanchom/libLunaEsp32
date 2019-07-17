@@ -1,21 +1,21 @@
-#include "PlasmaMqttEffect.hpp"
+#include "PlasmaEffect.hpp"
 
 #include "Parse.hpp"
 
-namespace luna
+namespace luna::mqtt
 {
-    void PlasmaMqttEffect::update(float timeStep)
+    void PlasmaEffect::update(float timeStep)
     {
         mGenerator.time(mGenerator.time() + timeStep);
     }
 
-    Generator * PlasmaMqttEffect::generator(Location const & location)
+    Generator * PlasmaEffect::generator(Location const & location)
     {
         mGenerator.location(location);
         return &mGenerator;
     };
 
-    void PlasmaMqttEffect::configure(MqttTopic const & topic, std::string_view payload)
+    void PlasmaEffect::configure(Topic const & topic, std::string_view payload)
     {
         auto & property = topic[3].str();
         if (property == "saturation") {

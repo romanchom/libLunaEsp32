@@ -1,6 +1,6 @@
 #include "EffectMixer.hpp"
 
-namespace luna
+namespace luna::mqtt
 {
     EffectMixer::EffectMixer() :
         mTransitionProgress(0.0f)
@@ -36,7 +36,7 @@ namespace luna
         }
     }
 
-    void EffectMixer::switchTo(MqttEffect * effect)
+    void EffectMixer::switchTo(Effect * effect)
     {
         if (mEffects.size() >= 3) {
             mEffects.back() = effect;
@@ -45,7 +45,7 @@ namespace luna
         }
     }
 
-    void EffectMixer::configure(MqttTopic const & topic, std::string_view payload)
+    void EffectMixer::configure(Topic const & topic, std::string_view payload)
     {
 
     }

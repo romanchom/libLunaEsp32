@@ -12,8 +12,7 @@ namespace luna {
         mDriver(driver),
         mSize(size),
         mOffset(offset),
-        mCieToRgbMatrix(prism::rgbToXyzTransformationMatrix(colorSpace).inverse() * 255.0f),
-        mError(0, 0, 0)
+        mCieToRgbMatrix(prism::rgbToXyzTransformationMatrix(colorSpace).inverse() * 255.0f)
     {
         assert(mOffset + mSize <= mDriver->size() / 3);
     }
@@ -43,13 +42,15 @@ namespace luna {
         float const step = 1.0f / float(pixelCount() - 1);
         float constexpr maxError = 255.0f * 3;
 
+        RGB error = RGB::Zero();
+
         for (size_t i = 0; i < pixelCount(); ++i) {
             auto color = generator->generate(i * step);
 
-            RGB corrected = mCieToRgbMatrix * color.head<3>() + mError;
+            RGB corrected = mCieToRgbMatrix * color.head<3>() + error;
             RGB rounded = corrected.array().round().max(0).min(255);
 
-            mError = (corrected - rounded).cwiseMin(maxError).cwiseMax(-maxError);
+            error = (corrected - rounded).cwiseMin(maxError).cwiseMax(-maxError);
 
             destination[i] = rounded.cast<uint8_t>();
         }

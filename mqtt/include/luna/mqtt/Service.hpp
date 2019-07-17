@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MqttClient.hpp"
-#include "MqttEffect.hpp"
+#include "Client.hpp"
+#include "Effect.hpp"
 #include "EffectMixer.hpp"
 
 #include <luna/Service.hpp>
@@ -16,12 +16,15 @@
 namespace luna
 {
     struct HardwareController;
+}
 
-    struct MqttService : Service
+namespace luna::mqtt
+{
+    struct Service : ::luna::Service
     {
-        explicit MqttService(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
+        explicit Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
 
-        void addEffect(std::string name, MqttEffect * effect);
+        void addEffect(std::string name, Effect * effect);
 
         void start();
     private:
@@ -33,13 +36,13 @@ namespace luna
         void startTick();
         void update();
 
-        MqttClient mMqtt;
+        Client m;
         asio::steady_timer mTick;
         HardwareController * mController;
         std::mutex mMutex;
 
         std::string mName;
-        std::map<std::string, MqttEffect *, std::less<>> mEffects;
+        std::map<std::string, Effect *, std::less<>> mEffects;
         EffectMixer mEffectMixer;
     };
 }

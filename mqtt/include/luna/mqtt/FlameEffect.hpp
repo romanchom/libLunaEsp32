@@ -1,17 +1,17 @@
 #pragma once
 
-#include "MqttEffect.hpp"
+#include "Effect.hpp"
 
 #include <luna/FlameGenerator.hpp>
 
-namespace luna
+namespace luna::mqtt
 {
-    struct FlameMqttEffect : MqttEffect
+    struct FlameEffect : Effect
     {
-        using MqttEffect::MqttEffect;
+        using Effect::Effect;
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
-        void configure(MqttTopic const & topic, std::string_view payload) final;
+        void configure(Topic const & topic, std::string_view payload) final;
     private:
         FlameGenerator mGenerator;
     };
