@@ -1,18 +1,15 @@
 #pragma once
 
+#include "TlsConfiguration.hpp"
+
 #include <string>
 
 namespace luna
 {
     struct NetworkManagerConfiguration
     {
-        std::string name;
-        std::string mqttAddress;
-        uint8_t const * ownKey;
-        size_t ownKeySize;
-        uint8_t const * ownCertificate;
-        size_t ownCertificateSize;
-        uint8_t const * caCertificate;
-        size_t caCertificateSize;
+        std::string_view name;
+        std::string_view mqttAddress;
+        TlsConfiguration tls;
     };
 }

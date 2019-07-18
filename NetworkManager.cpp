@@ -23,9 +23,9 @@ namespace luna
     NetworkManager::NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller) :
         mController(controller),
         mConfiguration(configuration),
-        mOwnKey(configuration.ownKey, configuration.ownKeySize),
-        mOwnCertificate(configuration.ownCertificate, configuration.ownCertificateSize),
-        mCaCertificate(configuration.caCertificate, configuration.caCertificateSize),
+        mOwnKey(configuration.tls.ownKey),
+        mOwnCertificate(configuration.tls.ownCertificate),
+        mCaCertificate(configuration.tls.caCertificate),
         mTaskHandle(0),
         mIoService(nullptr)
     {
@@ -77,7 +77,7 @@ namespace luna
 
                 Updater updater(&ioContext, &mUpdaterConfiguration);
                 RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
-                DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), mConfiguration.name, mController->strands());
+                DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), std::string(mConfiguration.name), mController->strands());
 
                 IdleService idle;
                 mqtt::Service mqtt(&ioContext, mConfiguration);

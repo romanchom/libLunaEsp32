@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cstdint>
-#include <stdexcept>
+#include "Exception.hpp"
 
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/x509.h>
 #include <mbedtls/certs.h>
 
-#include "Exception.hpp"
+#include <cstdint>
+#include <string_view>
 
 namespace tls {
     class Certificate {
@@ -43,10 +43,10 @@ namespace tls {
 
     struct Certificate::Der : Certificate
     {
-        explicit Der(uint8_t const * buffer, size_t bufferLength) :
+        explicit Der(std::string_view certificate) :
             Certificate()
         {
-            int error = mbedtls_x509_crt_parse_der(&mCertificate, buffer, bufferLength);
+            int error = mbedtls_x509_crt_parse_der(&mCertificate, reinterpret_cast<unsigned char const *>(certificate.data()), certificate.size());
             if (0 != error) {
                 throw tls::Exception(error);
             }
@@ -55,10 +55,10 @@ namespace tls {
 
     struct Certificate::Pem : Certificate
     {
-        explicit Pem(uint8_t const * buffer, size_t bufferLength) :
+        explicit Pem(std::string_view certificate) :
             Certificate()
         {
-            int error = mbedtls_x509_crt_parse(&mCertificate, buffer, bufferLength);
+            int error = mbedtls_x509_crt_parse(&mCertificate, reinterpret_cast<unsigned char const *>(certificate.data()), certificate.size());
             if (0 != error) {
                 throw tls::Exception(error);
             }

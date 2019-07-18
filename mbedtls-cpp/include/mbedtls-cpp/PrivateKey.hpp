@@ -1,10 +1,11 @@
 #pragma once
 
-#include <cstdint>
+#include "Exception.hpp"
 
 #include <mbedtls/pk.h>
 
-#include "Exception.hpp"
+#include <cstdint>
+#include <string_view>
 
 namespace tls {
 
@@ -16,9 +17,9 @@ private:
         mbedtls_pk_init(&mPrivateKey);
     }
 
-    void parse(const uint8_t * data, size_t dataLength)
+    void parse(std::string_view key)
     {
-        int error = mbedtls_pk_parse_key(&mPrivateKey, data, dataLength, NULL, 0);
+        int error = mbedtls_pk_parse_key(&mPrivateKey, reinterpret_cast<unsigned char const *>(key.data()), key.size(), NULL, 0);
         if (0 != error) {
             throw tls::Exception(error);
         }
@@ -32,10 +33,10 @@ private:
         }
     }
 public:
-    explicit PrivateKey(uint8_t const * buffer, size_t bufferLength) :
+    explicit PrivateKey(std::string_view key) :
         PrivateKey()
     {
-        parse(buffer, bufferLength);
+        parse(key);
     }
 
     explicit PrivateKey(char const * fileName, const char * password) :

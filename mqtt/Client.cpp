@@ -1,16 +1,14 @@
 #include "Client.hpp"
 
-#include <iostream>
-
 namespace luna::mqtt
 {
     Client::Client(NetworkManagerConfiguration const & configuration)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
-            .uri = configuration.mqttAddress.c_str(),
-            .cert_pem = reinterpret_cast<char const *>(configuration.caCertificate),
-            .client_cert_pem = reinterpret_cast<char const *>(configuration.ownCertificate),
-            .client_key_pem = reinterpret_cast<char const *>(configuration.ownKey),
+            .uri = configuration.mqttAddress.data(),
+            .cert_pem = configuration.tls.caCertificate.data(),
+            .client_cert_pem = configuration.tls.ownCertificate.data(),
+            .client_key_pem = configuration.tls.ownKey.data(),
         };
 
         mHandle = esp_mqtt_client_init(&mqtt_cfg);

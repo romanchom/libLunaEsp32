@@ -3,8 +3,6 @@
 #include "BasicInputOutput.hpp"
 
 #include <string>
-#include <sstream>
-#include <iomanip>
 
 #include <mbedtls/ssl.h>
 #include <mbedtls/net_sockets.h>
@@ -21,30 +19,6 @@ enum class Protocol : int {
 struct Address {
     char data[16];
     size_t size;
-    std::string toString() const {
-        std::stringstream ss;
-        if (4 == size) {
-            int i = 0;
-            while (true) {
-                ss << static_cast<int>(data[i]);
-                ++i;
-                if (i >= 4) { break; }
-                ss << '.';
-            }
-        } else if (16 == size) {
-            ss << std::uppercase << std::setfill('0') << std::setw(4) << std::hex;
-            int i = 0;
-            while (true) {
-                ss << static_cast<int>(data[i]);
-                ++i;
-                if (i >= 16) { break; }
-                ss << ':';
-            }
-        } else {
-            throw std::runtime_error("Unrepresentable ip address.");
-        }
-        return ss.str();
-    }
 };
 
 class SocketInputOutput : public BasicInputOutput {
@@ -106,12 +80,12 @@ public:
     SocketInputOutput accept()
     {
         SocketInputOutput ret;
-        
+
         auto error = mbedtls_net_accept(&mNet, &ret.mNet,
             nullptr, //reinterpret_cast<void *>(&address->data),
             0, //sizeof(address->data),
             nullptr);//&address->size);
-        
+
         if (0 != error) {
             throw tls::Exception(error);
         }

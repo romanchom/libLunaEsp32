@@ -13,8 +13,8 @@ parser.add_argument('-a', help='host address')
 args = parser.parse_args()
 
 ca_cert = os.path.join(args.k, "ca_cert.pem")
-my_cert = os.path.join(args.k, "cl_cert.pem")
-my_key = os.path.join(args.k, "cl_key.pem")
+my_cert = os.path.join(args.k, "my_cert.pem")
+my_key = os.path.join(args.k, "my_key.pem")
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 context.load_verify_locations(ca_cert)
@@ -24,7 +24,7 @@ context.verify_mode = ssl.CERT_REQUIRED
 
 executable = args.b
 
-executable_size = os.stat(executable).st_size 
+executable_size = os.stat(executable).st_size
 transferred_size = 0
 
 print('')
@@ -46,4 +46,3 @@ with open(executable, 'rb') as binary:
         sock.shutdown(socket.SHUT_RDWR)
 print('')
 print('done')
-            

@@ -11,12 +11,12 @@
 
 #include <chrono>
 
-static char const TAG[] = "Svc";
+static char const TAG[] = "MqttSvc";
 
 namespace luna::mqtt
 {
     Service::Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration) :
-        m(configuration),
+        mClient(configuration),
         mTick(*ioContext),
         mController(nullptr),
         mName(configuration.name)
@@ -39,7 +39,7 @@ namespace luna::mqtt
 
     void Service::start()
     {
-        m.subscribe(mName + "/enabled", [this](Topic const & topic, std::string_view payload) {
+        mClient.subscribe(mName + "/enabled", [this](Topic const & topic, std::string_view payload) {
             if (auto value = tryParse<int>(payload)) {
                 bool enabled = (*value > 0);
                 serviceEnabled(enabled);
@@ -47,21 +47,21 @@ namespace luna::mqtt
             }
         });
 
-        m.subscribe(mName + "/effect", [this](Topic const & topic, std::string_view payload) {
+        mClient.subscribe(mName + "/effect", [this](Topic const & topic, std::string_view payload) {
             switchTo(payload);
         });
 
         for (auto & [effectName, effect] : mEffects) {
-            m.subscribe(mName + "/effects/" + effectName + "/#", [effect](Topic const & topic, std::string_view payload) {
+            mClient.subscribe(mName + "/effects/" + effectName + "/#", [effect](Topic const & topic, std::string_view payload) {
                 effect->configure(topic, payload);
             });
         }
 
-        m.subscribe(mName + "/config/#", [this](Topic const & topic, std::string_view payload) {
+        mClient.subscribe(mName + "/config/#", [this](Topic const & topic, std::string_view payload) {
             mEffectMixer.configure(topic, payload);
         });
 
-        m.connect();
+        mClient.connect();
     }
 
     void Service::takeOwnership(HardwareController * controller)

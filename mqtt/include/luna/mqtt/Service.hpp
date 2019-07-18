@@ -36,7 +36,7 @@ namespace luna::mqtt
         void startTick();
         void update();
 
-        Client m;
+        Client mClient;
         asio::steady_timer mTick;
         HardwareController * mController;
         std::mutex mMutex;
