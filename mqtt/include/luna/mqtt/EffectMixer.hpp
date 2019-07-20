@@ -22,6 +22,8 @@ namespace luna::mqtt
     private:
         std::deque<Effect *> mEffects;
 
+        float mBrightness;
+        float mTransitionDuration;
         float mTransitionProgress;
 
         InterpolatingGenerator mGenerator;

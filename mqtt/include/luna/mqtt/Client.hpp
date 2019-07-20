@@ -16,7 +16,7 @@ namespace luna::mqtt
     {
         using Callback = std::function<void(Topic const & topic, std::string_view)>;
         explicit Client(NetworkManagerConfiguration const & configuration);
-        void subscribe(std::string const & topic, Callback callback);
+        void subscribe(std::string topic, Callback callback);
         void connect();
     private:
         static void handler(void * context, esp_event_base_t base, int32_t eventId, void * eventData);

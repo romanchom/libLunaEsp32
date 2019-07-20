@@ -15,9 +15,9 @@ namespace luna::mqtt
         esp_mqtt_client_register_event(mHandle, (esp_mqtt_event_id_t) ESP_EVENT_ANY_ID, &Client::handler, this);
     }
 
-    void Client::subscribe(std::string const & topic, Callback callback)
+    void Client::subscribe(std::string topic, Callback callback)
     {
-        mSubscriptions[Topic(topic)] = std::move(callback);
+        mSubscriptions[Topic(std::move(topic))] = std::move(callback);
     }
 
     void Client::connect()
@@ -41,7 +41,7 @@ namespace luna::mqtt
         case MQTT_EVENT_DATA:
             {
                 std::string topic(static_cast<char const *>(event->topic), event->topic_len);
-                Topic mqttTopic(topic);
+                Topic mqttTopic(std::move(topic));
 
                 if (auto subscription = mSubscriptions.find(mqttTopic); subscription != mSubscriptions.end()) {
                     std::string_view text(static_cast<char const *>(event->data), event->data_len);

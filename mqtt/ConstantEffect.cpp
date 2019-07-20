@@ -24,7 +24,7 @@ namespace luna::mqtt
 
     void ConstantEffect::configure(Topic const & topic, std::string_view payload)
     {
-        auto & property = topic[3].str();
+        auto property = topic[3].str();
         if (property == "color") {
             if (payload.size() >= 7) {
                 prism::RGB color;

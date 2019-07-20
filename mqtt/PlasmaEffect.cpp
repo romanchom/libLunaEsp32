@@ -17,7 +17,7 @@ namespace luna::mqtt
 
     void PlasmaEffect::configure(Topic const & topic, std::string_view payload)
     {
-        auto & property = topic[3].str();
+        auto property = topic[3].str();
         if (property == "saturation") {
             if (auto value = tryParse<float>(payload)) {
                 mGenerator.saturation(*value);

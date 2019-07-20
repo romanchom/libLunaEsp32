@@ -8,6 +8,7 @@ add_library(${PROJECT_NAME}
     "ConstantEffect.cpp"
     "FlameEffect.cpp"
     "PlasmaEffect.cpp"
+    "Topic.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}

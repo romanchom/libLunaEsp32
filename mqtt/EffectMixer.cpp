@@ -1,8 +1,14 @@
 #include "EffectMixer.hpp"
 
+#include "Parse.hpp"
+
+#include <algorithm>
+
 namespace luna::mqtt
 {
     EffectMixer::EffectMixer() :
+        mBrightness(1.0f),
+        mTransitionDuration(1.0f),
         mTransitionProgress(0.0f)
     {}
 
@@ -13,9 +19,9 @@ namespace luna::mqtt
             mEffects[1]->update(timeStep);
 
             mTransitionProgress += timeStep;
-            if (mTransitionProgress >= 1.0f) {
+            if (mTransitionProgress >= mTransitionDuration) {
                 mEffects.pop_front();
-                mTransitionProgress -= 1.0f;
+                mTransitionProgress -= mTransitionDuration;
 
                 if (mEffects.size() == 1) {
                     mTransitionProgress = 0.0f;
@@ -28,8 +34,9 @@ namespace luna::mqtt
     Generator * EffectMixer::generator(Location const & location)
     {
         if (mEffects.size() >= 2) {
-            mGenerator.first(mEffects[0]->generator(location), 1.0f - mTransitionProgress);
-            mGenerator.second(mEffects[1]->generator(location), mTransitionProgress);
+            auto t = mTransitionProgress / mTransitionDuration;
+            mGenerator.first(mEffects[0]->generator(location), (1.0f - t));
+            mGenerator.second(mEffects[1]->generator(location), t);
             return &mGenerator;
         } else {
             return mEffects.front()->generator(location);
@@ -47,6 +54,15 @@ namespace luna::mqtt
 
     void EffectMixer::configure(Topic const & topic, std::string_view payload)
     {
-
+        auto property = topic[2].str();
+        if (property == "brightness") {
+            if (auto value = tryParse<float>(payload)) {
+                mBrightness = std::clamp(*value, 0.0f, 1.0f);
+            }
+        } else if (property == "duration") {
+            if (auto value = tryParse<float>(payload)) {
+                mTransitionDuration = std::max(0.0f, *value);
+            }
+        }
     }
 }

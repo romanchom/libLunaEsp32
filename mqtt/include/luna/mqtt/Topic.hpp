@@ -1,14 +1,15 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace luna::mqtt
 {
     struct Level
     {
-        explicit Level(std::string level) :
-            mLevel(std::move(level))
+        explicit Level(std::string_view level) :
+            mLevel(level)
         {}
 
         bool singleLevelWildcard() const noexcept
@@ -21,91 +22,58 @@ namespace luna::mqtt
             return mLevel[0] == '#';
         }
 
-        bool operator==(Level const & other) const noexcept
+        int compare(Level const & other) const noexcept
         {
             if (singleLevelWildcard() || other.singleLevelWildcard()) {
-                return true;
+                return 0;
+            } else {
+                return mLevel.compare(other.mLevel);
             }
-            return mLevel == other.mLevel;
         }
 
-        bool operator<(Level const & other) const noexcept
-        {
-            return mLevel < other.mLevel;
-        }
-
-        std::string const & str() const noexcept
+        std::string_view str() const noexcept
         {
             return mLevel;
         }
     private:
-        std::string mLevel;
+        std::string_view mLevel;
     };
 
     struct Topic
     {
-        Topic(Topic && other) = default;
-        Topic(Topic const &) = delete;
+        Topic(std::string topic);
 
-        Topic & operator=(Topic &&) = default;
-        void operator=(Topic const &) = delete;
-
-        Topic(std::string const & topic)
+        std::string const & str() const noexcept
         {
-            size_t begin = 0;
-            for (size_t i = 0; i < topic.size(); ++i) {
-                if (topic[i] == '/') {
-                    mLevels.emplace_back(topic.substr(begin, i - begin));
-                    begin = i + 1;
-                }
-            }
-            mLevels.emplace_back(topic.substr(begin, topic.size() - begin));
+            return mText;
         }
 
-        std::string str() const noexcept
+        size_t size() const noexcept
         {
-            std::string ret;
-            for (auto const & lvl : mLevels) {
-                ret.append(lvl.str());
-                ret.append("/");
-            }
-            ret.pop_back();
-            return ret;
+            return mLevels.size();
         }
 
-        Level const & operator[](size_t index) const noexcept
+        Level operator[](size_t index) const noexcept
         {
-            return mLevels[index];
+            auto range = mLevels[index];
+            return Level(std::string_view(mText).substr(range.begin, range.size));
         }
 
         bool operator<(Topic const & other) const noexcept
         {
-            int level = 0;
-            for (;;) {
-                if (mLevels.size() == level && other.mLevels.size() > level) {
-                    return true;
-                }
-                if (other.mLevels.size() == level) {
-                    return false;
-                }
-                auto const & lvlA = mLevels[level];
-                auto const & lvlB = other.mLevels[level];
-                if (lvlA.multiLevelWildcard() || lvlB.multiLevelWildcard()) {
-                    return false;
-                }
-                if (lvlA == lvlB) {
-                    ++level;
-                    continue;
-                }
-                return lvlA < lvlB;
-            }
+            return compare(other) < 0;
         }
 
-        bool operator==(Topic const & other) const noexcept
-        {
-            return !(*this < other) && !(other < *this); // TODO optimize
-        }
     private:
-        std::vector<Level> mLevels;
+        struct Range
+        {
+            size_t begin;
+            size_t size;
+        };
+
+        int compare(Topic const & other) const noexcept;
+
+        std::string mText;
+        std::vector<Range> mLevels;
     };
 }
