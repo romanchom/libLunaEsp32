@@ -6,14 +6,31 @@
 
 namespace luna::mqtt
 {
-    EffectMixer::EffectMixer() :
+    EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
+        mObserver(observer),
+        mEnabled(false),
         mBrightness(1.0f),
+        mEnabledPercentage(0.0),
         mTransitionDuration(1.0f),
         mTransitionProgress(0.0f)
     {}
 
     void EffectMixer::update(float timeStep)
     {
+        if (mEnabled) {
+            if (mEnabledPercentage < 1.0f) {
+                mEnabledPercentage = std::min(mEnabledPercentage + timeStep, 1.0f);
+            }
+        } else {
+            if (mEnabledPercentage > 0.0f) {
+                mEnabledPercentage -= timeStep;
+                if (mEnabledPercentage <= 0.0f) {
+                    mEnabledPercentage = 0.0f;
+                    mObserver->enabledChanged(false);
+                }
+            }
+        }
+
         mEffects[0]->update(timeStep);
         if (mEffects.size() >= 2) {
             mEffects[1]->update(timeStep);
@@ -25,7 +42,6 @@ namespace luna::mqtt
 
                 if (mEffects.size() == 1) {
                     mTransitionProgress = 0.0f;
-                    // transition ended
                 }
             }
         }
@@ -33,14 +49,17 @@ namespace luna::mqtt
 
     Generator * EffectMixer::generator(Location const & location)
     {
+        auto const brightness = mBrightness * mEnabledPercentage * mEnabledPercentage;
+        auto const t = mTransitionProgress / mTransitionDuration;
+
+        mGenerator.first(mEffects[0]->generator(location), brightness * (1.0f - t));
+        
         if (mEffects.size() >= 2) {
-            auto t = mTransitionProgress / mTransitionDuration;
-            mGenerator.first(mEffects[0]->generator(location), (1.0f - t));
-            mGenerator.second(mEffects[1]->generator(location), t);
-            return &mGenerator;
+            mGenerator.second(mEffects[1]->generator(location), brightness * t);
         } else {
-            return mEffects.front()->generator(location);
+            mGenerator.second(nullptr, 0.0f);
         }
+        return &mGenerator;
     }
 
     void EffectMixer::switchTo(Effect * effect)
@@ -49,6 +68,14 @@ namespace luna::mqtt
             mEffects.back() = effect;
         } else if ((mEffects.size() >= 1 && mEffects.back() != effect) || mEffects.size() == 0) {
             mEffects.emplace_back(effect);
+        }
+    }
+
+    void EffectMixer::enabled(bool state)
+    {
+        mEnabled = state;
+        if (mEnabled && mEnabledPercentage == 0.0f) {
+            mObserver->enabledChanged(true);
         }
     }
 

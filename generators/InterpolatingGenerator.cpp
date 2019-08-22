@@ -23,6 +23,10 @@ namespace luna
 
     prism::CieXYZ InterpolatingGenerator::generate(float ratio) const noexcept
     {
-        return mFirst->generate(ratio) * mFirstRatio + mSecond->generate(ratio) * mSecondRatio;
+        prism::CieXYZ ret = mFirst->generate(ratio) * mFirstRatio;
+        if (mSecond) {
+            ret += mSecond->generate(ratio) * mSecondRatio;
+        }
+        return ret;       
     }
 }

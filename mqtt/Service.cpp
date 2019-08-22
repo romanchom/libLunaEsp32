@@ -19,7 +19,8 @@ namespace luna::mqtt
         mClient(configuration),
         mTick(*ioContext),
         mController(nullptr),
-        mName(configuration.name)
+        mName(configuration.name),
+        mEffectMixer(this)
     {}
 
     void Service::addEffect(std::string name, Effect * effect)
@@ -42,7 +43,7 @@ namespace luna::mqtt
         mClient.subscribe(mName + "/enabled", [this](Topic const & topic, std::string_view payload) {
             if (auto value = tryParse<int>(payload)) {
                 bool enabled = (*value > 0);
-                serviceEnabled(enabled);
+                mEffectMixer.enabled(enabled);
                 ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
             }
         });
@@ -75,7 +76,6 @@ namespace luna::mqtt
     void Service::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        auto l = std::lock_guard(mMutex);
         mTick.cancel();
         mController = nullptr;
     }
@@ -83,6 +83,7 @@ namespace luna::mqtt
     void Service::startTick()
     {
         mTick.expires_after(std::chrono::milliseconds(20));
+
         update();
 
         mTick.async_wait([this](asio::error_code const & error) {
@@ -94,13 +95,11 @@ namespace luna::mqtt
 
     void Service::update()
     {
-        auto l = std::lock_guard(mMutex);
+        mEffectMixer.update(0.02f);
 
         if (!mController) {
             return;
         }
-
-        mEffectMixer.update(0.02f);
 
         for (auto strand : mController->strands()) {
             auto gen = mEffectMixer.generator(strand->location());
@@ -108,5 +107,10 @@ namespace luna::mqtt
         }
 
         mController->update();
+    }
+    
+    void Service::enabledChanged(bool enabled) 
+    {
+        serviceEnabled(enabled);
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Client.hpp"
+#include "ConstantEffect.hpp"
 #include "Effect.hpp"
 #include "EffectMixer.hpp"
 
@@ -20,7 +21,7 @@ namespace luna
 
 namespace luna::mqtt
 {
-    struct Service : ::luna::Service
+    struct Service : ::luna::Service, private EffectMixer::Observer
     {
         explicit Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
 
@@ -36,10 +37,11 @@ namespace luna::mqtt
         void startTick();
         void update();
 
+        void enabledChanged(bool enabled) override;
+
         Client mClient;
         asio::steady_timer mTick;
         HardwareController * mController;
-        std::mutex mMutex;
 
         std::string mName;
         std::map<std::string, Effect *, std::less<>> mEffects;

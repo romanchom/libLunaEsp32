@@ -11,7 +11,14 @@ namespace luna::mqtt
 {
     struct EffectMixer : Configurable
     {
-        explicit EffectMixer();
+        struct Observer
+        {
+            virtual void enabledChanged(bool enabled) = 0;
+        protected:
+            ~Observer() = default;
+        };
+
+        explicit EffectMixer(Observer * observer);
 
         void configure(Topic const & topic, std::string_view payload) final;
 
@@ -19,10 +26,16 @@ namespace luna::mqtt
         Generator * generator(Location const & location);
         void switchTo(Effect * effect);
 
+        void enabled(bool state);
+
     private:
+        Observer * mObserver;
+
         std::deque<Effect *> mEffects;
 
+        bool mEnabled;
         float mBrightness;
+        float mEnabledPercentage;
         float mTransitionDuration;
         float mTransitionProgress;
 
