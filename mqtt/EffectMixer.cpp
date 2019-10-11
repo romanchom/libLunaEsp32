@@ -7,13 +7,25 @@
 namespace luna::mqtt
 {
     EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
+        Configurable("mixer"),
         mObserver(observer),
         mEnabled(false),
         mBrightness(1.0f),
         mEnabledPercentage(0.0),
         mTransitionDuration(1.0f),
         mTransitionProgress(0.0f)
-    {}
+    {
+        addProperty("brightness", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mBrightness = std::clamp(*value, 0.0f, 1.0f);
+            }
+        });
+        addProperty("duration", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mTransitionDuration = std::max(0.0f, *value);
+            }
+        });
+    }
 
     void EffectMixer::update(float timeStep)
     {
@@ -53,7 +65,7 @@ namespace luna::mqtt
         auto const t = mTransitionProgress / mTransitionDuration;
 
         mGenerator.first(mEffects[0]->generator(location), brightness * (1.0f - t));
-        
+
         if (mEffects.size() >= 2) {
             mGenerator.second(mEffects[1]->generator(location), brightness * t);
         } else {
@@ -76,20 +88,6 @@ namespace luna::mqtt
         mEnabled = state;
         if (mEnabled && mEnabledPercentage == 0.0f) {
             mObserver->enabledChanged(true);
-        }
-    }
-
-    void EffectMixer::configure(Topic const & topic, std::string_view payload)
-    {
-        auto property = topic[2].str();
-        if (property == "brightness") {
-            if (auto value = tryParse<float>(payload)) {
-                mBrightness = std::clamp(*value, 0.0f, 1.0f);
-            }
-        } else if (property == "duration") {
-            if (auto value = tryParse<float>(payload)) {
-                mTransitionDuration = std::max(0.0f, *value);
-            }
         }
     }
 }

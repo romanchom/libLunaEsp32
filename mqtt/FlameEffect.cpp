@@ -4,6 +4,31 @@
 
 namespace luna::mqtt
 {
+    FlameEffect::FlameEffect(Service * owner, std::string_view name) :
+        Effect(owner, name)
+    {
+        addProperty("temperatureLow", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.temperatureLow(*value);
+            }
+        });
+        addProperty("temperatureHigh", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.temperatureHigh(*value);
+            }
+        });
+        addProperty("brightness", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.brightness(*value);
+            }
+        });
+        addProperty("frequency", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.frequency(*value);
+            }
+        });
+    }
+
     void FlameEffect::update(float timeStep)
     {
         mGenerator.time(mGenerator.time() + timeStep);
@@ -14,26 +39,4 @@ namespace luna::mqtt
         mGenerator.location(location);
         return &mGenerator;
     };
-
-    void FlameEffect::configure(Topic const & topic, std::string_view payload)
-    {
-        auto property = topic[3].str();
-        if (property == "temperatureLow") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.temperatureLow(*value);
-            }
-        } else if (property == "temperatureHigh") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.temperatureHigh(*value);
-            }
-        } else if (property == "brightness") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.brightness(*value);
-            }
-        } else if (property == "frequency") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.frequency(*value);
-            }
-        }
-    }
 }

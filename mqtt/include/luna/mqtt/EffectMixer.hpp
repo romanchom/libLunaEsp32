@@ -20,8 +20,6 @@ namespace luna::mqtt
 
         explicit EffectMixer(Observer * observer);
 
-        void configure(Topic const & topic, std::string_view payload) final;
-
         void update(float timeStep);
         Generator * generator(Location const & location);
         void switchTo(Effect * effect);

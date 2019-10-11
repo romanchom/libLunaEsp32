@@ -23,9 +23,9 @@ namespace luna::mqtt
         mEffectMixer(this)
     {}
 
-    void Service::addEffect(std::string name, Effect * effect)
+    void Service::addEffect(std::string_view name, Effect * effect)
     {
-        mEffects.try_emplace(std::move(name), effect);
+        mEffects.try_emplace(std::string(name), effect);
         if (mEffects.size() == 1) {
             mEffectMixer.switchTo(effect);
         }
@@ -54,12 +54,12 @@ namespace luna::mqtt
 
         for (auto & [effectName, effect] : mEffects) {
             mClient.subscribe(mName + "/effects/" + effectName + "/#", [effect](Topic const & topic, std::string_view payload) {
-                effect->configure(topic, payload);
+                effect->setProperty(topic[2].str(), payload);
             });
         }
 
         mClient.subscribe(mName + "/config/#", [this](Topic const & topic, std::string_view payload) {
-            mEffectMixer.configure(topic, payload);
+            mEffectMixer.setProperty(topic[1].str(), payload);
         });
 
         mClient.connect();
@@ -108,8 +108,8 @@ namespace luna::mqtt
 
         mController->update();
     }
-    
-    void Service::enabledChanged(bool enabled) 
+
+    void Service::enabledChanged(bool enabled)
     {
         serviceEnabled(enabled);
     }

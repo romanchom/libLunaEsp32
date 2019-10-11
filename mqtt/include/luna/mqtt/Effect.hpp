@@ -12,7 +12,7 @@ namespace luna::mqtt
 
     struct Effect : Configurable
     {
-        explicit Effect(Service * owner, std::string const & name);
+        explicit Effect(Service * owner, std::string_view name);
         virtual void update(float timeStep) = 0;
         virtual Generator * generator(Location const & location) = 0;
     protected:

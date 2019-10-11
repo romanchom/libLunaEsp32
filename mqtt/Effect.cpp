@@ -4,7 +4,8 @@
 
 namespace luna::mqtt
 {
-    Effect::Effect(Service * owner, std::string const & name)
+    Effect::Effect(Service * owner, std::string_view name) :
+        Configurable(name)
     {
         owner->addEffect(name, this);
     }

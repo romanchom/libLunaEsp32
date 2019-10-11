@@ -8,10 +8,9 @@ namespace luna::mqtt
 {
     struct PlasmaEffect : Effect
     {
-        using Effect::Effect;
+        explicit PlasmaEffect(Service * owner, std::string_view name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
-        void configure(Topic const & topic, std::string_view payload) final;
     private:
         PlasmaGenerator mGenerator;
     };

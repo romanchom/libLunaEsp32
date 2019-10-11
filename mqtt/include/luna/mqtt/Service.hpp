@@ -25,7 +25,7 @@ namespace luna::mqtt
     {
         explicit Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
 
-        void addEffect(std::string name, Effect * effect);
+        void addEffect(std::string_view name, Effect * effect);
 
         void start();
     private:

@@ -4,6 +4,21 @@
 
 namespace luna::mqtt
 {
+    PlasmaEffect::PlasmaEffect(Service * owner, std::string_view name) :
+        Effect(owner, name)
+    {
+        addProperty("saturation", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.saturation(*value);
+            }
+        });
+        addProperty ("brightness", [this](std::string_view text) {
+            if (auto value = tryParse<float>(text)) {
+                mGenerator.brightness(*value);
+            }
+        });
+    }
+
     void PlasmaEffect::update(float timeStep)
     {
         mGenerator.time(mGenerator.time() + timeStep);
@@ -14,18 +29,4 @@ namespace luna::mqtt
         mGenerator.location(location);
         return &mGenerator;
     };
-
-    void PlasmaEffect::configure(Topic const & topic, std::string_view payload)
-    {
-        auto property = topic[3].str();
-        if (property == "saturation") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.saturation(*value);
-            }
-        } else if (property == "brightness") {
-            if (auto value = tryParse<float>(payload)) {
-                mGenerator.brightness(*value);
-            }
-        }
-    }
 }
