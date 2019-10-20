@@ -21,7 +21,7 @@ namespace luna
 
 namespace luna::mqtt
 {
-    struct Service : ::luna::Service, private EffectMixer::Observer
+    struct Service : ::luna::Service, private EffectMixer::Observer, private Configurable
     {
         explicit Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration);
 

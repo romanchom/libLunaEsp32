@@ -16,12 +16,24 @@ static char const TAG[] = "MqttSvc";
 namespace luna::mqtt
 {
     Service::Service(asio::io_context * ioContext, NetworkManagerConfiguration const & configuration) :
+        Configurable("mqtt"),
         mClient(configuration),
         mTick(*ioContext),
         mController(nullptr),
         mName(configuration.name),
         mEffectMixer(this)
-    {}
+    {
+        addProperty("enabled", [this](std::string_view text) {
+            if (auto value = tryParse<int>(text)) {
+                bool enabled = (*value > 0);
+                mEffectMixer.enabled(enabled);
+                ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
+            }
+        });
+        addProperty("effect", [this](std::string_view text) {
+            switchTo(text);
+        });
+    }
 
     void Service::addEffect(std::string_view name, Effect * effect)
     {
@@ -40,26 +52,19 @@ namespace luna::mqtt
 
     void Service::start()
     {
-        mClient.subscribe(mName + "/enabled", [this](Topic const & topic, std::string_view payload) {
-            if (auto value = tryParse<int>(payload)) {
-                bool enabled = (*value > 0);
-                mEffectMixer.enabled(enabled);
-                ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
-            }
-        });
-
-        mClient.subscribe(mName + "/effect", [this](Topic const & topic, std::string_view payload) {
-            switchTo(payload);
+        mClient.subscribe(mName + "/+", [this](Topic const & topic, std::string_view payload) {
+            ESP_LOGI(TAG, "%s", topic.str().c_str());
+            setProperty(topic[1].str(), payload);
         });
 
         for (auto & [effectName, effect] : mEffects) {
-            mClient.subscribe(mName + "/effects/" + effectName + "/#", [effect](Topic const & topic, std::string_view payload) {
-                effect->setProperty(topic[2].str(), payload);
+            mClient.subscribe(mName + "/effects/" + effectName + "/+", [effect](Topic const & topic, std::string_view payload) {
+                effect->setProperty(topic[3].str(), payload);
             });
         }
 
-        mClient.subscribe(mName + "/config/#", [this](Topic const & topic, std::string_view payload) {
-            mEffectMixer.setProperty(topic[1].str(), payload);
+        mClient.subscribe(mName + "/config/+", [this](Topic const & topic, std::string_view payload) {
+            mEffectMixer.setProperty(topic[2].str(), payload);
         });
 
         mClient.connect();

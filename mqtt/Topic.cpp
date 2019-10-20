@@ -2,6 +2,26 @@
 
 namespace luna::mqtt
 {
+
+    bool Level::singleLevelWildcard() const noexcept
+    {
+        return mLevel[0] == '+';
+    }
+
+    bool Level::multiLevelWildcard() const noexcept
+    {
+        return mLevel[0] == '#';
+    }
+
+    bool Level::matches(Level const & other) const noexcept
+    {
+        if (singleLevelWildcard() || other.singleLevelWildcard()) {
+            return true;
+        } else {
+            return mLevel == other.mLevel;
+        }
+    }
+
     Topic::Topic(std::string topic) :
         mText(std::move(topic))
     {
@@ -15,17 +35,11 @@ namespace luna::mqtt
         mLevels.emplace_back(Range{begin, mText.size() - begin});
     }
 
-    int Topic::compare(Topic const & other) const noexcept
+    bool Topic::matches(Topic const & other) const noexcept
     {
         for (int level = 0;; ++level) {
             if (size() == level || other.size() == level) {
-                if (size() == other.size()) {
-                    return 0;
-                } else if (size() > level) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+                return size() == other.size();
             }
 
             auto lvlA = (*this)[level];
@@ -34,11 +48,8 @@ namespace luna::mqtt
                 return 0;
             }
 
-            auto const comparison = lvlA.compare(lvlB);
-            if (comparison == 0) {
-                continue;
-            } else {
-                return comparison;
+            if (!lvlA.matches(lvlB)) {
+                return false;
             }
         }
     }
