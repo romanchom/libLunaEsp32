@@ -6,6 +6,12 @@ add_library(${PROJECT_NAME}
     "InterpolatingGenerator.cpp"
     "Noise.cpp"
     "PlasmaGenerator.cpp"
+    "EffectMixer.cpp"
+    "ConstantEffect.cpp"
+    "FlameEffect.cpp"
+    "PlasmaEffect.cpp"
+    "Effect.cpp"
+    "EffectEngine.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -14,5 +20,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC luna.core Eigen3::Eigen prism
+    PUBLIC luna.core Eigen3::Eigen prism idf::asio
 )

@@ -1,10 +1,10 @@
 #include "Effect.hpp"
 
-#include "Service.hpp"
+#include "EffectEngine.hpp"
 
-namespace luna::mqtt
+namespace luna
 {
-    Effect::Effect(Service * owner, std::string_view name) :
+    Effect::Effect(EffectEngine * owner, std::string_view name) :
         Configurable(name)
     {
         owner->addEffect(name, this);

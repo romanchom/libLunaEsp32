@@ -1,10 +1,10 @@
 #include "ConstantEffect.hpp"
 
-#include "Parse.hpp"
+#include <luna/Parse.hpp>
 
-namespace luna::mqtt
+namespace luna
 {
-    ConstantEffect::ConstantEffect(Service * owner, std::string_view name) :
+    ConstantEffect::ConstantEffect(EffectEngine * owner, std::string_view name) :
         Effect(owner, name),
         mCurrentColor(prism::CieXYZ::Zero()),
         mTargetColor(prism::CieXYZ::Zero()),

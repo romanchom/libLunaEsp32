@@ -5,12 +5,13 @@
 #include "IdleService.hpp"
 #include "RealtimeService.hpp"
 
+#include <luna/EffectEngine.hpp>
 #include <luna/ServiceManager.hpp>
 
 #include <luna/mqtt/Service.hpp>
-#include <luna/mqtt/FlameEffect.hpp>
-#include <luna/mqtt/ConstantEffect.hpp>
-#include <luna/mqtt/PlasmaEffect.hpp>
+#include <luna/FlameEffect.hpp>
+#include <luna/ConstantEffect.hpp>
+#include <luna/PlasmaEffect.hpp>
 
 #include <esp_log.h>
 
@@ -80,14 +81,17 @@ namespace luna
                 DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), std::string(mConfiguration.name), mController->strands());
 
                 IdleService idle;
-                mqtt::Service mqtt(&ioContext, mConfiguration);
-                mqtt::ConstantEffect lightEffect(&mqtt, "light");
-                mqtt::FlameEffect flameEffect(&mqtt, "flame");
-                mqtt::PlasmaEffect plasmaEffect(&mqtt, "plasma");
+
+                EffectEngine effectEngine(&ioContext);
+                ConstantEffect lightEffect(&effectEngine, "light");
+                FlameEffect flameEffect(&effectEngine, "flame");
+                PlasmaEffect plasmaEffect(&effectEngine, "plasma");
+
+                mqtt::Service mqtt(&ioContext, &effectEngine, mConfiguration);
 
                 ServiceManager serviceManager(mController);
                 serviceManager.manage(&realtime, 10);
-                serviceManager.manage(&mqtt, 1);
+                serviceManager.manage(&effectEngine, 1);
                 serviceManager.manage(&idle, 0, true);
 
                 mqtt.start();

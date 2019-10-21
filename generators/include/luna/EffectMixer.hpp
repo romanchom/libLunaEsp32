@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Effect.hpp"
-#include "Configurable.hpp"
+#include "InterpolatingGenerator.hpp"
 
-#include <luna/InterpolatingGenerator.hpp>
+#include <luna/Configurable.hpp>
 
 #include <deque>
 
-namespace luna::mqtt
+namespace luna
 {
     struct EffectMixer : Configurable
     {

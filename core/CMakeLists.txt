@@ -3,6 +3,8 @@ project(luna.core)
 add_library(${PROJECT_NAME}
     "Service.cpp"
     "ServiceManager.cpp"
+    "Configurable.cpp"
+    "Property.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -11,5 +13,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC prism Eigen3::Eigen lunaProto
+    PUBLIC prism Eigen3::Eigen lunaProto idf::nvs_flash
 )

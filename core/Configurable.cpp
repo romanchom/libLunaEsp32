@@ -2,7 +2,7 @@
 
 #include <nvs.h>
 
-namespace luna::mqtt
+namespace luna
 {
     Configurable::Configurable(std::string_view name)
     {
@@ -18,16 +18,16 @@ namespace luna::mqtt
         nvs_close(mHandle);
     }
 
-    void Configurable::addProperty(std::string_view name, std::function<void(std::string_view)> && setter)
-    {
-        mProperties.emplace(mHandle, name, std::move(setter));
-    }
-
     void Configurable::setProperty(std::string_view propertyName, std::string_view text)
     {
         auto property = mProperties.find(propertyName);
         if (property != mProperties.end()) {
             property->set(text);
         }
+    }
+
+    void Configurable::addProperty(std::string_view name, std::function<void(std::string_view)> && setter)
+    {
+        mProperties.emplace(mHandle, std::move(name), std::move(setter));
     }
 }

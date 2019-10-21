@@ -1,18 +1,17 @@
 #pragma once
 
-#include "Configurable.hpp"
-
 #include <luna/Generator.hpp>
+#include <luna/Configurable.hpp>
 
 #include <string>
 
-namespace luna::mqtt
+namespace luna
 {
-    struct Service;
+    struct EffectEngine;
 
     struct Effect : Configurable
     {
-        explicit Effect(Service * owner, std::string_view name);
+        explicit Effect(EffectEngine * owner, std::string_view name);
         virtual void update(float timeStep) = 0;
         virtual Generator * generator(Location const & location) = 0;
     protected:

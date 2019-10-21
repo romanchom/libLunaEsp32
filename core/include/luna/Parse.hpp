@@ -4,7 +4,7 @@
 #include <charconv>
 #include <optional>
 
-namespace luna::mqtt
+namespace luna
 {
     template<typename T, typename... Args>
     std::optional<T> tryParse(std::string_view text, Args... args)

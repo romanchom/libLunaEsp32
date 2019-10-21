@@ -1,10 +1,10 @@
 #include "FlameEffect.hpp"
 
-#include "Parse.hpp"
+#include <luna/Parse.hpp>
 
-namespace luna::mqtt
+namespace luna
 {
-    FlameEffect::FlameEffect(Service * owner, std::string_view name) :
+    FlameEffect::FlameEffect(EffectEngine * owner, std::string_view name) :
         Effect(owner, name)
     {
         addProperty("temperatureLow", [this](std::string_view text) {

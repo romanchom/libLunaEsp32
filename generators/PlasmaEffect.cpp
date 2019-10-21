@@ -1,10 +1,10 @@
 #include "PlasmaEffect.hpp"
 
-#include "Parse.hpp"
+#include <luna/Parse.hpp>
 
-namespace luna::mqtt
+namespace luna
 {
-    PlasmaEffect::PlasmaEffect(Service * owner, std::string_view name) :
+    PlasmaEffect::PlasmaEffect(EffectEngine * owner, std::string_view name) :
         Effect(owner, name)
     {
         addProperty("saturation", [this](std::string_view text) {

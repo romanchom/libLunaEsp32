@@ -1,10 +1,10 @@
 #include "EffectMixer.hpp"
 
-#include "Parse.hpp"
+#include <luna/Parse.hpp>
 
 #include <algorithm>
 
-namespace luna::mqtt
+namespace luna
 {
     EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
         Configurable("mixer"),

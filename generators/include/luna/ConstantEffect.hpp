@@ -1,16 +1,15 @@
 #pragma once
 
 #include "Effect.hpp"
-
-#include <luna/ConstantGenerator.hpp>
+#include "ConstantGenerator.hpp"
 
 #include <prism/Prism.hpp>
 
-namespace luna::mqtt
+namespace luna
 {
     struct ConstantEffect : Effect
     {
-        explicit ConstantEffect(Service * owner, std::string_view name);
+        explicit ConstantEffect(EffectEngine * owner, std::string_view name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
 
