@@ -1,6 +1,7 @@
 #include "Main.hpp"
 
 
+#include "Nvs.hpp"
 #include "WiFi.hpp"
 #include "Configuration.hpp"
 #include "TlsConfiguration.hpp"
@@ -37,6 +38,7 @@ namespace luna
     {
         explicit Impl(Configuration const & config, HardwareController * controller);
     private:
+        Nvs mNvs;
         TlsConfiguration mTlsConfiguration;
         asio::io_context mIoContext;
 

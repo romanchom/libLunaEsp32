@@ -6,25 +6,11 @@
 #include <esp_wifi.h>
 #include <nvs_flash.h>
 
-static void initializeNonVolatileStorage()
-{
-    esp_err_t ret = nvs_flash_init();
-
-    if (ESP_ERR_NVS_NO_FREE_PAGES == ret) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-
-    ESP_ERROR_CHECK(ret);
-}
-
 namespace luna
 {
     WiFi::WiFi(std::string_view ssid, std::string_view password) :
         mObserver(nullptr)
     {
-        initializeNonVolatileStorage();
-
         tcpip_adapter_init();
 
         ESP_ERROR_CHECK(esp_event_loop_create_default());
