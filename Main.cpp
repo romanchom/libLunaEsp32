@@ -1,22 +1,101 @@
 #include "Main.hpp"
 
+
+#include "WiFi.hpp"
+#include "Configuration.hpp"
+#include "TlsConfiguration.hpp"
+#include "IdleService.hpp"
+#include "Updater.hpp"
+#include "DiscoveryResponder.hpp"
+#include "RealtimeService.hpp"
+
+#include <luna/HardwareController.hpp>
+#include <luna/EffectEngine.hpp>
+#include <luna/FlameEffect.hpp>
+#include <luna/ConstantEffect.hpp>
+#include <luna/PlasmaEffect.hpp>
+#include <luna/ServiceManager.hpp>
+#include <luna/mqtt/Service.hpp>
+
+#include <asio/io_context.hpp>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+namespace
+{
+    void task(void * data)
+    {
+        static_cast<asio::io_context *>(data)->run();
+        std::terminate();
+    }
+}
+
 namespace luna
 {
-    Main::Main(Configuration const & config, HardwareController * controller) :
-        mNetworkManager(config.network, controller),
-        mWiFi(config.wifi)
+    struct Main::Impl
     {
-        mWiFi.observer(this);
+        explicit Impl(Configuration const & config, HardwareController * controller);
+    private:
+        TlsConfiguration mTlsConfiguration;
+        asio::io_context mIoContext;
+
+        IdleService mIdleSerice;
+
+        ConstantEffect mLightEffect;
+        FlameEffect mFlameEffect;
+        PlasmaEffect mPlasmaEffect;
+        EffectEngine mEffectEngine;
+
+        RealtimeService mRealtimeService;
+
+        ServiceManager mServiceManager;
+
+        mqtt::Service mMqtt;
+        DiscoveryResponder mDiscoveryResponder;
+        Updater mUpdater;
+        WiFi mWiFi;
+
+        TaskHandle_t mTaskHandle;
+    };
+
+    Main::Impl::Impl(Configuration const & config, HardwareController * controller) :
+        mTlsConfiguration(
+            config.network.ownKey,
+            config.network.ownCertificate,
+            config.network.caCertificate
+        ),
+        mLightEffect("light"),
+        mFlameEffect("flame"),
+        mPlasmaEffect("plasma"),
+        mEffectEngine(&mIoContext, {&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
+        mRealtimeService(&mIoContext, mTlsConfiguration.realtimeConfiguration()),
+        mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mRealtimeService}),
+        mMqtt(
+            &mEffectEngine,
+            config.network.name,
+            {
+                config.network.mqttAddress,
+                config.network.ownKey,
+                config.network.ownCertificate,
+                config.network.caCertificate
+            }
+        ),
+        mDiscoveryResponder(&mIoContext, mRealtimeService.port(), config.network.name, controller->strands()),
+        mUpdater(&mIoContext, mTlsConfiguration.updaterConfiguration()),
+        mWiFi(config.wifi.ssid, config.wifi.password),
+        mTaskHandle(0)
+    {
+        mServiceManager.serviceEnabled(&mIdleSerice, true);
+
         mWiFi.enabled(true);
+
+        xTaskCreatePinnedToCore(&task, "Daemon", 1024 * 8, &mIoContext, 5, &mTaskHandle, 1);
     }
 
-    void Main::connected()
-    {
-        // mNetworkManager.enable();
-    }
+    Main::Main(Configuration const & config, HardwareController * controller) :
+        mImpl(std::make_unique<Impl>(config, controller))
+    {}
 
-    void Main::disconnected()
-    {
-        // mNetworkManager.disable();
-    }
+    Main::~Main() = default;
 }

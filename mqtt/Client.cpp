@@ -2,13 +2,13 @@
 
 namespace luna::mqtt
 {
-    Client::Client(NetworkManagerConfiguration const & configuration)
+    Client::Client(Configuration const & configuration)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
             .uri = configuration.mqttAddress.data(),
-            .cert_pem = configuration.tls.caCertificate.data(),
-            .client_cert_pem = configuration.tls.ownCertificate.data(),
-            .client_key_pem = configuration.tls.ownKey.data(),
+            .cert_pem = configuration.caCertificate.data(),
+            .client_cert_pem = configuration.ownCertificate.data(),
+            .client_key_pem = configuration.ownKey.data(),
         };
 
         mHandle = esp_mqtt_client_init(&mqtt_cfg);

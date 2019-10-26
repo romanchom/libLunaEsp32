@@ -1,22 +1,18 @@
 #pragma once
 
-#include "NetworkManager.hpp"
-#include "WiFi.hpp"
-#include "Configuration.hpp"
-
-#include <luna/HardwareController.hpp>
+#include <memory>
 
 namespace luna
 {
-    struct Main : private WiFi::Observer
+    struct Configuration;
+    struct HardwareController;
+
+    struct Main
     {
         explicit Main(Configuration const & config, HardwareController * controller);
-
+        ~Main();
     private:
-        void connected() final;
-        void disconnected() final;
-
-        NetworkManager mNetworkManager;
-        WiFi mWiFi;
+        struct Impl;
+        std::unique_ptr<Impl> mImpl;
     };
 }

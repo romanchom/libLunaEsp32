@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include <mbedtls-cpp/PrivateKey.hpp>
 #include <mbedtls-cpp/Certificate.hpp>
 #include <mbedtls-cpp/Configuration.hpp>
@@ -7,29 +9,15 @@
 #include <mbedtls-cpp/StandardEntropy.hpp>
 #include <mbedtls-cpp/StandardCookie.hpp>
 
-#include <luna/HardwareController.hpp>
-#include <luna/NetworkManagerConfiguration.hpp>
-
-#include <asio/io_context.hpp>
-
 namespace luna
 {
-    struct NetworkManager
+    struct TlsConfiguration
     {
-    public:
-        explicit NetworkManager(NetworkManagerConfiguration const & configuration, HardwareController * controller);
-        ~NetworkManager();
+        explicit TlsConfiguration(std::string_view ownKey, std::string_view ownCertificate, std::string_view caCertificate);
 
-        void enable();
-        void disable();
+        tls::Configuration * updaterConfiguration() noexcept { return &mUpdaterConfiguration; }
+        tls::Configuration * realtimeConfiguration() noexcept { return &mRealtimeConfiguration; }
     private:
-        static void daemonTask(void * context);
-        void run();
-
-        HardwareController * mController;
-
-        NetworkManagerConfiguration mConfiguration;
-
         tls::PrivateKey mOwnKey;
         tls::Certificate::Pem mOwnCertificate;
         tls::Certificate::Pem mCaCertificate;
@@ -39,8 +27,5 @@ namespace luna
 
         tls::Configuration mUpdaterConfiguration;
         tls::Configuration mRealtimeConfiguration;
-
-        TaskHandle_t mTaskHandle;
-        asio::io_context mIoContext;
     };
 }

@@ -20,7 +20,7 @@ static void initializeNonVolatileStorage()
 
 namespace luna
 {
-    WiFi::WiFi(Config const & config) :
+    WiFi::WiFi(std::string_view ssid, std::string_view password) :
         mObserver(nullptr)
     {
         initializeNonVolatileStorage();
@@ -37,8 +37,8 @@ namespace luna
 
         static wifi_config_t wifi_config = {};
         memset(&wifi_config, 0, sizeof(wifi_config_t));
-        memcpy(reinterpret_cast<char *>(wifi_config.sta.ssid), config.ssid.c_str(), config.ssid.size());
-        memcpy(reinterpret_cast<char *>(wifi_config.sta.password), config.password.c_str(), config.password.size());
+        memcpy(reinterpret_cast<char *>(wifi_config.sta.ssid), ssid.data(), ssid.size());
+        memcpy(reinterpret_cast<char *>(wifi_config.sta.password), password.data(), password.size());
 
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
         ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));

@@ -2,27 +2,28 @@
 
 #include <esp_log.h>
 
+#include <string>
+
 static char const TAG[] = "MqttSvc";
 
 namespace luna::mqtt
 {
-    Service::Service(EffectEngine * effectEngine, NetworkManagerConfiguration const & configuration) :
-        mClient(configuration),
-        mEffectEngine(effectEngine)
+    Service::Service(EffectEngine * effectEngine, std::string_view name, Client::Configuration const & configuration) :
+        mClient(configuration)
     {
-        std::string name(configuration.name);
+        std::string nameString(name);
 
-        mClient.subscribe(name + "/+", [this](Topic const & topic, std::string_view payload) {
+        mClient.subscribe(nameString + "/+", [effectEngine](Topic const & topic, std::string_view payload) {
             ESP_LOGI(TAG, "%s", topic.str().c_str());
-            mEffectEngine->setProperty(topic[1].str(), payload);
+            effectEngine->setProperty(topic[1].str(), payload);
         });
 
-        mClient.subscribe(name + "/effects/#", [this](Topic const & topic, std::string_view payload) {
+        mClient.subscribe(nameString + "/effects/#", [effectEngine](Topic const & topic, std::string_view payload) {
             if (topic.size() != 4) {
                 return;
             }
             auto effectName = topic[2].str();
-            auto & effects = mEffectEngine->effects();
+            auto & effects = effectEngine->effects();
             auto effect = effects.find(effectName);
             if (effect == effects.end()) {
                 return;
@@ -33,10 +34,6 @@ namespace luna::mqtt
         // mClient.subscribe(mName + "/config/+", [this](Topic const & topic, std::string_view payload) {
         //     mEffectMixer.setProperty(topic[2].str(), payload);
         // });
-    }
-
-    void Service::start()
-    {
         mClient.connect();
     }
 }

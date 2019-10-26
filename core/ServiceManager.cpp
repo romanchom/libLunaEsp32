@@ -6,15 +6,12 @@
 
 namespace luna
 {
-    ServiceManager::ServiceManager(HardwareController * controller) :
+    ServiceManager::ServiceManager(HardwareController * controller, std::initializer_list<Service *> services) :
         mController(controller)
-    {}
-
-    void ServiceManager::manage(Service * service, int priority, bool enabled)
     {
-        mRecords.push_back({service, priority, false});
-        service->setManager(this);
-        serviceEnabled(service, enabled);
+        for (int i = 0; i < services.size(); ++i) {
+            mRecords.push_back({services.begin()[i], i, false});
+        }
     }
 
     void ServiceManager::serviceEnabled(Service * service, bool enabled)

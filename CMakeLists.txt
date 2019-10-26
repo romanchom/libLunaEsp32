@@ -7,12 +7,12 @@ idf_component_register(
 
         "Main.cpp"
         "WiFi.cpp"
-        "NetworkManager.cpp"
         "DiscoveryResponder.cpp"
         "Updater.cpp"
 
         "IdleService.cpp"
         "RealtimeService.cpp"
+        "TlsConfiguration.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES

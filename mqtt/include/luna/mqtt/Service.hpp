@@ -2,18 +2,16 @@
 
 #include "Client.hpp"
 
-#include <luna/NetworkManagerConfiguration.hpp>
 #include <luna/EffectEngine.hpp>
+
+#include <string_view>
 
 namespace luna::mqtt
 {
     struct Service
     {
-        explicit Service(EffectEngine * effectEngine, NetworkManagerConfiguration const & configuration);
-
-        void start();
+        explicit Service(EffectEngine * effectEngine, std::string_view name, Client::Configuration const & configuration);
     private:
         Client mClient;
-        EffectEngine * mEffectEngine;
     };
 }

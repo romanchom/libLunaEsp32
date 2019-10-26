@@ -9,11 +9,10 @@ namespace luna
 
     struct ServiceManager
     {
-        explicit ServiceManager(HardwareController * controller);
+        explicit ServiceManager(HardwareController * controller, std::initializer_list<Service *> services);
 
-        void manage(Service * service, int priority, bool enabled = false);
+        void serviceEnabled(Service * service, bool enabled);
     private:
-        friend Service;
 
         struct Record
         {
@@ -22,7 +21,6 @@ namespace luna
             bool enabled;
         };
 
-        void serviceEnabled(Service * service, bool enabled);
         Record * maxEnabled();
 
         HardwareController * mController;

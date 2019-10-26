@@ -42,7 +42,7 @@ static luna::proto::ColorSpace toProto(prism::RGBColorSpace const & colorSpace) 
     return ret;
 }
 
-DiscoveryResponder::DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string const & name, std::vector<Strand *> const & strands) :
+DiscoveryResponder::DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string_view name, std::vector<Strand *> const & strands) :
     mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 9510))
 {
     using namespace luna::proto;
@@ -53,7 +53,8 @@ DiscoveryResponder::DiscoveryResponder(asio::io_context * ioContext, uint16_t po
 
     discovery->port = port;
     auto nameBuf = builder.allocate<char>(name.size() + 1);
-    memcpy(nameBuf, name.c_str(), name.size() + 1);
+    memcpy(nameBuf, name.data(), name.size());
+    nameBuf[name.size()] = 0;
     discovery->name = nameBuf;
 
     auto strandCount = strands.size();

@@ -2,18 +2,12 @@
 
 #include <esp_event.h>
 
-#include <string>
+#include <string_view>
 
 namespace luna
 {
     struct WiFi
     {
-        struct Config
-        {
-            std::string ssid;
-            std::string password;
-        };
-
         struct Observer
         {
             virtual ~Observer() = default;
@@ -21,7 +15,7 @@ namespace luna
             virtual void disconnected() = 0;
         };
 
-        explicit WiFi(Config const & config);
+        explicit WiFi(std::string_view ssid, std::string_view password);
         void observer(Observer * value);
         void enabled(bool value);
     private:
