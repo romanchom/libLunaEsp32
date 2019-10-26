@@ -6,16 +6,14 @@
 #include "RealtimeService.hpp"
 
 #include <luna/EffectEngine.hpp>
-#include <luna/ServiceManager.hpp>
-
-#include <luna/mqtt/Service.hpp>
 #include <luna/FlameEffect.hpp>
 #include <luna/ConstantEffect.hpp>
 #include <luna/PlasmaEffect.hpp>
+#include <luna/ServiceManager.hpp>
+
+#include <luna/mqtt/Service.hpp>
 
 #include <esp_log.h>
-
-#include <cstring>
 
 static char const TAG[] = "Luna";
 
@@ -27,8 +25,7 @@ namespace luna
         mOwnKey(configuration.tls.ownKey),
         mOwnCertificate(configuration.tls.ownCertificate),
         mCaCertificate(configuration.tls.caCertificate),
-        mTaskHandle(0),
-        mIoService(nullptr)
+        mTaskHandle(0)
     {
         mRandom.seed(&mEntropy, mConfiguration.name.data(), mConfiguration.name.size());
 
@@ -46,6 +43,8 @@ namespace luna
         mRealtimeConfiguration.setCertifiateAuthorityChain(&mCaCertificate);
         mRealtimeConfiguration.setAuthenticationMode(tls::AuthenticationMode::required);
         mRealtimeConfiguration.setDtlsCookies(&mCookie);
+
+        enable();
     }
 
     NetworkManager::~NetworkManager() = default;
@@ -57,10 +56,8 @@ namespace luna
 
     void NetworkManager::disable()
     {
-        if (mIoService) {
-            mIoService->stop();
-            mTaskHandle = 0;
-        }
+        mIoContext.stop();
+        mTaskHandle = 0;
     }
 
     void NetworkManager::daemonTask(void * context)
@@ -73,29 +70,27 @@ namespace luna
     {
         for (;;) {
             try {
-                asio::io_context ioContext;
-                mIoService = &ioContext;
-
-                Updater updater(&ioContext, &mUpdaterConfiguration);
-                RealtimeService realtime(&ioContext, &mRealtimeConfiguration);
-                DiscoveryResponder discoveryResponder(&ioContext, realtime.port(), std::string(mConfiguration.name), mController->strands());
-
-                IdleService idle;
-
-                EffectEngine effectEngine(&ioContext);
-                ConstantEffect lightEffect(&effectEngine, "light");
-                FlameEffect flameEffect(&effectEngine, "flame");
-                PlasmaEffect plasmaEffect(&effectEngine, "plasma");
-
-                mqtt::Service mqtt(&ioContext, &effectEngine, mConfiguration);
-
                 ServiceManager serviceManager(mController);
-                serviceManager.manage(&realtime, 10);
-                serviceManager.manage(&effectEngine, 1);
+                IdleService idle;
                 serviceManager.manage(&idle, 0, true);
 
+                ConstantEffect lightEffect("light");
+                FlameEffect flameEffect("flame");
+                PlasmaEffect plasmaEffect("plasma");
+
+                EffectEngine effectEngine(&mIoContext, {&lightEffect, &flameEffect, &plasmaEffect});
+                serviceManager.manage(&effectEngine, 1);
+
+                mqtt::Service mqtt(&effectEngine, mConfiguration);
                 mqtt.start();
-                ioContext.run();
+
+                RealtimeService realtime(&mIoContext, &mRealtimeConfiguration);
+                serviceManager.manage(&realtime, 10);
+
+                DiscoveryResponder discoveryResponder(&mIoContext, realtime.port(), std::string(mConfiguration.name), mController->strands());
+                Updater updater(&mIoContext, &mUpdaterConfiguration);
+
+                mIoContext.run();
                 break;
             } catch (std::exception const & exception) {
                 ESP_LOGE(TAG, "Exception in NetworkManager: %s", exception.what());

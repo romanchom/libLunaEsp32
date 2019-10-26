@@ -15,10 +15,11 @@ static char const TAG[] = "Effects";
 
 namespace luna
 {
-    EffectEngine::EffectEngine(asio::io_context * ioContext) :
+    EffectEngine::EffectEngine(asio::io_context * ioContext, std::initializer_list<Effect *> effects) :
         Configurable("effects"),
         mTick(*ioContext),
         mController(nullptr),
+        mEffects(effects),
         mEffectMixer(this)
     {
         addProperty("enabled", [this](std::string_view text) {
@@ -33,18 +34,10 @@ namespace luna
         });
     }
 
-    void EffectEngine::addEffect(std::string_view name, Effect * effect)
-    {
-        mEffects.try_emplace(std::string(name), effect);
-        if (mEffects.size() == 1) {
-            mEffectMixer.switchTo(effect);
-        }
-    }
-
     void EffectEngine::switchTo(std::string_view effectName)
     {
         if (auto it = mEffects.find(effectName); it != mEffects.end()) {
-            mEffectMixer.switchTo(it->second);
+            mEffectMixer.switchTo(*it);
         }
     }
 

@@ -37,10 +37,12 @@ namespace luna
     {
         explicit Configurable(std::string_view name);
         void setProperty(std::string_view propertyName, std::string_view text);
+        std::string const & name() const noexcept { return mName; }
     protected:
         void addProperty(std::string_view name, std::function<void(std::string_view)> && setter);
         ~Configurable();
 
+        std::string mName;
         std::set<Property, PropertyNameCompare> mProperties;
         nvs_handle mHandle;
     };

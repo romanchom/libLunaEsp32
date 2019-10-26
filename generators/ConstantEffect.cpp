@@ -4,8 +4,8 @@
 
 namespace luna
 {
-    ConstantEffect::ConstantEffect(EffectEngine * owner, std::string_view name) :
-        Effect(owner, name),
+    ConstantEffect::ConstantEffect(std::string_view name) :
+        Effect(name),
         mCurrentColor(prism::CieXYZ::Zero()),
         mTargetColor(prism::CieXYZ::Zero()),
         mConverter(prism::rgbToXyzTransformationMatrix(prism::rec2020()))

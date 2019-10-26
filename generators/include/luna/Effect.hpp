@@ -11,10 +11,8 @@ namespace luna
 
     struct Effect : Configurable
     {
-        explicit Effect(EffectEngine * owner, std::string_view name);
+        using Configurable::Configurable;
         virtual void update(float timeStep) = 0;
         virtual Generator * generator(Location const & location) = 0;
-    protected:
-        ~Effect() = default;
     };
 }

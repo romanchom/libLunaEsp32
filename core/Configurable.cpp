@@ -4,10 +4,10 @@
 
 namespace luna
 {
-    Configurable::Configurable(std::string_view name)
+    Configurable::Configurable(std::string_view name) :
+        mName(name)
     {
-        std::string nameString(name);
-        auto error = nvs_open(nameString.c_str(), NVS_READWRITE, &mHandle);
+        auto error = nvs_open(mName.c_str(), NVS_READWRITE, &mHandle);
         if (error != ESP_OK) {
             throw std::runtime_error("Unable to open NVS.");
         }

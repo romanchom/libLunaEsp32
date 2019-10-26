@@ -9,7 +9,7 @@ namespace luna
 {
     struct ConstantEffect : Effect
     {
-        explicit ConstantEffect(EffectEngine * owner, std::string_view name);
+        explicit ConstantEffect(std::string_view name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
 

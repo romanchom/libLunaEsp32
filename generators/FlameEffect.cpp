@@ -4,8 +4,8 @@
 
 namespace luna
 {
-    FlameEffect::FlameEffect(EffectEngine * owner, std::string_view name) :
-        Effect(owner, name)
+    FlameEffect::FlameEffect(std::string_view name) :
+        Effect(name)
     {
         addProperty("temperatureLow", [this](std::string_view text) {
             if (auto value = tryParse<float>(text)) {

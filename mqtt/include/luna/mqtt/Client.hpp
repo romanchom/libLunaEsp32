@@ -7,7 +7,7 @@
 #include <mqtt_client.h>
 
 #include <vector>
-#include <string>
+#include <string_view>
 #include <functional>
 
 namespace luna::mqtt

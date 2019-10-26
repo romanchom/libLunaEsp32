@@ -14,8 +14,6 @@
 
 namespace luna
 {
-    struct DiscoveryResponder;
-
     struct NetworkManager
     {
     public:
@@ -37,13 +35,12 @@ namespace luna
         tls::Certificate::Pem mCaCertificate;
         tls::StandardEntropy mEntropy;
         tls::CounterDeterministicRandomGenerator mRandom;
+        tls::StandardCookie mCookie;
 
         tls::Configuration mUpdaterConfiguration;
-
-        tls::StandardCookie mCookie;
         tls::Configuration mRealtimeConfiguration;
 
         TaskHandle_t mTaskHandle;
-        asio::io_context * mIoService;
+        asio::io_context mIoContext;
     };
 }

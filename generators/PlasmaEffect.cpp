@@ -4,8 +4,8 @@
 
 namespace luna
 {
-    PlasmaEffect::PlasmaEffect(EffectEngine * owner, std::string_view name) :
-        Effect(owner, name)
+    PlasmaEffect::PlasmaEffect(std::string_view name) :
+        Effect(name)
     {
         addProperty("saturation", [this](std::string_view text) {
             if (auto value = tryParse<float>(text)) {

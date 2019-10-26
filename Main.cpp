@@ -12,11 +12,11 @@ namespace luna
 
     void Main::connected()
     {
-        mNetworkManager.enable();
+        // mNetworkManager.enable();
     }
 
     void Main::disconnected()
     {
-        mNetworkManager.disable();
+        // mNetworkManager.disable();
     }
 }
