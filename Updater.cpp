@@ -7,7 +7,8 @@ static char const TAG[] = "OTA";
 namespace luna
 {
     Updater::Updater(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
-        mListeningSocket(*ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
+        mIoContext(ioContext),
+        mListeningSocket(*ioContext),
         mStreamSocket(*ioContext),
         mIo(&mStreamSocket)
     {
@@ -15,8 +16,16 @@ namespace luna
         mSsl.setInputOutput(&mIo);
 
         mOtaPartition = esp_ota_get_next_update_partition(nullptr);
+    }
 
-        acceptConnection();
+    void Updater::enabled(bool on)
+    {
+        if (on) {
+            mListeningSocket = asio::ip::tcp::acceptor(*mIoContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000));
+            mStreamSocket = asio::ip::tcp::socket(*mIoContext);
+
+            acceptConnection();
+        }
     }
 
     void Updater::acceptConnection()

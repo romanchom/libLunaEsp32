@@ -13,8 +13,9 @@ static char const TAG[] = "RT";
 namespace luna
 {
     RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
+        mIoContext(ioContext),
         mController(nullptr),
-        mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
+        mSocket(*ioContext),
         mHeartbeat(*ioContext),
         mTimer(ioContext),
         mIo(&mSocket)
@@ -26,9 +27,6 @@ namespace luna
         mSsl.setup(tlsConfiguration);
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
-
-        startHandshake();
-        ESP_LOGI(TAG, "Up on port %d", int(port()));
     }
 
     RealtimeService::~RealtimeService() = default;
@@ -36,6 +34,16 @@ namespace luna
     uint16_t RealtimeService::port()
     {
         return mSocket.local_endpoint().port();
+    }
+
+    void RealtimeService::enabled(bool on)
+    {
+        if (on) {
+            mSocket = asio::ip::udp::socket(*mIoContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
+
+            startHandshake();
+            ESP_LOGI(TAG, "Up on port %d", int(port()));
+        }
     }
 
     void RealtimeService::reset()

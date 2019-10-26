@@ -12,15 +12,18 @@
 
 namespace luna
 {
-
     struct Updater
     {
         explicit Updater(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
+
+        void enabled(bool on);
     private:
         void acceptConnection();
         void doHandshake();
         void doUpdate();
         void reset();
+
+        asio::io_context * mIoContext;
 
         tls::Ssl mSsl;
 

@@ -22,6 +22,7 @@ namespace luna
 
         uint16_t port();
 
+        void enabled(bool on);
     private:
         void reset();
         void startHandshake();
@@ -35,6 +36,8 @@ namespace luna
         void dispatchCommand(std::byte const * data, size_t size);
 
         void setColor(luna::proto::SetColor const& cmd);
+
+        asio::io_context * mIoContext;
 
         HardwareController * mController;
 
