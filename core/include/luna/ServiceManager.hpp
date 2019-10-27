@@ -13,17 +13,12 @@ namespace luna
 
         void serviceEnabled(Service * service, bool enabled);
     private:
+        void findActive();
 
-        struct Record
-        {
-            Service * service;
-            int priority;
-            bool enabled;
-        };
-
-        Record * maxEnabled();
+        Service * maxEnabled();
 
         HardwareController * mController;
-        std::vector<Record> mRecords;
+        std::vector<Service *> mRecords;
+        Service * mActive;
     };
 }

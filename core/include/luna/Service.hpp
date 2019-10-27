@@ -11,6 +11,7 @@ namespace luna
         explicit Service();
 
         void serviceEnabled(bool enabled);
+        bool serviceEnabled() const noexcept;
     protected:
         ~Service() = default;
 
@@ -23,5 +24,6 @@ namespace luna
         void setManager(ServiceManager * manager);
 
         ServiceManager * mManager;
+        bool mEnabled;
     };
 }

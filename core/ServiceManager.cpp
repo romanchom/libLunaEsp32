@@ -7,53 +7,52 @@
 namespace luna
 {
     ServiceManager::ServiceManager(HardwareController * controller, std::initializer_list<Service *> services) :
-        mController(controller)
+        mController(controller),
+        mActive(nullptr)
     {
         for (int i = 0; i < services.size(); ++i) {
-            mRecords.push_back({services.begin()[i], i, false});
+            auto service = services.begin()[i];
+            service->setManager(this);
+            mRecords.push_back(service);
         }
+
+        findActive();
     }
 
     void ServiceManager::serviceEnabled(Service * service, bool enabled)
     {
-        auto currentActive = maxEnabled();
+        auto it = std::find(mRecords.begin(), mRecords.end(), service);
 
-        auto record = std::find_if(mRecords.begin(), mRecords.end(), [service](Record & r){
-            return r.service == service;
-        });
-
-        if (record != mRecords.end()) {
-            record->enabled = enabled;
-        } else {
+        if (it == mRecords.end()) {
             return;
         }
 
+        findActive();
+    }
+
+    void ServiceManager::findActive()
+    {
         auto newActive = maxEnabled();
 
-        if (currentActive != newActive) {
-            if (currentActive) {
-                currentActive->service->releaseOwnership();
+        if (mActive != newActive) {
+            if (mActive) {
+                mActive->releaseOwnership();
             }
             if (newActive) {
-                newActive->service->takeOwnership(mController);
+                newActive->takeOwnership(mController);
             }
+            mActive = newActive;
         }
     }
 
-    ServiceManager::Record * ServiceManager::maxEnabled()
+    Service * ServiceManager::maxEnabled()
     {
-        auto record = std::max_element(mRecords.begin(), mRecords.end(), [](auto const & l, auto const & r) {
-            if (l.enabled ^ r.enabled) {
-                return r.enabled;
-            } else {
-                return l.priority < r.priority;
+        for (int i = mRecords.size() - 1; i >= 0; --i) {
+            auto service = mRecords[i];
+            if (service->serviceEnabled()) {
+                return service;
             }
-        });
-
-        if (record != mRecords.end() && record->enabled) {
-            return &*record;
-        } else {
-            return nullptr;
         }
+        return nullptr;
     }
 }

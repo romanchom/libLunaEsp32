@@ -4,7 +4,8 @@
 namespace luna
 {
     Service::Service() :
-        mManager(nullptr)
+        mManager(nullptr),
+        mEnabled(false)
     {}
 
     void Service::setManager(ServiceManager * manager)
@@ -14,8 +15,14 @@ namespace luna
 
     void Service::serviceEnabled(bool enabled)
     {
+        mEnabled = true;
         if (mManager) {
             mManager->serviceEnabled(this, enabled);
         }
+    }
+
+    bool Service::serviceEnabled() const noexcept
+    {
+        return mEnabled;
     }
 }
