@@ -14,22 +14,21 @@
 struct udp_pcb;
 
 namespace luna {
-    struct DiscoveryResponder
-    {
-        explicit DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string_view name, std::vector<Strand *> const & strands);
-        ~DiscoveryResponder();
 
-        void enabled(bool on);
-    private:
-        void startRespond();
+class DiscoveryResponder
+{
+public:
+    explicit DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string_view name, std::vector<Strand *> const & strands);
+    ~DiscoveryResponder();
 
-        asio::io_context * mIoContext;
+private:
+    void startRespond();
 
-        asio::ip::udp::socket mSocket;
-        asio::ip::udp::endpoint mRemote;
+    asio::ip::udp::socket mSocket;
+    asio::ip::udp::endpoint mRemote;
 
-        std::vector<std::byte> mResponse;
-        std::array<std::byte, 1> mReadBuffer;
-    };
+    std::vector<std::byte> mResponse;
+    std::array<std::byte, 1> mReadBuffer;
+};
 
 }

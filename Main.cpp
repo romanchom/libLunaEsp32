@@ -22,15 +22,11 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <esp_log.h>
-
-static char const TAG[] = "Luna";
 
 namespace
 {
     void task(void * data)
     {
-        ESP_LOGI(TAG, "Up and running.");
         static_cast<asio::io_context *>(data)->run();
         std::terminate();
     }
@@ -38,12 +34,9 @@ namespace
 
 namespace luna
 {
-    struct Main::Impl : WiFi::Observer
+    struct Main::Impl
     {
         explicit Impl(Configuration const & config, HardwareController * controller);
-
-        void connected() override;
-        void disconnected() override;
     private:
         Nvs mNvs;
         TlsConfiguration mTlsConfiguration;
@@ -97,25 +90,9 @@ namespace luna
     {
         mServiceManager.serviceEnabled(&mIdleSerice, true);
 
-        xTaskCreatePinnedToCore(&task, "Daemon", 1024 * 8, &mIoContext, 5, &mTaskHandle, 1);
-
-        mWiFi.observer(this);
         mWiFi.enabled(true);
-    }
 
-    void Main::Impl::connected()
-    {
-        mMqtt.enabled(true);
-        mRealtimeService.enabled(true);
-        mDiscoveryResponder.enabled(true);
-        mUpdater.enabled(true);
-
-        ESP_LOGI(TAG, "Online.");
-    }
-
-    void Main::Impl::disconnected()
-    {
-
+        xTaskCreatePinnedToCore(&task, "Daemon", 1024 * 8, &mIoContext, 5, &mTaskHandle, 1);
     }
 
     Main::Main(Configuration const & config, HardwareController * controller) :

@@ -11,92 +11,85 @@
 namespace luna
 {
 
-    static luna::proto::Point toProto(Point const & point) {
-        auto ret = luna::proto::Point();
-        ret.x = point.x();
-        ret.y = point.y();
-        ret.z = point.z();
-        return ret;
+static luna::proto::Point toProto(Point const & point) {
+    auto ret = luna::proto::Point();
+    ret.x = point.x();
+    ret.y = point.y();
+    ret.z = point.z();
+    return ret;
+}
+
+static luna::proto::Location toProto(Location const & location) {
+    return {
+        toProto(location.begin),
+        toProto(location.end)
+    };
+}
+
+static luna::proto::UV toProto(prism::CieXY const & xy) {
+    auto ret = luna::proto::UV();
+    ret.u = xy.x();
+    ret.v = xy.y();
+    return ret;
+}
+
+static luna::proto::ColorSpace toProto(prism::RGBColorSpace const & colorSpace) {
+    auto ret = luna::proto::ColorSpace();
+    ret.white = toProto(colorSpace.white);
+    ret.red = toProto(colorSpace.red);
+    ret.green = toProto(colorSpace.green);
+    ret.blue = toProto(colorSpace.blue);
+    return ret;
+}
+
+DiscoveryResponder::DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string_view name, std::vector<Strand *> const & strands) :
+    mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 9510))
+{
+    using namespace luna::proto;
+
+    std::byte buffer[512];
+    auto builder = Builder(buffer);
+    auto discovery = builder.allocate<Discovery>();
+
+    discovery->port = port;
+    auto nameBuf = builder.allocate<char>(name.size() + 1);
+    memcpy(nameBuf, name.data(), name.size());
+    nameBuf[name.size()] = 0;
+    discovery->name = nameBuf;
+
+    auto strandCount = strands.size();
+    auto strandProperties = builder.allocate<StrandProperties>(strandCount);
+
+    for (size_t i = 0; i < strandCount; ++i) {
+        auto strand = strands[i];
+        auto & property = strandProperties[i];
+        property.id = i;
+        property.format = strand->format();
+        property.pixelCount = strand->pixelCount();
+        property.location = toProto(strand->location());
+        property.colorSpace = toProto(strand->colorSpace());
     }
 
-    static luna::proto::Location toProto(Location const & location) {
-        return {
-            toProto(location.begin),
-            toProto(location.end)
-        };
-    }
+    discovery->strands.set(strandProperties, strandCount);
 
-    static luna::proto::UV toProto(prism::CieXY const & xy) {
-        auto ret = luna::proto::UV();
-        ret.u = xy.x();
-        ret.v = xy.y();
-        return ret;
-    }
+    mResponse = std::vector<std::byte>(builder.data(), builder.data() + builder.size());
 
-    static luna::proto::ColorSpace toProto(prism::RGBColorSpace const & colorSpace) {
-        auto ret = luna::proto::ColorSpace();
-        ret.white = toProto(colorSpace.white);
-        ret.red = toProto(colorSpace.red);
-        ret.green = toProto(colorSpace.green);
-        ret.blue = toProto(colorSpace.blue);
-        return ret;
-    }
+    startRespond();
+}
 
-    DiscoveryResponder::DiscoveryResponder(asio::io_context * ioContext, uint16_t port, std::string_view name, std::vector<Strand *> const & strands) :
-        mIoContext(ioContext),
-        mSocket(*ioContext),
-        mResponse(512)
-    {
-        using namespace luna::proto;
+DiscoveryResponder::~DiscoveryResponder() = default;
 
-        auto builder = Builder(mResponse.data());
-        auto discovery = builder.allocate<Discovery>();
-
-        discovery->port = port;
-        auto nameBuf = builder.allocate<char>(name.size() + 1);
-        memcpy(nameBuf, name.data(), name.size());
-        nameBuf[name.size()] = 0;
-        discovery->name = nameBuf;
-
-        auto strandCount = strands.size();
-        auto strandProperties = builder.allocate<StrandProperties>(strandCount);
-
-        for (size_t i = 0; i < strandCount; ++i) {
-            auto strand = strands[i];
-            auto & property = strandProperties[i];
-            property.id = i;
-            property.format = strand->format();
-            property.pixelCount = strand->pixelCount();
-            property.location = toProto(strand->location());
-            property.colorSpace = toProto(strand->colorSpace());
-        }
-
-        discovery->strands.set(strandProperties, strandCount);
-
-        mResponse.resize(builder.size());
-    }
-
-    DiscoveryResponder::~DiscoveryResponder() = default;
-
-    void DiscoveryResponder::enabled(bool on)
-    {
-        if (on) {
-            mSocket = asio::ip::udp::socket(*mIoContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 9510));
+void DiscoveryResponder::startRespond()
+{
+    mSocket.async_receive_from(asio::buffer(mReadBuffer), mRemote,
+        [this](asio::error_code const & error, std::size_t bytesTransferred) {
+            ESP_LOGI("DiRe", "Responding");
+            if (!error || error == asio::error::message_size) {
+                mSocket.send_to(asio::buffer(mResponse), mRemote);
+            }
             startRespond();
         }
-    }
-
-    void DiscoveryResponder::startRespond()
-    {
-        mSocket.async_receive_from(asio::buffer(mReadBuffer), mRemote,
-            [this](asio::error_code const & error, std::size_t bytesTransferred) {
-                ESP_LOGI("DiRe", "Responding");
-                if (!error || error == asio::error::message_size) {
-                    mSocket.send_to(asio::buffer(mResponse), mRemote);
-                }
-                startRespond();
-            }
-        );
-    }
+    );
+}
 
 }

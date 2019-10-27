@@ -34,12 +34,6 @@ namespace luna::mqtt
         // mClient.subscribe(mName + "/config/+", [this](Topic const & topic, std::string_view payload) {
         //     mEffectMixer.setProperty(topic[2].str(), payload);
         // });
-    }
-
-    void Service::enabled(bool on)
-    {
-        if (on) {
-            mClient.connect();
-        }
+        mClient.connect();
     }
 }
