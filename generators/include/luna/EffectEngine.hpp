@@ -39,7 +39,7 @@ namespace luna
 
     struct EffectEngine : Service, Configurable, private EffectMixer::Observer
     {
-        explicit EffectEngine(asio::io_context * ioContext, std::initializer_list<Effect *> effects);
+        explicit EffectEngine(std::initializer_list<Effect *> effects);
 
         std::set<Effect *, EffectPointerNameCompare> const & effects() const noexcept { return mEffects; }
     private:
@@ -48,15 +48,16 @@ namespace luna
         void takeOwnership(HardwareController * controller) final;
         void releaseOwnership() final;
 
-        void startTick();
+        static void tick(void * data);
         void update();
 
         void enabledChanged(bool enabled) override;
 
-        asio::steady_timer mTick;
         HardwareController * mController;
 
         std::set<Effect *, EffectPointerNameCompare> mEffects;
         EffectMixer mEffectMixer;
+
+        TaskHandle_t mTaskHandle;
     };
 }

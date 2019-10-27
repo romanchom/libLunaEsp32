@@ -77,7 +77,7 @@ namespace luna
         mLightEffect("light"),
         mFlameEffect("flame"),
         mPlasmaEffect("plasma"),
-        mEffectEngine(&mIoContext, {&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
+        mEffectEngine({&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
         mRealtimeService(&mIoContext, mTlsConfiguration.realtimeConfiguration()),
         mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mRealtimeService}),
         mMqtt(
