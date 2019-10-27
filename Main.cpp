@@ -63,8 +63,6 @@ namespace luna
         mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mDirectService}),
         mWiFi(config.wifi.ssid, config.wifi.password)
     {
-        mServiceManager.serviceEnabled(&mIdleSerice, true);
-
         mWiFi.observer(this);
         mWiFi.enabled(true);
     }

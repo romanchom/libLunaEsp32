@@ -24,4 +24,23 @@ namespace luna
     private:
         SemaphoreHandle_t mHandle;
     };
+
+    struct RecursiveMutex
+    {
+        explicit RecursiveMutex() :
+            mHandle(xSemaphoreCreateRecursiveMutex())
+        {}
+
+        void lock()
+        {
+            xSemaphoreTakeRecursive(mHandle, portMAX_DELAY);
+        }
+
+        void unlock()
+        {
+            xSemaphoreGiveRecursive(mHandle);
+        }
+    private:
+        SemaphoreHandle_t mHandle;
+    };
 }

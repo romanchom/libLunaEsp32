@@ -60,6 +60,6 @@ namespace luna
         EffectMixer mEffectMixer;
 
         TaskHandle_t mTaskHandle;
-        Mutex mMutex;
+        RecursiveMutex mMutex;
     };
 }

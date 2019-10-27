@@ -8,6 +8,11 @@ static char const TAG[] = "Idle";
 
 namespace luna
 {
+    IdleService::IdleService()
+    {
+        serviceEnabled(true);
+    }
+
     void IdleService::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "On");

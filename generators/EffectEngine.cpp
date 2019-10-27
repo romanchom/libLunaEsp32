@@ -53,7 +53,7 @@ namespace luna
     void EffectEngine::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        std::unique_lock l(mMutex);
+        // std::unique_lock l(mMutex);
         xTaskNotify(mTaskHandle, 1, eSetValueWithOverwrite);
         mTaskHandle = 0;
         mController = nullptr;
