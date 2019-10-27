@@ -2,8 +2,6 @@
 
 #include <luna/Parse.hpp>
 
-#include <esp_log.h>
-
 #include <algorithm>
 
 namespace luna

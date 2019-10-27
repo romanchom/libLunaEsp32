@@ -2,7 +2,7 @@
 
 #include <esp_log.h>
 
-static char const TAG[] = "RT";
+static char const TAG[] = "DirectSvc";
 
 namespace luna
 {

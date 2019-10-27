@@ -10,6 +10,7 @@
 #include <esp_log.h>
 
 #include <chrono>
+#include <mutex>
 
 static char const TAG[] = "Effects";
 
@@ -43,6 +44,7 @@ namespace luna
     void EffectEngine::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "Enabled");
+        std::unique_lock l(mMutex);
         mController = controller;
         mController->enabled(true);
         xTaskCreatePinnedToCore(&EffectEngine::tick, "Daemon", 1024 * 2, this, 5, &mTaskHandle, 0);
@@ -51,6 +53,7 @@ namespace luna
     void EffectEngine::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
+        std::unique_lock l(mMutex);
         xTaskNotify(mTaskHandle, 1, eSetValueWithOverwrite);
         mTaskHandle = 0;
         mController = nullptr;
@@ -77,6 +80,8 @@ namespace luna
 
     void EffectEngine::update()
     {
+        std::unique_lock l(mMutex);
+        
         mEffectMixer.update(0.02f);
 
         if (!mController) {

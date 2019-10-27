@@ -15,7 +15,7 @@ namespace luna
 
     void Service::serviceEnabled(bool enabled)
     {
-        mEnabled = true;
+        mEnabled = enabled;
         if (mManager) {
             mManager->serviceEnabled(this, enabled);
         }

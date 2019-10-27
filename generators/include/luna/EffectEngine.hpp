@@ -4,6 +4,7 @@
 #include "Effect.hpp"
 #include "EffectMixer.hpp"
 
+#include <luna/Mutex.hpp>
 #include <luna/Service.hpp>
 
 #include <asio/io_context.hpp>
@@ -59,5 +60,6 @@ namespace luna
         EffectMixer mEffectMixer;
 
         TaskHandle_t mTaskHandle;
+        Mutex mMutex;
     };
 }

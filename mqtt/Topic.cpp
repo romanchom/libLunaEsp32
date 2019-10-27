@@ -45,7 +45,7 @@ namespace luna::mqtt
             auto lvlA = (*this)[level];
             auto lvlB = other[level];
             if (lvlA.multiLevelWildcard() || lvlB.multiLevelWildcard()) {
-                return 0;
+                return true;
             }
 
             if (!lvlA.matches(lvlB)) {

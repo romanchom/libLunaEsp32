@@ -15,7 +15,7 @@ static char const TAG[] = "RT";
 namespace luna
 {
     RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, DirectService * service) :
-        mService(nullptr),
+        mService(service),
         mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*ioContext),
         mTimer(ioContext),
