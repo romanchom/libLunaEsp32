@@ -14,6 +14,8 @@ idf_component_register(
         "RealtimeService.cpp"
         "TlsConfiguration.cpp"
         "Nvs.cpp"
+        "OnlineContext.cpp"
+        "DirectService.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES

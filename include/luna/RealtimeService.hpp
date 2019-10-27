@@ -3,11 +3,8 @@
 #include "AsioUdpInputOutput.hpp"
 #include "AsioTimer.hpp"
 
-#include <luna/HardwareController.hpp>
-#include <luna/Service.hpp>
 #include <mbedtls-cpp/Configuration.hpp>
 #include <mbedtls-cpp/Ssl.hpp>
-#include <luna/proto/SetColor.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/ip/udp.hpp>
@@ -15,9 +12,11 @@
 
 namespace luna
 {
-    struct RealtimeService : Service
+    struct DirectService;
+
+    struct RealtimeService
     {
-        RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
+        RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, DirectService * service);
         ~RealtimeService();
 
         uint16_t port();
@@ -29,14 +28,10 @@ namespace luna
         void startRead();
 
         void activate();
-        void takeOwnership(HardwareController * controller) final;
-        void releaseOwnership() final;
 
         void dispatchCommand(std::byte const * data, size_t size);
 
-        void setColor(luna::proto::SetColor const& cmd);
-
-        HardwareController * mController;
+        DirectService * mService;
 
         tls::Ssl mSsl;
 

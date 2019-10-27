@@ -10,13 +10,12 @@ namespace luna
     {
         explicit Service();
 
+        void serviceEnabled(bool enabled);
     protected:
         ~Service() = default;
 
         virtual void takeOwnership(HardwareController * controller) = 0;
         virtual void releaseOwnership() = 0;
-
-        void serviceEnabled(bool enabled);
 
     private:
         friend ServiceManager;

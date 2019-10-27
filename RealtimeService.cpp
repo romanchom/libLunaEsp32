@@ -1,5 +1,7 @@
 #include "RealtimeService.hpp"
 
+#include "DirectService.hpp"
+
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
 
@@ -12,8 +14,8 @@ static char const TAG[] = "RT";
 
 namespace luna
 {
-    RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
-        mController(nullptr),
+    RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, DirectService * service) :
+        mService(nullptr),
         mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*ioContext),
         mTimer(ioContext),
@@ -41,7 +43,7 @@ namespace luna
     void RealtimeService::reset()
     {
         ESP_LOGI(TAG, "Reset");
-        serviceEnabled(false);
+        mService->serviceEnabled(false);
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
@@ -122,23 +124,10 @@ namespace luna
         });
     }
 
-    void RealtimeService::takeOwnership(HardwareController * controller)
-    {
-        ESP_LOGI(TAG, "Enabled");
-        mController = controller;
-        mController->enabled(true);
-    }
-
-    void RealtimeService::releaseOwnership()
-    {
-        ESP_LOGI(TAG, "Disabled");
-        mController = nullptr;
-    }
-
     void RealtimeService::activate()
     {
         ESP_LOGI(TAG, "Peer connected and authenticated");
-        serviceEnabled(true);
+        mService->serviceEnabled(true);
         startRead();
     }
 
@@ -149,7 +138,7 @@ namespace luna
         auto & command = packet->command;
 
         if (auto cmd = command.as<SetColor>()) {
-            setColor(*cmd);
+            mService->setColor(*cmd);
         }
 
         if (packet->id != 0) {
@@ -161,24 +150,5 @@ namespace luna
 
             mSsl.write(builder.data(), builder.size());
         }
-    }
-
-    void RealtimeService::setColor(luna::proto::SetColor const& cmd)
-    {
-        if (!mController) {
-            return;
-        }
-
-        auto strands = mController->strands();
-
-        for (auto & strandData : cmd.strands) {
-            size_t index = strandData.id;
-            if (index >= strands.size()) continue;
-            auto strand = strands[index];
-
-            strand->rawBytes(strandData.rawBytes.data(), strandData.rawBytes.size());
-        }
-
-        mController->update();
     }
 }

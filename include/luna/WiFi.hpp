@@ -10,9 +10,10 @@ namespace luna
     {
         struct Observer
         {
-            virtual ~Observer() = default;
             virtual void connected() = 0;
             virtual void disconnected() = 0;
+        protected:
+            ~Observer() = default;
         };
 
         explicit WiFi(std::string_view ssid, std::string_view password);
