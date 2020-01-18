@@ -8,6 +8,7 @@
 #include "IdleService.hpp"
 #include "DirectService.hpp"
 #include "OnlineContext.hpp"
+#include "Infrared.hpp"
 
 #include <luna/EffectEngine.hpp>
 #include <luna/FlameEffect.hpp>
@@ -46,6 +47,7 @@ namespace luna
 
         std::unique_ptr<OnlineContext> mOnlineContext;
         WiFi mWiFi;
+        Infrared mIR;
     };
 
     Main::Impl::Impl(Configuration const & config, HardwareController * controller) :
@@ -61,7 +63,8 @@ namespace luna
         mPlasmaEffect("plasma"),
         mEffectEngine({&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
         mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mDirectService}),
-        mWiFi(config.wifi.ssid, config.wifi.password)
+        mWiFi(config.wifi.ssid, config.wifi.password),
+        mIR(27)
     {
         mWiFi.observer(this);
         mWiFi.enabled(true);
