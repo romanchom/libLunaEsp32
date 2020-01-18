@@ -8,7 +8,7 @@
 #include <esp_log.h>
 #include <chrono>
 
-char* if_indextoname(unsigned int , char* ) { return nullptr; }
+// char* if_indextoname(unsigned int , char* ) { return nullptr; }
 
 static char const TAG[] = "RT";
 

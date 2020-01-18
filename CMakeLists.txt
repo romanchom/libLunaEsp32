@@ -16,6 +16,7 @@ idf_component_register(
         "Nvs.cpp"
         "OnlineContext.cpp"
         "DirectService.cpp"
+        "Infrared.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES
