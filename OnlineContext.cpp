@@ -2,6 +2,8 @@
 
 #include "TlsConfiguration.hpp"
 
+#include <luna/HardwareController.hpp>
+
 namespace
 {
     void task(void * data)
@@ -13,11 +15,11 @@ namespace
 
 namespace luna
 {
-    OnlineContext::OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService) :
+    OnlineContext::OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, Configurable * effectEngine, DirectService * directService) :
         mRealtimeService(&mIoContext, tlsConfigutation->realtimeConfiguration(), directService),
         mMqtt(
             effectEngine,
-            config.name,
+            std::string(config.name),
             {
                 config.mqttAddress,
                 config.ownKey,

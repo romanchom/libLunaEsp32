@@ -9,7 +9,7 @@
 
 namespace luna
 {
-    struct EffectMixer : Configurable
+    struct EffectMixer// TODO : Configurable
     {
         struct Observer
         {
@@ -25,6 +25,7 @@ namespace luna
         void switchTo(Effect * effect);
 
         void enabled(bool state);
+        bool enabled() const;
 
     private:
         Observer * mObserver;

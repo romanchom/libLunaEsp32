@@ -3,6 +3,7 @@
 #include "ConstantEffect.hpp"
 #include "Effect.hpp"
 #include "EffectMixer.hpp"
+#include "EffectSet.hpp"
 
 #include <luna/Mutex.hpp>
 #include <luna/Service.hpp>
@@ -16,36 +17,17 @@ namespace luna
 {
     struct HardwareController;
 
-    struct EffectPointerNameCompare
-    {
-        using is_transparent = void;
-
-        bool operator()(Effect * left, Effect * right) const noexcept
-        {
-            return left->name() < right->name();
-        }
-
-        template<typename T>
-        bool operator()(T const & left, Effect * right) const noexcept
-        {
-            return left < right->name();
-        }
-
-        template<typename T>
-        bool operator()(Effect * left, T const & right) const noexcept
-        {
-            return left->name() < right;
-        }
-    };
-
     struct EffectEngine : Service, Configurable, private EffectMixer::Observer
     {
-        explicit EffectEngine(std::initializer_list<Effect *> effects);
+        explicit EffectEngine(EffectSet * effects);
 
-        std::set<Effect *, EffectPointerNameCompare> const & effects() const noexcept { return mEffects; }
+        Property<std::string> & activeEffect() { return mActiveEffect; }
+        Property<bool> & enabled() { return mEnabled; }
+
+        std::vector<AbstractProperty *> properties() override;
+        std::vector<Configurable *> children() override;
+
     private:
-        void switchTo(std::string_view effectName);
-
         void takeOwnership(HardwareController * controller) final;
         void releaseOwnership() final;
 
@@ -54,11 +36,19 @@ namespace luna
 
         void enabledChanged(bool enabled) override;
 
+        std::string getActiveEffect() const;
+        void setActiveEffect(std::string const & value);
+
+        bool getEnabled() const;
+        void setEnabled(bool const & value);
+
+        MemberProperty<EffectEngine, std::string> mActiveEffect;
+        MemberProperty<EffectEngine, bool> mEnabled;
+
+        EffectSet * const mEffects;
+        std::string mLastEffect;
         HardwareController * mController;
-
-        std::set<Effect *, EffectPointerNameCompare> mEffects;
         EffectMixer mEffectMixer;
-
         TaskHandle_t mTaskHandle;
         Mutex mMutex;
     };

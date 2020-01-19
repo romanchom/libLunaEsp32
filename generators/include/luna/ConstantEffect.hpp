@@ -9,14 +9,27 @@ namespace luna
 {
     struct ConstantEffect : Effect
     {
-        explicit ConstantEffect(std::string_view name);
+        explicit ConstantEffect(std::string && name);
         void update(float timeStep) final;
         Generator * generator(Location const & location) final;
 
+        Property<prism::CieXYZ> & color() { return mColor; }
+        Property<float> & whiteness() { return mWhiteness; }
+
+        std::vector<AbstractProperty *> properties() override;
     private:
-        ConstantGenerator mGenerator;
+        prism::CieXYZ getColor() const;
+        void setColor(prism::CieXYZ const & value);
+
+        float getWhiteness() const;
+        void setWhiteness(float const & value);
+
         prism::CieXYZ mCurrentColor;
         prism::CieXYZ mTargetColor;
-        Eigen::Matrix<prism::ColorScalar, 3, 3> mConverter;
+
+        MemberProperty<ConstantEffect, prism::CieXYZ> mColor;
+        MemberProperty<ConstantEffect, float> mWhiteness;
+
+        ConstantGenerator mGenerator;
     };
 }

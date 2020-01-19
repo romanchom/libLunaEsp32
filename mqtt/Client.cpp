@@ -1,5 +1,8 @@
 #include "Client.hpp"
 
+#include <algorithm>
+#include <esp_log.h>
+
 namespace luna::mqtt
 {
     Client::Client(Configuration const & configuration)
@@ -15,9 +18,14 @@ namespace luna::mqtt
         esp_mqtt_client_register_event(mHandle, (esp_mqtt_event_id_t) ESP_EVENT_ANY_ID, &Client::handler, this);
     }
 
-    void Client::subscribe(Topic topic, Callback callback)
+    void Client::subscribe(std::unique_ptr<Subscription> subscription)
     {
-        mSubscriptions.emplace_back(Record{topic, callback});
+        mSubscriptions.emplace_back(std::move(subscription));
+    }
+
+    void Client::publish(Topic topic, std::string const & text)
+    {
+        esp_mqtt_client_publish(mHandle, topic.str().c_str(), text.c_str(), text.size(), 0, 1);
     }
 
     void Client::connect()
@@ -34,8 +42,8 @@ namespace luna::mqtt
     {
         switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
-            for (auto & [topic, callback] : mSubscriptions) {
-                esp_mqtt_client_subscribe(mHandle, topic.str().c_str(), 0);
+            for (auto & subscription : mSubscriptions) {
+                esp_mqtt_client_subscribe(mHandle, subscription->topic().str().c_str(), 0);
             }
             break;
         case MQTT_EVENT_DATA:
@@ -43,13 +51,15 @@ namespace luna::mqtt
                 std::string topic(static_cast<char const *>(event->topic), event->topic_len);
                 Topic mqttTopic(std::move(topic));
 
-                auto subscription = std::find_if(mSubscriptions.begin(), mSubscriptions.end(), [mqttTopic](auto const & record) {
-                    return record.topic.matches(mqttTopic);
+                // ESP_LOGI("MQTT" , "%.*s", event->topic_len, event->topic);
+                auto subscription = std::find_if(mSubscriptions.begin(), mSubscriptions.end(), [mqttTopic](auto const & subscription) {
+                    // ESP_LOGI("MQTT" , "%s", subscription->topic().str().c_str());
+                    return subscription->topic().matches(mqttTopic);
                 });
-
+                // ESP_LOGI("MQTT" , "%d", subscription!=mSubscriptions.end());
                 if (subscription != mSubscriptions.end()) {
                     std::string_view text(static_cast<char const *>(event->data), event->data_len);
-                    subscription->callback(mqttTopic, text);
+                    (*subscription)->deliver(text);
                 }
             }
             break;

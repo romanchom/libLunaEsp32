@@ -7,7 +7,7 @@
 namespace luna
 {
     EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
-        Configurable("mixer"),
+        // Configurable("mixer"),
         mObserver(observer),
         mEnabled(false),
         mBrightness(1.0f),
@@ -15,16 +15,16 @@ namespace luna
         mTransitionDuration(1.0f),
         mTransitionProgress(0.0f)
     {
-        addProperty("brightness", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mBrightness = std::clamp(*value, 0.0f, 1.0f);
-            }
-        });
-        addProperty("duration", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mTransitionDuration = std::max(0.0f, *value);
-            }
-        });
+        // addProperty("brightness", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mBrightness = std::clamp(*value, 0.0f, 1.0f);
+        //     }
+        // });
+        // addProperty("duration", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mTransitionDuration = std::max(0.0f, *value);
+        //     }
+        // });
     }
 
     void EffectMixer::update(float timeStep)
@@ -85,9 +85,18 @@ namespace luna
 
     void EffectMixer::enabled(bool state)
     {
+        if (mEnabled == state) {
+            return;
+        }
+
         mEnabled = state;
         if (mEnabled && mEnabledPercentage == 0.0f) {
             mObserver->enabledChanged(true);
         }
+    }
+
+    bool EffectMixer::enabled() const
+    {
+        return mEnabledPercentage > 0.0f;
     }
 }

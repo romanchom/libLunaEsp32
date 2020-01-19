@@ -4,30 +4,13 @@
 
 namespace luna
 {
-    ConstantEffect::ConstantEffect(std::string_view name) :
-        Effect(name),
+    ConstantEffect::ConstantEffect(std::string && name) :
+        Effect(std::move(name)),
         mCurrentColor(prism::CieXYZ::Zero()),
         mTargetColor(prism::CieXYZ::Zero()),
-        mConverter(prism::rgbToXyzTransformationMatrix(prism::rec2020()))
-    {
-        addProperty("color", [this](std::string_view text) {
-            if (text.size() >= 7) {
-                prism::RGB color;
-                for (int i = 0; i < 3; ++i) {
-                    if (auto value = tryParse<int>(text.substr(1 + 2 * i, 2), 16)) {
-                        color[i] = *value / 255.0f;
-                    }
-                }
-                color = prism::linearizeSRGB(color);
-                mTargetColor.head<3>() = mConverter * color.head<3>();
-            }
-        });
-        addProperty("whiteness", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mTargetColor[3] = std::clamp<float>(*value, 0.0f, 1.0f);
-            }
-        });
-    }
+        mColor("color", this, &ConstantEffect::getColor, &ConstantEffect::setColor),
+        mWhiteness("whiteness", this, &ConstantEffect::getWhiteness, &ConstantEffect::setWhiteness)
+    {}
 
     void ConstantEffect::update(float timeStep)
     {
@@ -38,5 +21,30 @@ namespace luna
     Generator * ConstantEffect::generator(Location const & location)
     {
         return &mGenerator;
-    };
+    }
+
+    std::vector<AbstractProperty *> ConstantEffect::properties()
+    {
+        return {&mColor, &mWhiteness};
+    }
+
+    prism::CieXYZ ConstantEffect::getColor() const
+    {
+        return mTargetColor;
+    }
+
+    void ConstantEffect::setColor(prism::CieXYZ const & value)
+    {
+        mTargetColor.head<3>() = value.head<3>();
+    }
+
+    float ConstantEffect::getWhiteness() const
+    {
+        return mTargetColor[3];
+    }
+
+    void ConstantEffect::setWhiteness(float const & value)
+    {
+        mTargetColor[3] = value;
+    }
 }

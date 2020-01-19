@@ -8,10 +8,10 @@ add_library(${PROJECT_NAME}
     "PlasmaGenerator.cpp"
     "EffectMixer.cpp"
     "ConstantEffect.cpp"
-    "FlameEffect.cpp"
-    "PlasmaEffect.cpp"
-    "Effect.cpp"
+    # "FlameEffect.cpp"
+    # "PlasmaEffect.cpp"
     "EffectEngine.cpp"
+    "EffectSet.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}

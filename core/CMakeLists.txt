@@ -4,7 +4,6 @@ add_library(${PROJECT_NAME}
     "Service.cpp"
     "ServiceManager.cpp"
     "Configurable.cpp"
-    "Property.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}

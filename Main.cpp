@@ -11,9 +11,9 @@
 #include "Infrared.hpp"
 
 #include <luna/EffectEngine.hpp>
-#include <luna/FlameEffect.hpp>
-#include <luna/ConstantEffect.hpp>
-#include <luna/PlasmaEffect.hpp>
+// #include <luna/FlameEffect.hpp>
+// #include <luna/ConstantEffect.hpp>
+// #include <luna/PlasmaEffect.hpp>
 #include <luna/ServiceManager.hpp>
 
 #include <freertos/FreeRTOS.h>
@@ -37,8 +37,9 @@ namespace luna
         IdleService mIdleSerice;
 
         ConstantEffect mLightEffect;
-        FlameEffect mFlameEffect;
-        PlasmaEffect mPlasmaEffect;
+        // FlameEffect mFlameEffect;
+        // PlasmaEffect mPlasmaEffect;
+        EffectSet mEffects;
         EffectEngine mEffectEngine;
 
         DirectService mDirectService;
@@ -59,9 +60,10 @@ namespace luna
             config.network.caCertificate
         ),
         mLightEffect("light"),
-        mFlameEffect("flame"),
-        mPlasmaEffect("plasma"),
-        mEffectEngine({&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
+        // mFlameEffect("flame"),
+        // mPlasmaEffect("plasma"),
+        mEffects({&mLightEffect/*, &mFlameEffect, &mPlasmaEffect*/}),
+        mEffectEngine(&mEffects),
         mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mDirectService}),
         mWiFi(config.wifi.ssid, config.wifi.password),
         mIR(27)

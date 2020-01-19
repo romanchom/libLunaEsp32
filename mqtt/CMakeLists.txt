@@ -4,6 +4,7 @@ add_library(${PROJECT_NAME}
     "Client.cpp"
     "Service.cpp"
     "Topic.cpp"
+    "Subscription.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}

@@ -16,3 +16,7 @@ namespace luna
         ESP_ERROR_CHECK(ret);
     }
 }
+        // auto error = nvs_open(mName.c_str(), NVS_READWRITE, &mHandle);
+        // if (error != ESP_OK) {
+        //     throw std::runtime_error("Unable to open NVS.");
+        // }

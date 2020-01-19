@@ -12,13 +12,13 @@
 namespace luna
 {
     struct TlsConfiguration;
-    struct EffectEngine;
+    struct Configurable;
     struct HardwareController;
     struct DirectService;
 
     struct OnlineContext
     {
-        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService);
+        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, Configurable * effectEngine, DirectService * directService);
         ~OnlineContext();
     private:
         asio::io_context mIoContext;

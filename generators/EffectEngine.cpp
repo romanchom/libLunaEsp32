@@ -16,29 +16,27 @@ static char const TAG[] = "Effects";
 
 namespace luna
 {
-    EffectEngine::EffectEngine(std::initializer_list<Effect *> effects) :
+    EffectEngine::EffectEngine(EffectSet * effects) :
         Configurable("effects"),
-        mController(nullptr),
+        mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
+        mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
         mEffects(effects),
-        mEffectMixer(this)
+        mController(nullptr),
+        mEffectMixer(this),
+        mTaskHandle(nullptr)
     {
-        addProperty("effect", [this](std::string_view text) {
-            switchTo(text);
-        });
-        addProperty("enabled", [this](std::string_view text) {
-            if (auto value = tryParse<int>(text)) {
-                bool enabled = (*value > 0);
-                mEffectMixer.enabled(enabled);
-                ESP_LOGI(TAG, "%s", enabled ? "On" : "Off");
-            }
-        });
+        mEffectMixer.switchTo(mEffects->find("light"));
     }
 
-    void EffectEngine::switchTo(std::string_view effectName)
+    std::vector<AbstractProperty *> EffectEngine::properties()
     {
-        if (auto it = mEffects.find(effectName); it != mEffects.end()) {
-            mEffectMixer.switchTo(*it);
-        }
+        return {&mActiveEffect, &mEnabled};
+    }
+
+    std::vector<Configurable *> EffectEngine::children()
+    {
+        return {mEffects};
+        // return {&mEffectMixer};
     }
 
     void EffectEngine::takeOwnership(HardwareController * controller)
@@ -85,7 +83,7 @@ namespace luna
     void EffectEngine::update()
     {
         std::unique_lock l(mMutex);
-        
+
         mEffectMixer.update(0.02f);
 
         if (!mController) {
@@ -103,5 +101,34 @@ namespace luna
     void EffectEngine::enabledChanged(bool enabled)
     {
         serviceEnabled(enabled);
+        mEnabled.notify(enabled);
+    }
+
+    std::string EffectEngine::getActiveEffect() const
+    {
+        return mLastEffect;
+    }
+
+    void EffectEngine::setActiveEffect(std::string const & value)
+    {
+        if (mLastEffect == value) {
+            return;
+        }
+
+        if (auto effect = mEffects->find(value)) {
+            mLastEffect = value;
+            mEffectMixer.switchTo(effect);
+            mActiveEffect.notify(value);
+        }
+    }
+
+    bool EffectEngine::getEnabled() const
+    {
+        return mEffectMixer.enabled();
+    }
+
+    void EffectEngine::setEnabled(bool const & value)
+    {
+        mEffectMixer.enabled(value);
     }
 }
