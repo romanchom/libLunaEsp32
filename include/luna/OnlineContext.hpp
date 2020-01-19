@@ -8,6 +8,7 @@
 #include "Updater.hpp"
 
 #include <luna/mqtt/Service.hpp>
+#include <luna/EffectEngine.hpp>
 
 namespace luna
 {
@@ -18,7 +19,7 @@ namespace luna
 
     struct OnlineContext
     {
-        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, Configurable * effectEngine, DirectService * directService);
+        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService);
         ~OnlineContext();
     private:
         asio::io_context mIoContext;

@@ -11,8 +11,8 @@
 #include "Infrared.hpp"
 
 #include <luna/EffectEngine.hpp>
+#include <luna/ConstantEffect.hpp>
 // #include <luna/FlameEffect.hpp>
-// #include <luna/ConstantEffect.hpp>
 // #include <luna/PlasmaEffect.hpp>
 #include <luna/ServiceManager.hpp>
 

@@ -111,9 +111,10 @@ namespace luna::mqtt
         template<typename T>
         struct MqttProperty : Subscription, Property<T>
         {
-            explicit MqttProperty(Client * client, std::string const & topic) :
-                Subscription(client, topic),
-                Property<T>(std::string{})
+            explicit MqttProperty(Service * service, std::string const & topic) :
+                Subscription(topic),
+                Property<T>(std::string{}),
+                mService(service)
             {}
 
             T getValue() const override
@@ -126,35 +127,38 @@ namespace luna::mqtt
                 if (mValue == value) { return; }
                 mValue = value;
                 auto text = serialize<T>(value);
-                publish(text);
+                mService->client()->publish(topic(), text);
             }
         private:
             void deliver(std::string_view text) override
             {
                 ESP_LOGI(TAG, "%s: %.*s", topic().str().c_str(), text.size(), text.data());
                 if (auto value = parse<T>(text)) {
-                    mValue = *value;
-                    this->notify(mValue);
+                    mService->effectEngine()->post([this, v = *value](){
+                        mValue = v;
+                        this->notify(mValue);
+                    });
                 }
             }
 
             T mValue = T{};
+            Service * const mService;
         };
 
         struct MqttVisitor : Visitor
         {
-            explicit MqttVisitor(Client * client, std::string && topic) :
-                mClient(client),
+            explicit MqttVisitor(Service * service, std::string && topic) :
+                mService(service),
                 mTopic(std::move(topic))
             {}
 
             template<typename T>
             void makeSubscription(Property<T> * property)
             {
-                auto mqttProperty = std::make_unique<MqttProperty<T>>(mClient, mTopic);
+                auto mqttProperty = std::make_unique<MqttProperty<T>>(mService, mTopic);
                 mqttProperty->bindTo(property);
                 property->bindTo(mqttProperty.get());
-                mClient->subscribe(std::move(mqttProperty));
+                mService->client()->subscribe(std::move(mqttProperty));
             }
 
             void visit(Property<bool> * property) final { makeSubscription<bool>(property); }
@@ -164,15 +168,16 @@ namespace luna::mqtt
             void visit(Property<std::string> * property) final { makeSubscription<std::string>(property); }
 
         private:
-            Client * mClient;
+            Service * mService;
             std::string const mTopic;
         };
     }
 
-    Service::Service(Configurable * configurable, std::string name, Client::Configuration const & configuration) :
-        mClient(configuration)
+    Service::Service(EffectEngine * effectEngine, std::string name, Client::Configuration const & configuration) :
+        mClient(configuration),
+        mEffectEngine(effectEngine)
     {
-        subscribeConfigurable(configurable, name + "/");
+        subscribeConfigurable(effectEngine, name + "/");
         mClient.connect();
     }
 
@@ -180,7 +185,7 @@ namespace luna::mqtt
     {
         ESP_LOGI(TAG, "%s", name.c_str());
         for (auto property : configurable->properties()) {
-            MqttVisitor visitor(&mClient, name + property->name());
+            MqttVisitor visitor(this, name + property->name());
             property->acceptVisitor(&visitor);
         }
 

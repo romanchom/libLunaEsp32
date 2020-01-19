@@ -9,8 +9,6 @@
 
 #include <esp_log.h>
 
-#include <chrono>
-#include <mutex>
 
 static char const TAG[] = "Effects";
 
@@ -23,9 +21,18 @@ namespace luna
         mEffects(effects),
         mController(nullptr),
         mEffectMixer(this),
-        mTaskHandle(nullptr)
+        mTaskHandle(nullptr),
+        mShouldRun(false)
     {
         mEffectMixer.switchTo(mEffects->find("light"));
+        mMessageQueue = xQueueCreate(4, sizeof(Callback));
+    }
+
+    void EffectEngine::post(Callback && callback)
+    {
+        char buffer[sizeof(Callback)];
+        auto view = new (buffer) Callback(std::move(callback));
+        auto ret = xQueueSendToBack(mMessageQueue, static_cast<void *>(view), portMAX_DELAY );
     }
 
     std::vector<AbstractProperty *> EffectEngine::properties()
@@ -43,9 +50,9 @@ namespace luna
     {
         ESP_LOGI(TAG, "Enabled");
         {
-            std::unique_lock l(mMutex);
             mController = controller;
             mController->enabled(true);
+            mShouldRun = true;
             xTaskCreatePinnedToCore(&EffectEngine::tick, "Daemon", 1024 * 2, this, 5, &mTaskHandle, 0);
         }
     }
@@ -53,27 +60,39 @@ namespace luna
     void EffectEngine::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        xTaskNotify(mTaskHandle, 1, eSetValueWithOverwrite);
-        mTaskHandle = 0;
-        {
-            std::unique_lock l(mMutex);
+
+        post([this](){
+            mShouldRun = false;
             mController = nullptr;
-        }
+        });
     }
 
     void EffectEngine::tick(void * data)
     {
         auto self = static_cast<EffectEngine *>(data);
 
-        auto lastWakeTime = xTaskGetTickCount();
+        constexpr int frequency = 50;
+        constexpr int periodMs = 1000 / frequency;
+        constexpr int periodTicks = periodMs / portTICK_PERIOD_MS;
+
+        auto wakeTime = xTaskGetTickCount();
         ESP_LOGI(TAG, "Running");
 
-        for (;;) {
+        while (self->mShouldRun) {
+            wakeTime += periodTicks;
             self->update();
 
-            vTaskDelayUntil(&lastWakeTime, 20 / portTICK_PERIOD_MS);
-            if (xTaskNotifyWait(0, 0, nullptr, 0)) {
-                break;
+            for (;;) {
+                auto ticksToWait = int(wakeTime - xTaskGetTickCount());
+                if (ticksToWait <= 0) { break; }
+
+                char buffer[sizeof(Callback)];
+                auto error = xQueueReceive(self->mMessageQueue, buffer, ticksToWait);
+                if (error == pdTRUE) {
+                    auto callback = reinterpret_cast<Callback *>(buffer);
+                    (*callback)();
+                    callback->~Callback();
+                }
             }
         }
         ESP_LOGI(TAG, "Exiting");
@@ -82,8 +101,6 @@ namespace luna
 
     void EffectEngine::update()
     {
-        std::unique_lock l(mMutex);
-
         mEffectMixer.update(0.02f);
 
         if (!mController) {

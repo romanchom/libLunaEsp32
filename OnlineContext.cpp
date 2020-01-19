@@ -15,7 +15,7 @@ namespace
 
 namespace luna
 {
-    OnlineContext::OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, Configurable * effectEngine, DirectService * directService) :
+    OnlineContext::OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService) :
         mRealtimeService(&mIoContext, tlsConfigutation->realtimeConfiguration(), directService),
         mMqtt(
             effectEngine,
