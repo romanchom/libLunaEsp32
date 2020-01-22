@@ -8,10 +8,11 @@
 
 namespace luna
 {
-    PWMLight::PWMLight(Location const & location, int pin, PWMTimer * timer, float maximumCurrentDraw) :
+    PWMLight::PWMLight(Location const & location, prism::RGBColorSpace const & colorSpace, std::initializer_list<OutputChannel> channels) :
         Strand(location),
-        mPWM(timer, pin),
-        mMaximumCurrentDraw(maximumCurrentDraw)
+        mOutputs(channels.begin(), channels.end()),
+        mColorSpace(colorSpace),
+        mTransformation(colorSpace)
     {}
 
     size_t PWMLight::pixelCount() const noexcept
@@ -21,33 +22,43 @@ namespace luna
 
     proto::Format PWMLight::format() const noexcept
     {
-        return proto::Format::White16;
+        return proto::Format::RGBW16;
     }
 
     prism::RGBColorSpace PWMLight::colorSpace() const noexcept
     {
-        return {};
+        return mColorSpace;
     }
 
     void PWMLight::rawBytes(std::byte const * data, size_t size)
     {
-        assert(size == 2);
-        auto value = reinterpret_cast<proto::Scalar<uint16_t> const *>(data);
+        assert(size == 4 * 2);
+        auto const value = reinterpret_cast<proto::Scalar<uint16_t> const *>(data);
 
-        float duty = float(*value) / float(std::numeric_limits<uint16_t>::max());
-        set(duty);
+        prism::RGB rgbw;
+        for (int i = 0; i < 4; ++i) {
+            rgbw[i] = float(value[i]) / float(std::numeric_limits<uint16_t>::max());
+        }
+        set(rgbw);
     }
 
     void PWMLight::fill(Generator * generator)
     {
-        auto cie = generator->generate(0.5f);
-        set(cie[3]);
+        auto const cie = generator->generate(0.5f);
+        auto const rgbw = mTransformation.transform(cie);
+        set(rgbw);
     }
 
-    void PWMLight::set(float duty)
+    void PWMLight::set(prism::RGB rgbw)
     {
-        duty = std::clamp(duty, 0.0f, 1.0f);
-        mPWM.duty(duty);
-        notify(duty * mMaximumCurrentDraw);
+        rgbw = rgbw.cwiseMax(0.0f).cwiseMin(1.0f);
+        float totalCurrentDraw = 0.0f;
+        for (auto & output : mOutputs) {
+            auto const index = static_cast<int>(output.color);
+            auto const duty = rgbw[index];
+            totalCurrentDraw += output.maximumCurrentDraw * duty;
+            output.pwm->duty(duty);
+        }
+        notify(totalCurrentDraw);
     }
 }

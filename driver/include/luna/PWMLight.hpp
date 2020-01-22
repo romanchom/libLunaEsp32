@@ -10,16 +10,32 @@ namespace luna
 
 struct PWMLight : Strand, ElectricalLoad
 {
-    explicit PWMLight(Location const & location, int pin, PWMTimer * timer, float maximumCurrentDraw = 0.0f);
+    enum ColorChannel
+    {
+        Red,
+        Green,
+        Blue,
+        White,
+    };
+
+    struct OutputChannel
+    {
+        PWM * pwm;
+        ColorChannel color;
+        float maximumCurrentDraw;
+    };
+
+    explicit PWMLight(Location const & location, prism::RGBColorSpace const & colorSpace, std::initializer_list<OutputChannel> channels);
     size_t pixelCount() const noexcept override;
     proto::Format format() const noexcept override;
     prism::RGBColorSpace colorSpace() const noexcept override;
     void rawBytes(std::byte const * data, size_t size) override;
     void fill(Generator * generator) final;
 private:
-    void set(float duty);
-    PWM mPWM;
-    float mMaximumCurrentDraw;
+    void set(prism::RGB rgbw);
+    std::vector<OutputChannel> mOutputs;
+    prism::RGBColorSpace mColorSpace;
+    prism::RGBColorSpaceTransformation mTransformation;
 };
 
 }
