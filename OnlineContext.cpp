@@ -1,28 +1,27 @@
 #include "OnlineContext.hpp"
 
-#include "TlsConfiguration.hpp"
-
-#include <luna/HardwareController.hpp>
+#include <luna/NetworkingContext.hpp>
+#include <luna/Plugin.hpp>
+#include <luna/NetworkService.hpp>
 
 namespace luna
 {
-    OnlineContext::OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService, EventLoop * mainLoop) :
-        mRealtimeService(&mIoContext, tlsConfigutation->realtimeConfiguration(), directService),
-        mMqtt(
-            mainLoop,
-            effectEngine,
-            std::string(config.name),
-            {
-                config.mqttAddress,
-                config.ownKey,
-                config.ownCertificate,
-                config.caCertificate
-            }
-        ),
-        mDiscoveryResponder(&mIoContext, mRealtimeService.port(), config.name, controller->strands()),
-        mUpdater(&mIoContext, tlsConfigutation->updaterConfiguration())
+    OnlineContext::OnlineContext(EventLoop * mainLoop, TlsCredentials const & credentials, std::vector<Plugin *> plugins) :
+        mTlsConfiguration(credentials)
     {
-        xTaskCreatePinnedToCore(&task, "Daemon", 1024 * 8, this, 5, &mTaskHandle, 1);
+        NetworkingContext context{
+            .tlsCredentials = credentials,
+            .tlsConfiguration = &mTlsConfiguration,
+            .ioContext = &mIoContext,
+        };
+
+        for (auto plugin : plugins) {
+            if (auto service = plugin->initializeNetworking(context)) {
+                mServices.emplace_back(std::move(service));
+            }
+        }
+
+        xTaskCreatePinnedToCore(&task, "Asio", 1024 * 8, this, 5, &mTaskHandle, 1);
     }
 
     void OnlineContext::task(void * data)
@@ -33,7 +32,6 @@ namespace luna
             xTaskNotifyGive(taskToNotify);
         }
     }
-
 
     OnlineContext::~OnlineContext()
     {

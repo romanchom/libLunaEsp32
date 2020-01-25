@@ -4,6 +4,10 @@
 
 namespace luna
 {
+    void Nvs::init() {
+        static Nvs instance;
+    }
+    
     Nvs::Nvs()
     {
         esp_err_t ret = nvs_flash_init();

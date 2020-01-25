@@ -1,16 +1,18 @@
 #include "WiFi.hpp"
+#include "Nvs.hpp"
 
 #include <cstring>
 
 #include <esp_event_loop.h>
 #include <esp_wifi.h>
-#include <nvs_flash.h>
 
 namespace luna
 {
     WiFi::WiFi(std::string_view ssid, std::string_view password) :
         mObserver(nullptr)
     {
+        Nvs::init();
+
         tcpip_adapter_init();
 
         ESP_ERROR_CHECK(esp_event_loop_create_default());

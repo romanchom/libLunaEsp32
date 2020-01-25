@@ -5,7 +5,6 @@
 #include "EffectMixer.hpp"
 #include "EffectSet.hpp"
 
-#include <luna/Mutex.hpp>
 #include <luna/Service.hpp>
 
 #include <asio/io_context.hpp>

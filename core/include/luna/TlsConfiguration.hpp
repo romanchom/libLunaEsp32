@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string_view>
+#include "TlsCredentials.hpp"
 
 #include <mbedtls-cpp/PrivateKey.hpp>
 #include <mbedtls-cpp/Certificate.hpp>
@@ -9,15 +9,19 @@
 #include <mbedtls-cpp/StandardEntropy.hpp>
 #include <mbedtls-cpp/StandardCookie.hpp>
 
+#include <memory>
+
 namespace luna
 {
     struct TlsConfiguration
     {
-        explicit TlsConfiguration(std::string_view ownKey, std::string_view ownCertificate, std::string_view caCertificate);
+        explicit TlsConfiguration(TlsCredentials const & credentials);
 
-        tls::Configuration * updaterConfiguration() noexcept { return &mUpdaterConfiguration; }
-        tls::Configuration * realtimeConfiguration() noexcept { return &mRealtimeConfiguration; }
+        std::unique_ptr<tls::Configuration> makeTlsConfiguration();
+        std::unique_ptr<tls::Configuration> makeDtlsConfiguration();
     private:
+        std::unique_ptr<tls::Configuration> makeDefault();
+        
         tls::PrivateKey mOwnKey;
         tls::Certificate::Pem mOwnCertificate;
         tls::Certificate::Pem mCaCertificate;

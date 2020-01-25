@@ -1,6 +1,8 @@
 #include "Service.hpp"
 #include "Subscription.hpp"
 
+#include <luna/EventLoop.hpp>
+
 #include <esp_log.h>
 
 #include <charconv>
@@ -173,14 +175,15 @@ namespace luna::mqtt
         };
     }
 
-    Service::Service(EventLoop * eventLoop, EffectEngine * effectEngine, std::string name, Client::Configuration const & configuration) :
-        mClient(configuration),
-        mEffectEngine(effectEngine),
+    Service::Service(EventLoop * eventLoop, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials) :
+        mClient(address, credentials),
         mEventLoop(eventLoop)
     {
         subscribeConfigurable(effectEngine, name + "/");
         mClient.connect();
     }
+        
+    Service::~Service() = default;
 
     void Service::subscribeConfigurable(Configurable * configurable, std::string name)
     {

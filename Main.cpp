@@ -37,7 +37,6 @@ namespace luna
 
         HardwareController * mController;
         Configuration::Network mNetworkConfiguration;
-        TlsConfiguration mTlsConfiguration;
 
         EventLoop mMainLoop;
 
@@ -63,11 +62,6 @@ namespace luna
     Main::Impl::Impl(Configuration const & config, HardwareController * controller) :
         mController(controller),
         mNetworkConfiguration(config.network),
-        mTlsConfiguration(
-            config.network.ownKey,
-            config.network.ownCertificate,
-            config.network.caCertificate
-        ),
         mLightEffect("light"),
         mFlameEffect("flame"),
         mPlasmaEffect("plasma"),
@@ -83,7 +77,7 @@ namespace luna
     void Main::Impl::connected()
     {
         mMainLoop.post([this]{
-            mOnlineContext = std::make_unique<OnlineContext>(mNetworkConfiguration, &mTlsConfiguration, mController, &mEffectEngine, &mDirectService, &mMainLoop);
+            mOnlineContext = std::make_unique<OnlineContext>(mNetworkConfiguration, mController, &mEffectEngine, &mDirectService, &mMainLoop);
         });
     }
 

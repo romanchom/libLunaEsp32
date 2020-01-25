@@ -6,12 +6,13 @@ static char const TAG[] = "OTA";
 
 namespace luna
 {
-    Updater::Updater(asio::io_context * ioContext, tls::Configuration * tlsConfiguration) :
+    Updater::Updater(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration) :
+        mTlsConfiguration(std::move(tlsConfiguration)),
         mListeningSocket(*ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
         mStreamSocket(*ioContext),
         mIo(&mStreamSocket)
     {
-        mSsl.setup(tlsConfiguration);
+        mSsl.setup(mTlsConfiguration.get());
         mSsl.setInputOutput(&mIo);
 
         mOtaPartition = esp_ota_get_next_update_partition(nullptr);

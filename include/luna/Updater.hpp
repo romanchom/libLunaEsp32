@@ -10,18 +10,21 @@
 
 #include <esp_ota_ops.h>
 
+#include <memory>
+
 namespace luna
 {
 
     struct Updater
     {
-        explicit Updater(asio::io_context * ioContext, tls::Configuration * tlsConfiguration);
+        explicit Updater(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration);
     private:
         void acceptConnection();
         void doHandshake();
         void doUpdate();
         void reset();
 
+        std::unique_ptr<tls::Configuration> mTlsConfiguration;
         tls::Ssl mSsl;
 
         asio::ip::tcp::acceptor mListeningSocket;

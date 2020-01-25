@@ -1,17 +1,19 @@
 #include "Client.hpp"
 
+#include <luna/TlsCredentials.hpp>
+
 #include <algorithm>
 #include <esp_log.h>
 
 namespace luna::mqtt
 {
-    Client::Client(Configuration const & configuration)
+    Client::Client(std::string_view address, TlsCredentials const & credentials)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
-            .uri = configuration.mqttAddress.data(),
-            .cert_pem = configuration.caCertificate.data(),
-            .client_cert_pem = configuration.ownCertificate.data(),
-            .client_key_pem = configuration.ownKey.data(),
+            .uri = address.data(),
+            .cert_pem = credentials.caCertificate.data(),
+            .client_cert_pem = credentials.ownCertificate.data(),
+            .client_key_pem = credentials.ownKey.data(),
         };
 
         mHandle = esp_mqtt_client_init(&mqtt_cfg);

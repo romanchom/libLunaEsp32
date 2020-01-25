@@ -4,15 +4,17 @@
 
 #include <luna/Configurable.hpp>
 #include <luna/EventLoop.hpp>
-#include <luna/EffectEngine.hpp>
+#include <luna/TlsCredentials.hpp>
+#include <luna/NetworkService.hpp>
 
 #include <string_view>
 
 namespace luna::mqtt
 {
-    struct Service
+    struct Service : NetworkService
     {
-        explicit Service(EventLoop * eventLoop, EffectEngine * effectEngine, std::string name, Client::Configuration const & configuration);
+        explicit Service(EventLoop * eventLoop, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials);
+        ~Service() final;
 
         Client * client() { return &mClient; }
         EventLoop * eventLoop() { return mEventLoop; }
@@ -20,7 +22,6 @@ namespace luna::mqtt
         void subscribeConfigurable(Configurable * configurable, std::string name);
 
         Client mClient;
-        EffectEngine * mEffectEngine;
         EventLoop * mEventLoop;
     };
 }

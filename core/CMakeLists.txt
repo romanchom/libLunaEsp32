@@ -1,10 +1,12 @@
 project(luna.core)
 
 add_library(${PROJECT_NAME}
+    "Configurable.cpp"
     "EventLoop.cpp"
+    "IdleService.cpp"
     "Service.cpp"
     "ServiceManager.cpp"
-    "Configurable.cpp"
+    "TlsConfiguration.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -13,5 +15,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC prism Eigen3::Eigen lunaProto idf::nvs_flash
+    PUBLIC prism Eigen3::Eigen lunaProto idf::nvs_flash mbedtls-cpp
 )

@@ -1,14 +1,29 @@
 #include "IdleService.hpp"
 
-#include <luna/ConstantGenerator.hpp>
-#include <luna/HardwareController.hpp>
+#include "HardwareController.hpp"
+#include "Strand.hpp"
+#include "Generator.hpp"
 
 #include <esp_log.h>
 
-static char const TAG[] = "Idle";
 
 namespace luna
 {
+    namespace
+    {
+        static char const TAG[] = "Idle";
+
+        struct NullGenerator : Generator
+        {
+            void location(Location const & location) final {}
+
+            prism::CieXYZ generate(float ratio) const noexcept final
+            {
+                return {0.0f, 0.0f, 0.0f, 0.0f};
+            }
+        };
+    }
+
     IdleService::IdleService()
     {
         serviceEnabled(true);
@@ -17,7 +32,7 @@ namespace luna
     void IdleService::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "On");
-        ConstantGenerator generator({0, 0, 0, 0});
+        NullGenerator generator;
         for (auto strand : controller->strands()) {
             strand->acceptGenerator(&generator);
         }

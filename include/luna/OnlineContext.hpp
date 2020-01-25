@@ -1,36 +1,31 @@
 #pragma once
 
+#include <luna/TlsConfiguration.hpp>
+#include <luna/TlsCredentials.hpp>
+
 #include <asio/io_context.hpp>
-
-#include "Configuration.hpp"
-#include "DiscoveryResponder.hpp"
-#include "RealtimeService.hpp"
-#include "Updater.hpp"
-
-#include <luna/mqtt/Service.hpp>
-#include <luna/EffectEngine.hpp>
+#include <vector>
 
 namespace luna
 {
+    struct EventLoop;
+    struct Plugin;
     struct TlsConfiguration;
-    struct Configurable;
-    struct HardwareController;
-    struct DirectService;
+    struct NetworkService;
 
     struct OnlineContext
     {
-        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService, EventLoop * mainLoop);
+        explicit OnlineContext(EventLoop * mainLoop, TlsCredentials const & credentials, std::vector<Plugin *> plugins);
         ~OnlineContext();
+
     private:
         static void task(void * data);
 
+        TlsConfiguration mTlsConfiguration;
         asio::io_context mIoContext;
-        RealtimeService mRealtimeService;
-        mqtt::Service mMqtt;
-        DiscoveryResponder mDiscoveryResponder;
-        Updater mUpdater;
+
+        std::vector<std::unique_ptr<NetworkService>> mServices;
 
         TaskHandle_t mTaskHandle;
     };
-
 }

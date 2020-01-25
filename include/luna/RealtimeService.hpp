@@ -10,13 +10,15 @@
 #include <asio/ip/udp.hpp>
 #include <asio/steady_timer.hpp>
 
+#include <memory>
+
 namespace luna
 {
     struct DirectService;
 
     struct RealtimeService
     {
-        RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, DirectService * service);
+        explicit RealtimeService(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration, DirectService * service);
         ~RealtimeService();
 
         uint16_t port();
@@ -31,6 +33,7 @@ namespace luna
 
         void dispatchCommand(std::byte const * data, size_t size);
 
+        std::unique_ptr<tls::Configuration> mTlsConfiguration;
         DirectService * mService;
 
         tls::Ssl mSsl;

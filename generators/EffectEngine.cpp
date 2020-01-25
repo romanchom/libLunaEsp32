@@ -55,7 +55,7 @@ namespace luna
         {
             mController = controller;
             mController->enabled(true);
-            xTaskCreatePinnedToCore(&EffectEngine::tick, "Daemon", 1024 * 2, this, 5, &mTaskHandle, 0);
+            xTaskCreatePinnedToCore(&EffectEngine::tick, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
         }
     }
 

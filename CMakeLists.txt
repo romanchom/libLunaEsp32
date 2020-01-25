@@ -5,18 +5,18 @@ idf_component_register(
         "AsioUdpInputOutput.cpp"
         "AsioTimer.cpp"
 
-        "Main.cpp"
+        # "Main.cpp"
         "WiFi.cpp"
         "DiscoveryResponder.cpp"
         "Updater.cpp"
 
-        "IdleService.cpp"
         "RealtimeService.cpp"
-        "TlsConfiguration.cpp"
         "Nvs.cpp"
         "OnlineContext.cpp"
         "DirectService.cpp"
         "Infrared.cpp"
+        "EffectsPlugin.cpp"
+        "Luna.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES

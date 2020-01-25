@@ -9,19 +9,15 @@
 #include <string_view>
 #include <memory>
 
+namespace luna {
+    struct TlsCredentials;
+}
+
 namespace luna::mqtt
 {
     struct Client
     {
-        struct Configuration
-        {
-            std::string_view mqttAddress;
-            std::string_view ownKey;
-            std::string_view ownCertificate;
-            std::string_view caCertificate;
-        };
-
-        explicit Client(Configuration const & configuration);
+        explicit Client(std::string_view address, TlsCredentials const & credentials);
         void subscribe(std::unique_ptr<Subscription> subscription);
         void publish(Topic topic, std::string const & text);
         void connect();

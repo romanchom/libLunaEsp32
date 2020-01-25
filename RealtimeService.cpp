@@ -14,7 +14,8 @@ static char const TAG[] = "RT";
 
 namespace luna
 {
-    RealtimeService::RealtimeService(asio::io_context * ioContext, tls::Configuration * tlsConfiguration, DirectService * service) :
+    RealtimeService::RealtimeService(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration, DirectService * service) :
+        mTlsConfiguration(std::move(tlsConfiguration)),
         mService(service),
         mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*ioContext),
@@ -25,7 +26,7 @@ namespace luna
             doHandshake();
         });
 
-        mSsl.setup(tlsConfiguration);
+        mSsl.setup(mTlsConfiguration.get());
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
 

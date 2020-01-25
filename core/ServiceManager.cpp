@@ -1,19 +1,24 @@
 #include "ServiceManager.hpp"
-
 #include "Service.hpp"
+#include "HardwareController.hpp"
+#include "Strand.hpp"
+#include "Plugin.hpp"
 
 #include <algorithm>
 
 namespace luna
 {
-    ServiceManager::ServiceManager(HardwareController * controller, std::initializer_list<Service *> services) :
+    ServiceManager::ServiceManager(EventLoop * mainLoop, HardwareController * controller, std::vector<Plugin *> plugins) :
         mController(controller),
         mActive(nullptr)
     {
-        for (int i = 0; i < services.size(); ++i) {
-            auto service = services.begin()[i];
-            service->setManager(this);
-            mRecords.push_back(service);
+        mServices.emplace_back(&mIdleService);
+
+        for (auto plugin : plugins) {
+            if (auto service = plugin->initializeService()) {
+                service->setManager(this);
+                mServices.emplace_back(service);
+            }
         }
 
         findActive();
@@ -21,9 +26,9 @@ namespace luna
 
     void ServiceManager::serviceEnabled(Service * service, bool enabled)
     {
-        auto it = std::find(mRecords.begin(), mRecords.end(), service);
+        auto it = std::find(mServices.begin(), mServices.end(), service);
 
-        if (it == mRecords.end()) {
+        if (it == mServices.end()) {
             return;
         }
 
@@ -47,12 +52,14 @@ namespace luna
 
     Service * ServiceManager::maxEnabled()
     {
-        for (int i = mRecords.size() - 1; i >= 0; --i) {
-            auto service = mRecords[i];
-            if (service->serviceEnabled()) {
-                return service;
-            }
+        auto it = std::find_if(mServices.rbegin(), mServices.rend(), [](auto service){
+            return service->serviceEnabled();
+        });
+
+        if (it != mServices.rend()) {
+            return *it;
+        } else {
+            return nullptr;
         }
-        return nullptr;
     }
 }
