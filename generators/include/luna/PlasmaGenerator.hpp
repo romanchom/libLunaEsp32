@@ -10,17 +10,11 @@ namespace luna
 {
     struct PlasmaGenerator : Generator
     {
-        explicit PlasmaGenerator();
+        explicit PlasmaGenerator(float time, float frequency, float saturation);
         prism::CieXYZ generate(float ratio) const noexcept final;
-
-        void location(Location const & location);
-        void time(float t) { mTime = t; }
-        float time() const noexcept { return mTime; }
-        void saturation(float value) { mSaturation = value; }
-        void brightness(float value) { mBrightness = value; }
+        void location(Location const & location) final;
 
     private:
-        Eigen::Matrix<prism::ColorScalar, 3, 3> mColorTransformation;
         float mTime;
         float mFrequency;
         float mHueChangeRate;
@@ -29,5 +23,6 @@ namespace luna
 
         Noise mNoise;
         Eigen::Matrix<float, 3, 1> mBegin, mDiff;
+        Eigen::Matrix<prism::ColorScalar, 3, 3> mColorTransformation;
     };
 }

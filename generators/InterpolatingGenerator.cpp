@@ -2,24 +2,23 @@
 
 namespace luna
 {
-    InterpolatingGenerator::InterpolatingGenerator() :
-        mFirst(nullptr),
-        mFirstRatio(0.0f),
-        mSecond(nullptr),
-        mSecondRatio(0.0f)
+    InterpolatingGenerator::InterpolatingGenerator(std::unique_ptr<Generator> first, float firstRatio, std::unique_ptr<Generator> second, float secondRatio) :
+        mFirst(std::move(first)),
+        mSecond(std::move(second)),
+        mFirstRatio(firstRatio),
+        mSecondRatio(secondRatio)
     {}
-    
-    void InterpolatingGenerator::first(Generator * generator, float ratio)
+
+    void InterpolatingGenerator::location(Location const & value)
     {
-        mFirst = generator;
-        mFirstRatio = ratio;
+        if (mFirst) {
+            mFirst->location(value);
+        }
+        if (mSecond) {
+            mSecond->location(value);
+        }
     }
 
-    void InterpolatingGenerator::second(Generator * generator, float ratio)
-    {
-        mSecond = generator;
-        mSecondRatio = ratio;
-    }
 
     prism::CieXYZ InterpolatingGenerator::generate(float ratio) const noexcept
     {

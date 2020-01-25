@@ -15,12 +15,11 @@ namespace luna
     void ConstantEffect::update(float timeStep)
     {
         mCurrentColor = mCurrentColor * 0.98f + mTargetColor * 0.02f;
-        mGenerator.color(mCurrentColor);
     }
 
-    Generator * ConstantEffect::generator(Location const & location)
+    std::unique_ptr<Generator> ConstantEffect::generator()
     {
-        return &mGenerator;
+        return std::make_unique<ConstantGenerator>(mCurrentColor);
     }
 
     std::vector<AbstractProperty *> ConstantEffect::properties()

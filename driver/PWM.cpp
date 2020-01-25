@@ -14,7 +14,7 @@ namespace luna
         ledc_timer.freq_hz = frequency;
         ledc_timer.speed_mode = mode();
         ledc_timer.timer_num = mTimerId;
-
+        ledc_timer.clk_cfg = LEDC_AUTO_CLK;
         ledc_timer_config(&ledc_timer);
     }
 

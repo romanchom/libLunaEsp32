@@ -6,10 +6,9 @@ namespace luna
 {
     struct ConstantGenerator : Generator
     {
-        explicit ConstantGenerator();
+        explicit ConstantGenerator(prism::CieXYZ const & color);
+        void location(Location const & location) final;
         prism::CieXYZ generate(float ratio) const noexcept final;
-
-        void color(prism::CieXYZ const & value);
 
     private:
         prism::CieXYZ mColor;

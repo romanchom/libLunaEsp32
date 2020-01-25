@@ -1,5 +1,7 @@
 #include "DirectService.hpp"
 
+#include <luna/HardwareController.hpp>
+
 #include <esp_log.h>
 
 static char const TAG[] = "DirectSvc";

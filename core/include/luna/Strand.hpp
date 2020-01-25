@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Location.hpp"
+#include "Generator.hpp"
 
 #include <prism/Prism.hpp>
 #include <luna/proto/Format.hpp>
@@ -9,8 +10,6 @@
 
 namespace luna
 {
-    struct Generator;
-
     struct Strand
     {
         explicit Strand(Location const & location) :
@@ -21,10 +20,16 @@ namespace luna
         virtual prism::RGBColorSpace colorSpace() const noexcept = 0;
         Location location() const noexcept { return mLocation; }
         virtual void rawBytes(std::byte const * data, size_t size) = 0;
-        virtual void fill(Generator * generator) = 0;
+        void acceptGenerator(Generator * generator)
+        {
+            generator->location(mLocation);
+            fill(generator);
+        }
     protected:
         ~Strand() = default;
     private:
+        virtual void fill(Generator * generator) = 0;
+
         Location mLocation;
     };
 

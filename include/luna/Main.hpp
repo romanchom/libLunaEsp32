@@ -10,6 +10,7 @@ namespace luna
     struct Main
     {
         explicit Main(Configuration const & config, HardwareController * controller);
+        void execute();
         ~Main();
     private:
         struct Impl;

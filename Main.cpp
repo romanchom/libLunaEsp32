@@ -10,10 +10,11 @@
 #include "OnlineContext.hpp"
 #include "Infrared.hpp"
 
+#include <luna/EventLoop.hpp>
 #include <luna/EffectEngine.hpp>
 #include <luna/ConstantEffect.hpp>
-// #include <luna/FlameEffect.hpp>
-// #include <luna/PlasmaEffect.hpp>
+#include <luna/FlameEffect.hpp>
+#include <luna/PlasmaEffect.hpp>
 #include <luna/ServiceManager.hpp>
 
 #include <freertos/FreeRTOS.h>
@@ -24,21 +25,27 @@ namespace luna
     struct Main::Impl : private WiFi::Observer
     {
         explicit Impl(Configuration const & config, HardwareController * controller);
+        void execute()
+        {
+            mWiFi.enabled(true);
+            mMainLoop.execute();
+            mWiFi.enabled(false);
+        }
     private:
         void connected() override;
         void disconnected() override;
 
         HardwareController * mController;
         Configuration::Network mNetworkConfiguration;
-
-        Nvs mNvs;
         TlsConfiguration mTlsConfiguration;
+
+        EventLoop mMainLoop;
 
         IdleService mIdleSerice;
 
         ConstantEffect mLightEffect;
-        // FlameEffect mFlameEffect;
-        // PlasmaEffect mPlasmaEffect;
+        FlameEffect mFlameEffect;
+        PlasmaEffect mPlasmaEffect;
         EffectSet mEffects;
         EffectEngine mEffectEngine;
 
@@ -46,9 +53,11 @@ namespace luna
 
         ServiceManager mServiceManager;
 
-        std::unique_ptr<OnlineContext> mOnlineContext;
-        WiFi mWiFi;
+        Nvs mNvs;
         Infrared mIR;
+        WiFi mWiFi;
+
+        std::unique_ptr<OnlineContext> mOnlineContext;
     };
 
     Main::Impl::Impl(Configuration const & config, HardwareController * controller) :
@@ -60,31 +69,39 @@ namespace luna
             config.network.caCertificate
         ),
         mLightEffect("light"),
-        // mFlameEffect("flame"),
-        // mPlasmaEffect("plasma"),
-        mEffects({&mLightEffect/*, &mFlameEffect, &mPlasmaEffect*/}),
-        mEffectEngine(&mEffects),
+        mFlameEffect("flame"),
+        mPlasmaEffect("plasma"),
+        mEffects({&mLightEffect, &mFlameEffect, &mPlasmaEffect}),
+        mEffectEngine(&mEffects, &mMainLoop),
         mServiceManager(controller, {&mIdleSerice, &mEffectEngine, &mDirectService}),
-        mWiFi(config.wifi.ssid, config.wifi.password),
-        mIR(27)
+        mIR(27),
+        mWiFi(config.wifi.ssid, config.wifi.password)
     {
         mWiFi.observer(this);
-        mWiFi.enabled(true);
     }
 
     void Main::Impl::connected()
     {
-        mOnlineContext = std::make_unique<OnlineContext>(mNetworkConfiguration, &mTlsConfiguration, mController, &mEffectEngine, &mDirectService);
+        mMainLoop.post([this]{
+            mOnlineContext = std::make_unique<OnlineContext>(mNetworkConfiguration, &mTlsConfiguration, mController, &mEffectEngine, &mDirectService, &mMainLoop);
+        });
     }
 
     void Main::Impl::disconnected()
     {
-        mOnlineContext.reset();
+        mMainLoop.post([this]{
+           mOnlineContext.reset();
+        });
     }
 
     Main::Main(Configuration const & config, HardwareController * controller) :
         mImpl(std::make_unique<Impl>(config, controller))
     {}
+
+    void Main::execute()
+    {
+        mImpl->execute();
+    }
 
     Main::~Main() = default;
 }

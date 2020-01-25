@@ -7,10 +7,13 @@ namespace luna
 {
     struct FlameEffect : Effect
     {
-        explicit FlameEffect(std::string_view name);
+        explicit FlameEffect(std::string && name);
         void update(float timeStep) final;
-        Generator * generator(Location const & location) final;
+        std::unique_ptr<Generator> generator() final;
     private:
-        FlameGenerator mGenerator;
+        float mTime;
+        float mTemperatureLow;
+        float mTemperatureHigh;
+        float mFrequency;
     };
 }

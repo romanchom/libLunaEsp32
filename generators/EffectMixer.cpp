@@ -7,7 +7,7 @@
 namespace luna
 {
     EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
-        // Configurable("mixer"),
+        Effect("mixer"),
         mObserver(observer),
         mEnabled(false),
         mBrightness(1.0f),
@@ -59,19 +59,17 @@ namespace luna
         }
     }
 
-    Generator * EffectMixer::generator(Location const & location)
+    std::unique_ptr<Generator> EffectMixer::generator()
     {
         auto const brightness = mBrightness * mEnabledPercentage * mEnabledPercentage;
         auto const t = mTransitionProgress / mTransitionDuration;
 
-        mGenerator.first(mEffects[0]->generator(location), brightness * (1.0f - t));
-
-        if (mEffects.size() >= 2) {
-            mGenerator.second(mEffects[1]->generator(location), brightness * t);
-        } else {
-            mGenerator.second(nullptr, 0.0f);
-        }
-        return &mGenerator;
+        return std::make_unique<InterpolatingGenerator>(
+            mEffects[0]->generator(),
+            brightness * (1.0f - t),
+            (mEffects.size() >= 2) ? mEffects[1]->generator() : nullptr,
+            brightness * t
+        );
     }
 
     void EffectMixer::switchTo(Effect * effect)

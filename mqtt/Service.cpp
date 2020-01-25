@@ -134,7 +134,7 @@ namespace luna::mqtt
             {
                 ESP_LOGI(TAG, "%s: %.*s", topic().str().c_str(), text.size(), text.data());
                 if (auto value = parse<T>(text)) {
-                    mService->effectEngine()->post([this, v = *value](){
+                    mService->eventLoop()->post([this, v = *value](){
                         mValue = v;
                         this->notify(mValue);
                     });
@@ -173,9 +173,10 @@ namespace luna::mqtt
         };
     }
 
-    Service::Service(EffectEngine * effectEngine, std::string name, Client::Configuration const & configuration) :
+    Service::Service(EventLoop * eventLoop, EffectEngine * effectEngine, std::string name, Client::Configuration const & configuration) :
         mClient(configuration),
-        mEffectEngine(effectEngine)
+        mEffectEngine(effectEngine),
+        mEventLoop(eventLoop)
     {
         subscribeConfigurable(effectEngine, name + "/");
         mClient.connect();

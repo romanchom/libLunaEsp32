@@ -22,7 +22,7 @@ struct PWMLight : Strand, ElectricalLoad
     {
         PWM * pwm;
         ColorChannel color;
-        float maximumCurrentDraw;
+        float maximumCurrentDraw = 0.0f;
     };
 
     explicit PWMLight(Location const & location, prism::RGBColorSpace const & colorSpace, std::initializer_list<OutputChannel> channels);

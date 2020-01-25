@@ -3,13 +3,13 @@
 #include "Effect.hpp"
 #include "InterpolatingGenerator.hpp"
 
-#include <luna/Configurable.hpp>
+#include "Effect.hpp"
 
 #include <deque>
 
 namespace luna
 {
-    struct EffectMixer// TODO : Configurable
+    struct EffectMixer : Effect
     {
         struct Observer
         {
@@ -20,8 +20,8 @@ namespace luna
 
         explicit EffectMixer(Observer * observer);
 
-        void update(float timeStep);
-        Generator * generator(Location const & location);
+        void update(float timeStep) override;
+        std::unique_ptr<Generator> generator() override;
         void switchTo(Effect * effect);
 
         void enabled(bool state);
@@ -37,7 +37,5 @@ namespace luna
         float mEnabledPercentage;
         float mTransitionDuration;
         float mTransitionProgress;
-
-        InterpolatingGenerator mGenerator;
     };
 }

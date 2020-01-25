@@ -1,6 +1,7 @@
 project(luna.core)
 
 add_library(${PROJECT_NAME}
+    "EventLoop.cpp"
     "Service.cpp"
     "ServiceManager.cpp"
     "Configurable.cpp"

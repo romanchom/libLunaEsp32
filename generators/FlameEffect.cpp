@@ -4,39 +4,39 @@
 
 namespace luna
 {
-    FlameEffect::FlameEffect(std::string_view name) :
-        Effect(name)
+    FlameEffect::FlameEffect(std::string && name) :
+        Effect(std::move(name)),
+        mTime(0.0f)
     {
-        addProperty("temperatureLow", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.temperatureLow(*value);
-            }
-        });
-        addProperty("temperatureHigh", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.temperatureHigh(*value);
-            }
-        });
-        addProperty("brightness", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.brightness(*value);
-            }
-        });
-        addProperty("frequency", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.frequency(*value);
-            }
-        });
+        // addProperty("temperatureLow", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.temperatureLow(*value);
+        //     }
+        // });
+        // addProperty("temperatureHigh", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.temperatureHigh(*value);
+        //     }
+        // });
+        // addProperty("brightness", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.brightness(*value);
+        //     }
+        // });
+        // addProperty("frequency", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.frequency(*value);
+        //     }
+        // });
     }
 
     void FlameEffect::update(float timeStep)
     {
-        mGenerator.time(mGenerator.time() + timeStep);
+        mTime += timeStep;
     }
 
-    Generator * FlameEffect::generator(Location const & location)
+    std::unique_ptr<Generator> FlameEffect::generator()
     {
-        mGenerator.location(location);
-        return &mGenerator;
+        return std::make_unique<FlameGenerator>(mTime, 1500.0f, 3000.0f, 1.0f);
     };
 }

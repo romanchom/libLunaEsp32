@@ -2,37 +2,40 @@
 
 #include "ConstantGenerator.hpp"
 
-#include <luna/Parse.hpp>
+#include <luna/EventLoop.hpp>
 #include <luna/HardwareController.hpp>
 #include <luna/Strand.hpp>
-#include <luna/proto/Scalar.hpp>
 
 #include <esp_log.h>
 
+#include <chrono>
+#include <mutex>
 
 static char const TAG[] = "Effects";
 
+namespace
+{
+    enum Notification : uint32_t
+    {
+        Exit = 0x1,
+        Update = 0x2,
+    };
+}
+
+
 namespace luna
 {
-    EffectEngine::EffectEngine(EffectSet * effects) :
+    EffectEngine::EffectEngine(EffectSet * effects, EventLoop * mainLoop) :
         Configurable("effects"),
+        mEffects(effects),
+        mMainLoop(mainLoop),
         mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
         mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
-        mEffects(effects),
         mController(nullptr),
         mEffectMixer(this),
-        mTaskHandle(nullptr),
-        mShouldRun(false)
+        mTaskHandle(nullptr)
     {
         mEffectMixer.switchTo(mEffects->find("light"));
-        mMessageQueue = xQueueCreate(4, sizeof(Callback));
-    }
-
-    void EffectEngine::post(Callback && callback)
-    {
-        char buffer[sizeof(Callback)];
-        auto view = new (buffer) Callback(std::move(callback));
-        auto ret = xQueueSendToBack(mMessageQueue, static_cast<void *>(view), portMAX_DELAY );
     }
 
     std::vector<AbstractProperty *> EffectEngine::properties()
@@ -52,7 +55,6 @@ namespace luna
         {
             mController = controller;
             mController->enabled(true);
-            mShouldRun = true;
             xTaskCreatePinnedToCore(&EffectEngine::tick, "Daemon", 1024 * 2, this, 5, &mTaskHandle, 0);
         }
     }
@@ -60,65 +62,59 @@ namespace luna
     void EffectEngine::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-
-        post([this](){
-            mShouldRun = false;
-            mController = nullptr;
-        });
+        xTaskNotify(mTaskHandle, Notification::Exit, eSetBits);
+        ulTaskNotifyTake(false, portMAX_DELAY);
+        mController = nullptr;
     }
 
     void EffectEngine::tick(void * data)
     {
-        auto self = static_cast<EffectEngine *>(data);
-
-        constexpr int frequency = 50;
-        constexpr int periodMs = 1000 / frequency;
-        constexpr int periodTicks = periodMs / portTICK_PERIOD_MS;
-
-        auto wakeTime = xTaskGetTickCount();
         ESP_LOGI(TAG, "Running");
-
-        while (self->mShouldRun) {
-            wakeTime += periodTicks;
-            self->update();
-
-            for (;;) {
-                auto ticksToWait = int(wakeTime - xTaskGetTickCount());
-                if (ticksToWait <= 0) { break; }
-
-                char buffer[sizeof(Callback)];
-                auto error = xQueueReceive(self->mMessageQueue, buffer, ticksToWait);
-                if (error == pdTRUE) {
-                    auto callback = reinterpret_cast<Callback *>(buffer);
-                    (*callback)();
-                    callback->~Callback();
-                }
-            }
-        }
+        static_cast<EffectEngine *>(data)->loop();
         ESP_LOGI(TAG, "Exiting");
         vTaskDelete(0);
     }
 
-    void EffectEngine::update()
+    void EffectEngine::loop()
     {
-        mEffectMixer.update(0.02f);
+        auto lastWakeTime = xTaskGetTickCount();
 
-        if (!mController) {
-            return;
+        for (;;) {
+            uint32_t notification = 0;
+            xTaskNotifyWait(0, ~0, &notification, 0);
+
+            if (notification & Notification::Exit) {
+                break;
+            }
+
+            if (notification & Notification::Update) {
+                for (auto strand : mController->strands()) {
+                    strand->acceptGenerator(mGenerator.get());
+                }
+
+                mController->update();
+            }
+
+            mMainLoop->post([this]{
+                mEffectMixer.update(0.02f);
+
+                mGenerator = mEffectMixer.generator();
+                xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
+            });
+
+            vTaskDelayUntil(&lastWakeTime, 20 / portTICK_PERIOD_MS);
         }
 
-        for (auto strand : mController->strands()) {
-            auto gen = mEffectMixer.generator(strand->location());
-            strand->fill(gen);
-        }
-
-        mController->update();
+        mTaskHandle = 0;
+        xTaskNotifyGive(mMainLoop->taskHandle());
     }
 
     void EffectEngine::enabledChanged(bool enabled)
     {
-        serviceEnabled(enabled);
-        mEnabled.notify(enabled);
+        mMainLoop->post([this, enabled]{
+            serviceEnabled(enabled);
+            mEnabled.notify(enabled);
+        });
     }
 
     std::string EffectEngine::getActiveEffect() const
@@ -146,6 +142,7 @@ namespace luna
 
     void EffectEngine::setEnabled(bool const & value)
     {
+        ESP_LOGI(TAG, "%d", value);
         mEffectMixer.enabled(value);
     }
 }

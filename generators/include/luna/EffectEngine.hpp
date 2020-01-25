@@ -1,35 +1,29 @@
 #pragma once
 
+#include "ConstantEffect.hpp"
 #include "Effect.hpp"
 #include "EffectMixer.hpp"
 #include "EffectSet.hpp"
 
+#include <luna/Mutex.hpp>
 #include <luna/Service.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/queue.h>
-
 #include <set>
-#include <functional>
+#include <memory>
 
 namespace luna
 {
-    struct HardwareController;
+    struct EventLoop;
 
     struct EffectEngine : Service, Configurable, private EffectMixer::Observer
     {
-        using Callback = std::function<void()>;
-
-        explicit EffectEngine(EffectSet * effects);
+        explicit EffectEngine(EffectSet * effects, EventLoop * mainLoop);
 
         Property<std::string> & activeEffect() { return mActiveEffect; }
         Property<bool> & enabled() { return mEnabled; }
-
-        void post(Callback && callback);
 
         std::vector<AbstractProperty *> properties() override;
         std::vector<Configurable *> children() override;
@@ -39,7 +33,7 @@ namespace luna
         void releaseOwnership() final;
 
         static void tick(void * data);
-        void update();
+        void loop();
 
         void enabledChanged(bool enabled) override;
 
@@ -49,15 +43,16 @@ namespace luna
         bool getEnabled() const;
         void setEnabled(bool const & value);
 
+        EffectSet * const mEffects;
+        EventLoop * const mMainLoop;
+
         MemberProperty<EffectEngine, std::string> mActiveEffect;
         MemberProperty<EffectEngine, bool> mEnabled;
 
-        EffectSet * const mEffects;
         std::string mLastEffect;
         HardwareController * mController;
         EffectMixer mEffectMixer;
         TaskHandle_t mTaskHandle;
-        bool mShouldRun;
-        QueueHandle_t mMessageQueue;
+        std::unique_ptr<Generator> mGenerator;
     };
 }

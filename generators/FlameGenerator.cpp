@@ -4,12 +4,11 @@
 
 namespace luna
 {
-    FlameGenerator::FlameGenerator() :
-        mTime(0.0f),
-        mTemperatureLow(1500.0f),
-        mTemperatureHigh(3000.0f),
-        mBrightness(2.0f),
-        mFrequency(1.5f)
+    FlameGenerator::FlameGenerator(float time, float temperatureLow, float temperatureHigh, float frequency) :
+        mTime(time),
+        mTemperatureLow(temperatureLow),
+        mTemperatureDifference(temperatureHigh - temperatureLow),
+        mFrequency(frequency)
     {}
 
     prism::CieXYZ FlameGenerator::generate(float ratio) const noexcept
@@ -23,7 +22,7 @@ namespace luna
         auto const fadeFactor = mIsHorizontal ?  0.0f : ratio * ratio * ratio;
 
         auto color = prism::temperature(smoothTemp);
-        color *= mBrightness * std::max(0.0f, baseTemperature - fadeFactor);
+        color *= std::max(0.0f, baseTemperature - fadeFactor);
         return color;
     }
 
@@ -39,7 +38,5 @@ namespace luna
             mBegin.y() -= mTime * 2.3743324f;
             mBegin.z() += mTime;
         }
-
-        mTemperatureDifference = mTemperatureHigh - mTemperatureLow;
     }
 }

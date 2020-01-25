@@ -11,7 +11,7 @@ namespace luna
     {
         explicit ConstantEffect(std::string && name);
         void update(float timeStep) final;
-        Generator * generator(Location const & location) final;
+        std::unique_ptr<Generator> generator() final;
 
         Property<prism::CieXYZ> & color() { return mColor; }
         Property<float> & whiteness() { return mWhiteness; }
@@ -29,7 +29,5 @@ namespace luna
 
         MemberProperty<ConstantEffect, prism::CieXYZ> mColor;
         MemberProperty<ConstantEffect, float> mWhiteness;
-
-        ConstantGenerator mGenerator;
     };
 }

@@ -4,29 +4,29 @@
 
 namespace luna
 {
-    PlasmaEffect::PlasmaEffect(std::string_view name) :
-        Effect(name)
+    PlasmaEffect::PlasmaEffect(std::string && name) :
+        Effect(std::move(name)),
+        mTime(0.0f)
     {
-        addProperty("saturation", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.saturation(*value);
-            }
-        });
-        addProperty ("brightness", [this](std::string_view text) {
-            if (auto value = tryParse<float>(text)) {
-                mGenerator.brightness(*value);
-            }
-        });
+        // addProperty("saturation", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.saturation(*value);
+        //     }
+        // });
+        // addProperty ("brightness", [this](std::string_view text) {
+        //     if (auto value = tryParse<float>(text)) {
+        //         mGenerator.brightness(*value);
+        //     }
+        // });
     }
 
     void PlasmaEffect::update(float timeStep)
     {
-        mGenerator.time(mGenerator.time() + timeStep);
+        mTime += timeStep;
     }
 
-    Generator * PlasmaEffect::generator(Location const & location)
+    std::unique_ptr<Generator> PlasmaEffect::generator()
     {
-        mGenerator.location(location);
-        return &mGenerator;
+        return std::make_unique<PlasmaGenerator>(mTime, 0.5f, 1.0f);
     };
 }

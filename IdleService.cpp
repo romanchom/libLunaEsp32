@@ -1,6 +1,7 @@
 #include "IdleService.hpp"
 
 #include <luna/ConstantGenerator.hpp>
+#include <luna/HardwareController.hpp>
 
 #include <esp_log.h>
 
@@ -16,10 +17,9 @@ namespace luna
     void IdleService::takeOwnership(HardwareController * controller)
     {
         ESP_LOGI(TAG, "On");
-        ConstantGenerator generator;
-        generator.color({0, 0, 0, 0});
+        ConstantGenerator generator({0, 0, 0, 0});
         for (auto strand : controller->strands()) {
-            strand->fill(&generator);
+            strand->acceptGenerator(&generator);
         }
         controller->update();
         controller->enabled(false);

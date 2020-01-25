@@ -8,8 +8,8 @@ add_library(${PROJECT_NAME}
     "PlasmaGenerator.cpp"
     "EffectMixer.cpp"
     "ConstantEffect.cpp"
-    # "FlameEffect.cpp"
-    # "PlasmaEffect.cpp"
+    "FlameEffect.cpp"
+    "PlasmaEffect.cpp"
     "EffectEngine.cpp"
     "EffectSet.cpp"
 )

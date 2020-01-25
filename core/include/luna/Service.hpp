@@ -1,10 +1,9 @@
 #pragma once
 
-#include "HardwareController.hpp"
-
 namespace luna
 {
     struct ServiceManager;
+    struct HardwareController;
 
     struct Service
     {
@@ -15,12 +14,11 @@ namespace luna
     protected:
         ~Service() = default;
 
-        virtual void takeOwnership(HardwareController * controller) = 0;
-        virtual void releaseOwnership() = 0;
-
     private:
         friend ServiceManager;
 
+        virtual void takeOwnership(HardwareController * controller) = 0;
+        virtual void releaseOwnership() = 0;
         void setManager(ServiceManager * manager);
 
         ServiceManager * mManager;

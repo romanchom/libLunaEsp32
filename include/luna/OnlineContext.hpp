@@ -19,9 +19,11 @@ namespace luna
 
     struct OnlineContext
     {
-        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService);
+        explicit OnlineContext(Configuration::Network const & config, TlsConfiguration * tlsConfigutation, HardwareController * controller, EffectEngine * effectEngine, DirectService * directService, EventLoop * mainLoop);
         ~OnlineContext();
     private:
+        static void task(void * data);
+
         asio::io_context mIoContext;
         RealtimeService mRealtimeService;
         mqtt::Service mMqtt;
