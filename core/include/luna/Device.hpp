@@ -5,12 +5,12 @@
 #include <vector>
 
 namespace luna {
-    struct HardwareController
+    struct Device
     {
         virtual std::vector<Strand *> strands() = 0;
         virtual void enabled(bool value) = 0;
         virtual void update() = 0;
     protected:
-        ~HardwareController() = default;
+        ~Device() = default;
     };
 }

@@ -1,6 +1,6 @@
 #include "ServiceManager.hpp"
 #include "Service.hpp"
-#include "HardwareController.hpp"
+#include "Device.hpp"
 #include "Strand.hpp"
 #include "Plugin.hpp"
 
@@ -8,8 +8,8 @@
 
 namespace luna
 {
-    ServiceManager::ServiceManager(EventLoop * mainLoop, HardwareController * controller, std::vector<Plugin *> plugins) :
-        mController(controller),
+    ServiceManager::ServiceManager(EventLoop * mainLoop, Device * device, std::vector<Plugin *> plugins) :
+        mDevice(device),
         mActive(nullptr)
     {
         mServices.emplace_back(&mIdleService);
@@ -44,7 +44,7 @@ namespace luna
                 mActive->releaseOwnership();
             }
             if (newActive) {
-                newActive->takeOwnership(mController);
+                newActive->takeOwnership(mDevice);
             }
             mActive = newActive;
         }

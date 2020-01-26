@@ -1,6 +1,6 @@
 #include "IdleService.hpp"
 
-#include "HardwareController.hpp"
+#include "Device.hpp"
 #include "Strand.hpp"
 #include "Generator.hpp"
 
@@ -29,15 +29,15 @@ namespace luna
         serviceEnabled(true);
     }
 
-    void IdleService::takeOwnership(HardwareController * controller)
+    void IdleService::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "On");
         NullGenerator generator;
-        for (auto strand : controller->strands()) {
+        for (auto strand : device->strands()) {
             strand->acceptGenerator(&generator);
         }
-        controller->update();
-        controller->enabled(false);
+        device->update();
+        device->enabled(false);
     }
 
     void IdleService::releaseOwnership()

@@ -5,16 +5,16 @@
 
 namespace luna
 {
-    struct HardwareController;
+    struct Device;
 
     struct DirectService : Service
     {
         explicit DirectService();
-        void takeOwnership(HardwareController * controller) final;
+        void takeOwnership(Device * device) final;
         void releaseOwnership() final;
         void setColor(luna::proto::SetColor const& cmd);
     private:
-        HardwareController * mController;
+        Device * mDevice;
     };
 
 }

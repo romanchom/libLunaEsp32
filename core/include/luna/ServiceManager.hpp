@@ -7,13 +7,13 @@
 namespace luna
 {
     struct Service;
-    struct HardwareController;
+    struct Device;
     struct Plugin;
     struct EventLoop;
 
     struct ServiceManager
     {
-        explicit ServiceManager(EventLoop * mainLoop, HardwareController * controller, std::vector<Plugin *> plugins);
+        explicit ServiceManager(EventLoop * mainLoop, Device * device, std::vector<Plugin *> plugins);
 
         void serviceEnabled(Service * service, bool enabled);
     private:
@@ -21,7 +21,7 @@ namespace luna
 
         Service * maxEnabled();
 
-        HardwareController * mController;
+        Device * mDevice;
         IdleService mIdleService;
         std::vector<Service *> mServices;
         Service * mActive;

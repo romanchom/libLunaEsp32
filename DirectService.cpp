@@ -1,6 +1,6 @@
 #include "DirectService.hpp"
 
-#include <luna/HardwareController.hpp>
+#include <luna/Device.hpp>
 
 #include <esp_log.h>
 
@@ -9,16 +9,16 @@ static char const TAG[] = "DirectSvc";
 namespace luna
 {
     DirectService::DirectService() :
-        mController(nullptr)
+        mDevice(nullptr)
     {}
 
     void DirectService::setColor(luna::proto::SetColor const& cmd)
     {
-        if (!mController) {
+        if (!mDevice) {
             return;
         }
 
-        auto strands = mController->strands();
+        auto strands = mDevice->strands();
 
         for (auto & strandData : cmd.strands) {
             size_t index = strandData.id;
@@ -28,20 +28,20 @@ namespace luna
             strand->rawBytes(strandData.rawBytes.data(), strandData.rawBytes.size());
         }
 
-        mController->update();
+        mDevice->update();
     }
 
-    void DirectService::takeOwnership(HardwareController * controller)
+    void DirectService::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "Enabled");
-        mController = controller;
-        mController->enabled(true);
+        mDevice = device;
+        mDevice->enabled(true);
     }
 
     void DirectService::releaseOwnership()
     {
         ESP_LOGI(TAG, "Disabled");
-        mController = nullptr;
+        mDevice = nullptr;
     }
 
 }

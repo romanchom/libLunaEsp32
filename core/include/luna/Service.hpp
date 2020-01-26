@@ -3,7 +3,7 @@
 namespace luna
 {
     struct ServiceManager;
-    struct HardwareController;
+    struct Device;
 
     struct Service
     {
@@ -17,7 +17,7 @@ namespace luna
     private:
         friend ServiceManager;
 
-        virtual void takeOwnership(HardwareController * controller) = 0;
+        virtual void takeOwnership(Device * device) = 0;
         virtual void releaseOwnership() = 0;
         void setManager(ServiceManager * manager);
 

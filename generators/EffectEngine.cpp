@@ -3,7 +3,7 @@
 #include "ConstantGenerator.hpp"
 
 #include <luna/EventLoop.hpp>
-#include <luna/HardwareController.hpp>
+#include <luna/Device.hpp>
 #include <luna/Strand.hpp>
 
 #include <esp_log.h>
@@ -31,7 +31,7 @@ namespace luna
         mMainLoop(mainLoop),
         mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
         mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
-        mController(nullptr),
+        mDevice(nullptr),
         mEffectMixer(this),
         mTaskHandle(nullptr)
     {
@@ -49,12 +49,12 @@ namespace luna
         // return {&mEffectMixer};
     }
 
-    void EffectEngine::takeOwnership(HardwareController * controller)
+    void EffectEngine::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "Enabled");
         {
-            mController = controller;
-            mController->enabled(true);
+            mDevice = device;
+            mDevice->enabled(true);
             xTaskCreatePinnedToCore(&EffectEngine::tick, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
         }
     }
@@ -64,7 +64,7 @@ namespace luna
         ESP_LOGI(TAG, "Disabled");
         xTaskNotify(mTaskHandle, Notification::Exit, eSetBits);
         ulTaskNotifyTake(false, portMAX_DELAY);
-        mController = nullptr;
+        mDevice = nullptr;
     }
 
     void EffectEngine::tick(void * data)
@@ -88,11 +88,11 @@ namespace luna
             }
 
             if (notification & Notification::Update) {
-                for (auto strand : mController->strands()) {
+                for (auto strand : mDevice->strands()) {
                     strand->acceptGenerator(mGenerator.get());
                 }
 
-                mController->update();
+                mDevice->update();
             }
 
             mMainLoop->post([this]{

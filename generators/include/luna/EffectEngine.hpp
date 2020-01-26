@@ -28,7 +28,7 @@ namespace luna
         std::vector<Configurable *> children() override;
 
     private:
-        void takeOwnership(HardwareController * controller) final;
+        void takeOwnership(Device * device) final;
         void releaseOwnership() final;
 
         static void tick(void * data);
@@ -49,7 +49,7 @@ namespace luna
         MemberProperty<EffectEngine, bool> mEnabled;
 
         std::string mLastEffect;
-        HardwareController * mController;
+        Device * mDevice;
         EffectMixer mEffectMixer;
         TaskHandle_t mTaskHandle;
         std::unique_ptr<Generator> mGenerator;

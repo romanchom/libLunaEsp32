@@ -12,14 +12,14 @@
 namespace luna
 {
     struct Plugin;
-    struct HardwareController;
+    struct Device;
     struct EventLoop;
     struct OnlineContext;
 
     struct LunaConfiguration
     {
         std::vector<Plugin *> plugins;
-        HardwareController * hardware;
+        Device * hardware;
         WifiCredentials wifiCredentials;
         TlsCredentials tlsCredentials;
     };
