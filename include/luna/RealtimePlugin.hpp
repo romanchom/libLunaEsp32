@@ -1,9 +1,8 @@
 #pragma once
 
-#include "DirectService.hpp"
-
-#include <luna/Plugin.hpp>
 #include <luna/Device.hpp>
+#include <luna/DirectController.hpp>
+#include <luna/Plugin.hpp>
 
 namespace luna
 {
@@ -16,6 +15,6 @@ namespace luna
     private:
         std::string mName;
         Device * mDevice;
-        DirectService mService;
+        DirectController mController;
     };
 }

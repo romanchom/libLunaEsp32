@@ -109,10 +109,10 @@ namespace luna
         xTaskNotifyGive(mMainLoop->taskHandle());
     }
 
-    void EffectEngine::enabledChanged(bool enabled)
+    void EffectEngine::enabledChanged(bool value)
     {
-        mMainLoop->post([this, enabled]{
-            serviceEnabled(enabled);
+        mMainLoop->post([this, value]{
+            Service::enabled(value);
         });
     }
 

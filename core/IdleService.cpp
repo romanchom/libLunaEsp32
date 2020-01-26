@@ -26,7 +26,7 @@ namespace luna
 
     IdleService::IdleService()
     {
-        serviceEnabled(true);
+        enabled(true);
     }
 
     void IdleService::takeOwnership(Device * device)

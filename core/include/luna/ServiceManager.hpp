@@ -15,7 +15,7 @@ namespace luna
     {
         explicit ServiceManager(EventLoop * mainLoop, Device * device, std::vector<Plugin *> plugins);
 
-        void serviceEnabled(Service * service, bool enabled);
+        void enabled(Service * service, bool enabled);
     private:
         void findActive();
 

@@ -34,7 +34,7 @@ namespace luna
         static void tick(void * data);
         void loop();
 
-        void enabledChanged(bool enabled) override;
+        void enabledChanged(bool value) override;
 
         std::string getActiveEffect() const;
         void setActiveEffect(std::string const & value);

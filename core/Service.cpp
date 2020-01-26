@@ -13,15 +13,15 @@ namespace luna
         mManager = manager;
     }
 
-    void Service::serviceEnabled(bool enabled)
+    void Service::enabled(bool enabled)
     {
         mEnabled = enabled;
         if (mManager) {
-            mManager->serviceEnabled(this, enabled);
+            mManager->enabled(this, enabled);
         }
     }
 
-    bool Service::serviceEnabled() const noexcept
+    bool Service::enabled() const noexcept
     {
         return mEnabled;
     }

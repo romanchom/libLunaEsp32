@@ -1,25 +1,16 @@
-# project(libLunaEsp32)
 idf_component_register(
     SRCS
         "AsioTcpInputOutput.cpp"
-        "AsioUdpInputOutput.cpp"
-        "AsioTimer.cpp"
-
-        # "Main.cpp"
         "WiFi.cpp"
-        "DiscoveryResponder.cpp"
         "Updater.cpp"
-
-        "RealtimeService.cpp"
         "Nvs.cpp"
+        "Luna.cpp"
         "OnlineContext.cpp"
-        "DirectService.cpp"
         "Infrared.cpp"
         "EffectsPlugin.cpp"
         "UpdatePlugin.cpp"
-        "Luna.cpp"
-        "PersistencyPlugin.cpp"
         "RealtimePlugin.cpp"
+        "PersistencyPlugin.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES
@@ -35,6 +26,7 @@ add_subdirectory(core)
 add_subdirectory(driver)
 add_subdirectory(generators)
 add_subdirectory(mqtt)
+add_subdirectory(realtime)
 
 target_link_libraries(${COMPONENT_TARGET} PUBLIC
     lunaProto
@@ -44,6 +36,7 @@ target_link_libraries(${COMPONENT_TARGET} PUBLIC
     luna.driver
     luna.generators
     luna.mqtt
+    luna.realtime
 )
 
 target_include_directories(${COMPONENT_TARGET}

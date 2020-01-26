@@ -4,7 +4,6 @@
 #include <freertos/queue.h>
 #include <freertos/task.h>
 
-#include <memory>
 #include <functional>
 
 namespace luna

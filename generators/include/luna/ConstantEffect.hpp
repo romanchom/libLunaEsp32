@@ -3,6 +3,8 @@
 #include "Effect.hpp"
 #include "ConstantGenerator.hpp"
 
+#include <luna/Property.hpp>
+
 #include <prism/Prism.hpp>
 
 namespace luna

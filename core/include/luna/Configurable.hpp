@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Property.hpp"
-
 #include <string>
+#include <vector>
 
 namespace luna
 {
+    struct AbstractProperty;
+
     struct Configurable
     {
         explicit Configurable(std::string && name);

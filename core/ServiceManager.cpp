@@ -24,7 +24,7 @@ namespace luna
         findActive();
     }
 
-    void ServiceManager::serviceEnabled(Service * service, bool enabled)
+    void ServiceManager::enabled(Service * service, bool enabled)
     {
         auto it = std::find(mServices.begin(), mServices.end(), service);
 
@@ -53,7 +53,7 @@ namespace luna
     Service * ServiceManager::maxEnabled()
     {
         auto it = std::find_if(mServices.rbegin(), mServices.rend(), [](auto service){
-            return service->serviceEnabled();
+            return service->enabled();
         });
 
         if (it != mServices.rend()) {

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Strand.hpp"
-
 #include <vector>
 
 namespace luna {
+    struct Strand;
+
     struct Device
     {
         virtual std::vector<Strand *> strands() = 0;

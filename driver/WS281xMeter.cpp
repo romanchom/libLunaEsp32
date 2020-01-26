@@ -1,5 +1,7 @@
 #include "WS281xMeter.hpp"
 
+#include <cstdint>
+
 namespace luna
 {
     WS281xMeter::WS281xMeter(WS281xDriver * driver, float currentPerDiode) :

@@ -7,13 +7,15 @@ namespace luna
 {
     struct Device;
 
-    struct DirectService : Service
+    struct DirectController : Service
     {
-        explicit DirectService();
+        explicit DirectController();
         void takeOwnership(Device * device) final;
         void releaseOwnership() final;
         void setColor(luna::proto::SetColor const& cmd);
     private:
+        friend struct RealtimeStreamer;
+
         Device * mDevice;
     };
 

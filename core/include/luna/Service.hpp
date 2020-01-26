@@ -9,9 +9,9 @@ namespace luna
     {
         explicit Service();
 
-        void serviceEnabled(bool enabled);
-        bool serviceEnabled() const noexcept;
     protected:
+        void enabled(bool enabled);
+        bool enabled() const noexcept;
         ~Service() = default;
 
     private:

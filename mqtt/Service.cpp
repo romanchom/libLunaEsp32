@@ -2,6 +2,9 @@
 #include "Subscription.hpp"
 
 #include <luna/EventLoop.hpp>
+#include <luna/Property.hpp>
+
+#include <prism/Prism.hpp>
 
 #include <esp_log.h>
 

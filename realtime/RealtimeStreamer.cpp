@@ -1,6 +1,6 @@
-#include "RealtimeService.hpp"
+#include "RealtimeStreamer.hpp"
 
-#include "DirectService.hpp"
+#include "DirectController.hpp"
 
 #include <luna/TlsConfiguration.hpp>
 
@@ -14,9 +14,9 @@ static char const TAG[] = "RT";
 
 namespace luna
 {
-    RealtimeService::RealtimeService(NetworkingContext const & context, DirectService * service) :
+    RealtimeStreamer::RealtimeStreamer(NetworkingContext const & context, DirectController * controller) :
         mTlsConfiguration(context.tlsConfiguration->makeDtlsConfiguration()),
-        mService(service),
+        mController(controller),
         mSocket(*context.ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
         mHeartbeat(*context.ioContext),
         mTimer(context.ioContext),
@@ -34,17 +34,17 @@ namespace luna
         ESP_LOGI(TAG, "Up on port %d", int(port()));
     }
 
-    RealtimeService::~RealtimeService() = default;
+    RealtimeStreamer::~RealtimeStreamer() = default;
 
-    uint16_t RealtimeService::port()
+    uint16_t RealtimeStreamer::port()
     {
         return mSocket.local_endpoint().port();
     }
 
-    void RealtimeService::reset()
+    void RealtimeStreamer::reset()
     {
         ESP_LOGI(TAG, "Reset");
-        mService->serviceEnabled(false);
+        mController->enabled(false);
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
@@ -53,7 +53,7 @@ namespace luna
         startHandshake();
     }
 
-    void RealtimeService::startHandshake()
+    void RealtimeStreamer::startHandshake()
     {
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
@@ -64,7 +64,7 @@ namespace luna
         });
     }
 
-    void RealtimeService::doHandshake()
+    void RealtimeStreamer::doHandshake()
     {
         for (;;) {
             // workaround lwip recvmsg not returning sender address
@@ -95,7 +95,7 @@ namespace luna
         }
     }
 
-    void RealtimeService::startRead()
+    void RealtimeStreamer::startRead()
     {
         mSocket.async_wait(mSocket.wait_read, [this](asio::error_code const & error) {
             if (!error) {
@@ -125,21 +125,21 @@ namespace luna
         });
     }
 
-    void RealtimeService::activate()
+    void RealtimeStreamer::activate()
     {
         ESP_LOGI(TAG, "Peer connected and authenticated");
-        mService->serviceEnabled(true);
+        mController->enabled(true);
         startRead();
     }
 
-    void RealtimeService::dispatchCommand(std::byte const * data, size_t size)
+    void RealtimeStreamer::dispatchCommand(std::byte const * data, size_t size)
     {
         using namespace luna::proto;
         auto packet = reinterpret_cast<Command const*>(data);
         auto & command = packet->command;
 
         if (auto cmd = command.as<SetColor>()) {
-            mService->setColor(*cmd);
+            mController->setColor(*cmd);
         }
 
         if (packet->id != 0) {
