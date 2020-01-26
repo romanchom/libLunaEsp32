@@ -36,7 +36,7 @@ namespace luna
         LunaConfiguration * mConfig;
 
         ControllerMux mControllerMux;
-        WiFi mWiFi;
+        std::unique_ptr<WiFi> mWiFi;
         std::unique_ptr<OnlineContext> mOnlineContext;
     };
 }

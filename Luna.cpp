@@ -11,14 +11,14 @@ namespace luna
     Luna::Luna(EventLoop * mainLoop, LunaConfiguration * config) :
         mMainLoop(mainLoop),
         mConfig(config),
-        mControllerMux(mMainLoop, config->hardware, mConfig->plugins),
-        mWiFi(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password)
+        mControllerMux(mMainLoop, config->hardware, mConfig->plugins)
     {
-        mWiFi.observer(this);
         mMainLoop->post([this]{
-            ESP_LOGW("Luna", "Up and running.");
-            mWiFi.enabled(true);
+            mWiFi = std::make_unique<WiFi>(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password);
+            mWiFi->observer(this);
+            mWiFi->enabled(true);
         });
+        ESP_LOGW("Luna", "Up and running.");
     }
 
     Luna::~Luna() = default;
