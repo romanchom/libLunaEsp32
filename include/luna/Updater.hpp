@@ -2,6 +2,8 @@
 
 #include "AsioTcpInputOutput.hpp"
 
+#include <luna/NetworkService.hpp>
+
 #include <mbedtls-cpp/Configuration.hpp>
 #include <mbedtls-cpp/Ssl.hpp>
 
@@ -14,10 +16,10 @@
 
 namespace luna
 {
-
-    struct Updater
+    struct Updater : NetworkService
     {
         explicit Updater(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration);
+        ~Updater() final;
     private:
         void acceptConnection();
         void doHandshake();

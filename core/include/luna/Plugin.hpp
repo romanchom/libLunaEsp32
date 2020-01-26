@@ -10,7 +10,7 @@ namespace luna
 
     struct Plugin
     {
-        virtual Service * initializeService();
+        virtual Service * initializeService() = 0;
         virtual std::unique_ptr<NetworkService> initializeNetworking(NetworkingContext const & network) = 0;
     };
 }

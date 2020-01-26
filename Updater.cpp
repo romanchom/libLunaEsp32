@@ -20,6 +20,8 @@ namespace luna
         acceptConnection();
     }
 
+    Updater::~Updater() = default;
+
     void Updater::acceptConnection()
     {
         mListeningSocket.async_accept(mStreamSocket, [this](asio::error_code const & error){

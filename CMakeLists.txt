@@ -16,6 +16,7 @@ idf_component_register(
         "DirectService.cpp"
         "Infrared.cpp"
         "EffectsPlugin.cpp"
+        "UpdatePlugin.cpp"
         "Luna.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
