@@ -1,5 +1,10 @@
 #include "Infrared.hpp"
 
+#include <luna/EventLoop.hpp>
+
+#include <driver/gpio.h>
+
+#include <bitset>
 #include <cstring>
 
 namespace luna {
@@ -94,8 +99,21 @@ namespace luna {
         }
     }
 
-    Infrared::Infrared(int pin)
+    Infrared::Infrared(EventLoop * mainLoop, int pin, InfraredDemux * demultiplexer) :
+        mMainLoop(mainLoop),
+        mDemultiplexer(demultiplexer)
     {
+        {
+            gpio_config_t config{
+                .pin_bit_mask = 1ull << pin,
+                .mode = GPIO_MODE_INPUT,
+                .pull_up_en = (gpio_pullup_t) 0,
+                .pull_down_en = (gpio_pulldown_t) 0,
+                .intr_type = (gpio_int_type_t)GPIO_PIN_INTR_DISABLE,
+            };
+            gpio_config(&config);
+        }
+        
         // TODO: integrate with WS281x driver and make channel assignment automatic
         auto const channel = static_cast<rmt_channel_t>(7);
 
@@ -119,12 +137,7 @@ namespace luna {
         xTaskCreate([](void * data) {
             static_cast<Infrared *>(data)->receive();
             vTaskDelete(nullptr);
-        }, "IR", 1024, this, 5, &mTaskHandle);
-    }
-
-    void Infrared::setOnMessageReceived(Callback callback)
-    {
-        mOnMessageReceived = std::move(callback);
+        }, "IR", 2 * 1024, this, 5, &mTaskHandle);
     }
 
     void Infrared::receive()
@@ -135,9 +148,11 @@ namespace luna {
             if (items) {
                 length /= 4;
                 auto message = decodeMessage(items, length);
-                if (message.received && mOnMessageReceived) {
-                    mOnMessageReceived(message.address, message.command);
-                    ESP_LOGI("IR", "Address %d, command %d", message.address, message.command);
+                if (message.received) {
+                    ESP_LOGI("IR", "Address 0x%x, command 0x%x", message.address, message.command);
+                    mMainLoop->post([this, message]{
+                        mDemultiplexer->demultiplex(message.address, message.command);
+                    });
                 }
                 vRingbufferReturnItem(mBuffer, (void *) items);
             }

@@ -76,6 +76,14 @@ namespace luna
         {
             return get();
         }
+
+        virtual void set(T const & value) = 0;
+        
+        void operator =(T const & value)
+        {
+            set(value);
+        }
+
     protected:
         void notify(T const & value)
         {
@@ -84,11 +92,6 @@ namespace luna
             }
         }
         
-        void operator =(T const & value)
-        {
-            set(value);
-        }
-
     private:
         void accept(Visitor * visitor) override
         {
@@ -96,7 +99,6 @@ namespace luna
         }
 
         virtual T getValue() const = 0;
-        virtual void set(T const & value) = 0;
 
         std::vector<Property *> mPublishers;
         std::vector<Property *> mSubscribers;

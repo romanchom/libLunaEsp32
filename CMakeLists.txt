@@ -12,6 +12,7 @@ idf_component_register(
         "RealtimePlugin.cpp"
         "PersistencyPlugin.cpp"
         "MqttPlugin.cpp"
+        "Ir40ButtonRemote.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES
