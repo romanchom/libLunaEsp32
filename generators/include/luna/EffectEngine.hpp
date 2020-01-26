@@ -5,7 +5,7 @@
 #include "EffectMixer.hpp"
 #include "EffectSet.hpp"
 
-#include <luna/Service.hpp>
+#include <luna/Controller.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
@@ -17,7 +17,7 @@ namespace luna
 {
     struct EventLoop;
 
-    struct EffectEngine : Service, Configurable, private EffectMixer::Observer
+    struct EffectEngine : Controller, Configurable, private EffectMixer::Observer
     {
         explicit EffectEngine(EffectSet * effects, EventLoop * mainLoop);
 

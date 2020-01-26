@@ -10,13 +10,13 @@ namespace luna
     struct RealtimeNetworkService : NetworkService
     {
         explicit RealtimeNetworkService(std::string name, NetworkingContext const & context, DirectController * controller, Device * device) :
-            mService(context, controller),
-            mResponder(context.ioContext, mService.port(), name, device->strands())
+            mStreamer(context, controller),
+            mResponder(context.ioContext, mStreamer.port(), name, device->strands())
         {}
 
         ~RealtimeNetworkService() final = default;
     private:
-        RealtimeStreamer mService;
+        RealtimeStreamer mStreamer;
         DiscoveryResponder mResponder;
     };
 
@@ -25,12 +25,12 @@ namespace luna
         mDevice(device)
     {}
 
-    Service * RealtimePlugin::initializeService()
+    Controller * RealtimePlugin::getController()
     {
         return &mController;
     }
     
-    std::unique_ptr<NetworkService> RealtimePlugin::initializeNetworking(NetworkingContext const & network)
+    std::unique_ptr<NetworkService> RealtimePlugin::makeNetworkService(NetworkingContext const & network)
     {
         return std::make_unique<RealtimeNetworkService>(mName, network, &mController, mDevice);
     }

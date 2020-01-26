@@ -3,9 +3,9 @@ project(luna.core)
 add_library(${PROJECT_NAME}
     "Configurable.cpp"
     "EventLoop.cpp"
-    "IdleService.cpp"
-    "Service.cpp"
-    "ServiceManager.cpp"
+    "IdleController.cpp"
+    "Controller.cpp"
+    "ControllerMux.cpp"
     "TlsConfiguration.cpp"
 )
 

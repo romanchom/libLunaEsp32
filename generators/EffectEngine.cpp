@@ -112,7 +112,7 @@ namespace luna
     void EffectEngine::enabledChanged(bool value)
     {
         mMainLoop->post([this, value]{
-            Service::enabled(value);
+            Controller::enabled(value);
         });
     }
 

@@ -1,4 +1,4 @@
-#include "IdleService.hpp"
+#include "IdleController.hpp"
 
 #include "Device.hpp"
 #include "Strand.hpp"
@@ -24,12 +24,12 @@ namespace luna
         };
     }
 
-    IdleService::IdleService()
+    IdleController::IdleController()
     {
         enabled(true);
     }
 
-    void IdleService::takeOwnership(Device * device)
+    void IdleController::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "On");
         NullGenerator generator;
@@ -40,7 +40,7 @@ namespace luna
         device->enabled(false);
     }
 
-    void IdleService::releaseOwnership()
+    void IdleController::releaseOwnership()
     {
         ESP_LOGI(TAG, "Off");
     }

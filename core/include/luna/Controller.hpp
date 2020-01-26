@@ -2,26 +2,26 @@
 
 namespace luna
 {
-    struct ServiceManager;
+    struct ControllerMux;
     struct Device;
 
-    struct Service
+    struct Controller
     {
-        explicit Service();
+        explicit Controller();
 
     protected:
         void enabled(bool enabled);
         bool enabled() const noexcept;
-        ~Service() = default;
+        ~Controller() = default;
 
     private:
-        friend ServiceManager;
+        friend ControllerMux;
 
         virtual void takeOwnership(Device * device) = 0;
         virtual void releaseOwnership() = 0;
-        void setManager(ServiceManager * manager);
+        void setManager(ControllerMux * manager);
 
-        ServiceManager * mManager;
+        ControllerMux * mManager;
         bool mEnabled;
     };
 }

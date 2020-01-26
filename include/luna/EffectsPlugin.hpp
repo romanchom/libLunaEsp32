@@ -12,8 +12,8 @@ namespace luna
     {
         explicit EffectPlugin(EventLoop * mainLoop, std::initializer_list<Effect *> effects);
         ~EffectPlugin();
-        Service * initializeService() final;
-        std::unique_ptr<NetworkService> initializeNetworking(NetworkingContext const & network) final;
+        Controller * getController() final;
+        std::unique_ptr<NetworkService> makeNetworkService(NetworkingContext const & network) final;
 
         EffectEngine & effectEngine() { return mEffectEngine; }
     private:

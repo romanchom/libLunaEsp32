@@ -1,19 +1,19 @@
-#include "Service.hpp"
-#include "ServiceManager.hpp"
+#include "Controller.hpp"
+#include "ControllerMux.hpp"
 
 namespace luna
 {
-    Service::Service() :
+    Controller::Controller() :
         mManager(nullptr),
         mEnabled(false)
     {}
 
-    void Service::setManager(ServiceManager * manager)
+    void Controller::setManager(ControllerMux * manager)
     {
         mManager = manager;
     }
 
-    void Service::enabled(bool enabled)
+    void Controller::enabled(bool enabled)
     {
         mEnabled = enabled;
         if (mManager) {
@@ -21,7 +21,7 @@ namespace luna
         }
     }
 
-    bool Service::enabled() const noexcept
+    bool Controller::enabled() const noexcept
     {
         return mEnabled;
     }

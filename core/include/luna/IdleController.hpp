@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Service.hpp"
+#include "Controller.hpp"
 
 namespace luna
 {
-    struct IdleService : Service
+    struct IdleController : Controller
     {
-        explicit IdleService();
+        explicit IdleController();
         virtual void takeOwnership(Device * device) override;
         virtual void releaseOwnership() override;
     };

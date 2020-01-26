@@ -16,7 +16,7 @@ namespace luna
         };
 
         for (auto plugin : plugins) {
-            if (auto service = plugin->initializeNetworking(context)) {
+            if (auto service = plugin->makeNetworkService(context)) {
                 mServices.emplace_back(std::move(service));
             }
         }

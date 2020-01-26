@@ -2,7 +2,7 @@ project(luna.mqtt)
 
 add_library(${PROJECT_NAME}
     "Client.cpp"
-    "Service.cpp"
+    "Controller.cpp"
     "Subscription.cpp"
     "Topic.cpp"
 )

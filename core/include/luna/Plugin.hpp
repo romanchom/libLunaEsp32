@@ -5,12 +5,12 @@
 namespace luna
 {
     struct NetworkingContext;
-    struct Service;
+    struct Controller;
     struct NetworkService;
 
     struct Plugin
     {
-        virtual Service * initializeService() = 0;
-        virtual std::unique_ptr<NetworkService> initializeNetworking(NetworkingContext const & network) = 0;
+        virtual Controller * getController() = 0;
+        virtual std::unique_ptr<NetworkService> makeNetworkService(NetworkingContext const & network) = 0;
     };
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <luna/Service.hpp>
+#include <luna/Controller.hpp>
 #include <luna/proto/SetColor.hpp>
 
 namespace luna
 {
     struct Device;
 
-    struct DirectController : Service
+    struct DirectController : Controller
     {
         explicit DirectController();
         void takeOwnership(Device * device) final;

@@ -11,12 +11,12 @@ namespace luna
 
     EffectPlugin::~EffectPlugin() = default;
 
-    Service * EffectPlugin::initializeService()
+    Controller * EffectPlugin::getController()
     {
         return &mEffectEngine;
     }
 
-    std::unique_ptr<NetworkService> EffectPlugin::initializeNetworking(NetworkingContext const & network)
+    std::unique_ptr<NetworkService> EffectPlugin::makeNetworkService(NetworkingContext const & network)
     {
         return nullptr;
     }

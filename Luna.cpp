@@ -9,7 +9,7 @@ namespace luna
     Luna::Luna(EventLoop * mainLoop, LunaConfiguration * config) :
         mMainLoop(mainLoop),
         mConfig(config),
-        mServiceManager(mMainLoop, config->hardware, mConfig->plugins),
+        mControllerMux(mMainLoop, config->hardware, mConfig->plugins),
         mWiFi(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password)
     {
         mWiFi.observer(this);

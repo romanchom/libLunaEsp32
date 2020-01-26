@@ -6,7 +6,7 @@ namespace luna
 {
     struct UpdatePlugin : Plugin
     {
-        Service * initializeService() final;
-        std::unique_ptr<NetworkService> initializeNetworking(NetworkingContext const & network) final;
+        Controller * getController() final;
+        std::unique_ptr<NetworkService> makeNetworkService(NetworkingContext const & network) final;
     };
 }

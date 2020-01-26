@@ -1,6 +1,6 @@
 #include "MqttPlugin.hpp"
 
-#include <luna/mqtt/Service.hpp>
+#include <luna/mqtt/Controller.hpp>
 #include <luna/NetworkingContext.hpp>
 
 namespace luna
@@ -14,13 +14,13 @@ namespace luna
 
     MqttPlugin::~MqttPlugin() = default;
 
-    luna::Service * MqttPlugin::initializeService() 
+    luna::Controller * MqttPlugin::getController() 
     {
         return nullptr;
     }
 
-    std::unique_ptr<NetworkService> MqttPlugin::initializeNetworking(NetworkingContext const & network)
+    std::unique_ptr<NetworkService> MqttPlugin::makeNetworkService(NetworkingContext const & network)
     {
-        return std::make_unique<mqtt::Service>(mMainLoop, mEffectEngine, mName, mAddress, network.tlsCredentials);
+        return std::make_unique<mqtt::Controller>(mMainLoop, mEffectEngine, mName, mAddress, network.tlsCredentials);
     }
 }

@@ -3,7 +3,7 @@
 #include "WiFi.hpp"
 #include "WifiCredentials.hpp"
 
-#include <luna/ServiceManager.hpp>
+#include <luna/ControllerMux.hpp>
 #include <luna/TlsCredentials.hpp>
 
 #include <memory>
@@ -35,7 +35,7 @@ namespace luna
         EventLoop * mMainLoop;
         LunaConfiguration * mConfig;
 
-        ServiceManager mServiceManager;
+        ControllerMux mControllerMux;
         WiFi mWiFi;
         std::unique_ptr<OnlineContext> mOnlineContext;
     };
