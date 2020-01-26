@@ -127,7 +127,7 @@ namespace luna::mqtt
                 return mValue;
             }
 
-            void setValue(T const & value) override
+            void set(T const & value) override
             {
                 if (mValue == value) { return; }
                 mValue = value;

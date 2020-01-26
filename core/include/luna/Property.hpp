@@ -6,7 +6,7 @@
 
 #include <functional>
 #include <string>
-#include <set>
+#include <vector>
 
 namespace luna
 {
@@ -53,11 +53,11 @@ namespace luna
 
         void bindTo(Property * other)
         {
-            mPublishers.emplace(other);
+            mPublishers.emplace_back(other);
 
             if (other) {
-                other->mSubscribers.emplace(this);
-                setValue(other->get());
+                other->mSubscribers.emplace_back(this);
+                set(other->get());
             }
         }
 
@@ -72,13 +72,23 @@ namespace luna
             return getValue();
         }
 
+        operator T() const
+        {
+            return get();
+        }
     protected:
         void notify(T const & value)
         {
             for (auto subscriber : mSubscribers) {
-                subscriber->setValue(value);
+                subscriber->set(value);
             }
         }
+        
+        void operator =(T const & value)
+        {
+            set(value);
+        }
+
     private:
         void accept(Visitor * visitor) override
         {
@@ -86,38 +96,9 @@ namespace luna
         }
 
         virtual T getValue() const = 0;
-        virtual void setValue(T const & value) = 0;
+        virtual void set(T const & value) = 0;
 
-        std::set<Property *> mPublishers;
-        std::set<Property *> mSubscribers;
-    };
-
-    template<typename Owner, typename T>
-    struct MemberProperty : Property<T>
-    {
-        using Setter = void (Owner::*)(T const &);
-        using Getter = T (Owner::*)() const;
-        explicit MemberProperty(std::string name, Owner * owner, Getter getter, Setter setter) :
-            Property<T>(name),
-            mOwner(owner),
-            mGetter(getter),
-            mSetter(setter)
-        {}
-
-        using Property<T>::notify;
-    private:
-        T getValue() const override
-        {
-            return (mOwner->*mGetter)();
-        }
-
-        void setValue(T const & value) override
-        {
-            (mOwner->*mSetter)(value);
-        }
-
-        Owner * mOwner;
-        Getter mGetter;
-        Setter mSetter;
+        std::vector<Property *> mPublishers;
+        std::vector<Property *> mSubscribers;
     };
 }

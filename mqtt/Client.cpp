@@ -7,7 +7,8 @@
 
 namespace luna::mqtt
 {
-    Client::Client(std::string_view address, TlsCredentials const & credentials)
+    Client::Client(std::string_view address, TlsCredentials const & credentials) :
+        mConnected(false)
     {
         esp_mqtt_client_config_t mqtt_cfg = {
             .uri = address.data(),
@@ -27,7 +28,9 @@ namespace luna::mqtt
 
     void Client::publish(Topic topic, std::string const & text)
     {
-        esp_mqtt_client_publish(mHandle, topic.str().c_str(), text.c_str(), text.size(), 0, 1);
+        if (mConnected) {
+            esp_mqtt_client_publish(mHandle, topic.str().c_str(), text.c_str(), text.size(), 0, 1);
+        }
     }
 
     void Client::connect()
@@ -44,21 +47,22 @@ namespace luna::mqtt
     {
         switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
+            mConnected = true;
             for (auto & subscription : mSubscriptions) {
                 esp_mqtt_client_subscribe(mHandle, subscription->topic().str().c_str(), 0);
             }
+            break;
+        case MQTT_EVENT_DISCONNECTED:
+            mConnected = false;
             break;
         case MQTT_EVENT_DATA:
             {
                 std::string topic(static_cast<char const *>(event->topic), event->topic_len);
                 Topic mqttTopic(std::move(topic));
 
-                // ESP_LOGI("MQTT" , "%.*s", event->topic_len, event->topic);
                 auto subscription = std::find_if(mSubscriptions.begin(), mSubscriptions.end(), [mqttTopic](auto const & subscription) {
-                    // ESP_LOGI("MQTT" , "%s", subscription->topic().str().c_str());
                     return subscription->topic().matches(mqttTopic);
                 });
-                // ESP_LOGI("MQTT" , "%d", subscription!=mSubscriptions.end());
                 if (subscription != mSubscriptions.end()) {
                     std::string_view text(static_cast<char const *>(event->data), event->data_len);
                     (*subscription)->deliver(text);

@@ -3,17 +3,19 @@
 #include "Effect.hpp"
 #include "FlameGenerator.hpp"
 
+#include <luna/ValueProperty.hpp>
+
 namespace luna
 {
     struct FlameEffect : Effect
     {
         explicit FlameEffect(std::string && name);
-        void update(float timeStep) final;
-        std::unique_ptr<Generator> generator() final;
+        std::unique_ptr<Generator> generator(Time const & t) final;
+        std::vector<AbstractProperty *> properties() final;
+
     private:
-        float mTime;
-        float mTemperatureLow;
-        float mTemperatureHigh;
-        float mFrequency;
+        ValueProperty<float, ValidPositive> mTemperatureLow;
+        ValueProperty<float, ValidPositive> mTemperatureHigh;
+        ValueProperty<float, ValidPositive> mFrequency;
     };
 }

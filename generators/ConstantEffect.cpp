@@ -1,5 +1,7 @@
 #include "ConstantEffect.hpp"
 
+#include <cmath>
+
 namespace luna
 {
     ConstantEffect::ConstantEffect(std::string && name) :
@@ -10,13 +12,10 @@ namespace luna
         mWhiteness("whiteness", this, &ConstantEffect::getWhiteness, &ConstantEffect::setWhiteness)
     {}
 
-    void ConstantEffect::update(float timeStep)
+    std::unique_ptr<Generator> ConstantEffect::generator(Time const & t)
     {
-        mCurrentColor = mCurrentColor * 0.98f + mTargetColor * 0.02f;
-    }
-
-    std::unique_ptr<Generator> ConstantEffect::generator()
-    {
+        auto factor = exp(-t.delta);
+        mCurrentColor = mCurrentColor * (1.0f - factor) + mTargetColor * factor;
         return std::make_unique<ConstantGenerator>(mCurrentColor);
     }
 

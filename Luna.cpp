@@ -4,6 +4,8 @@
 #include <luna/Plugin.hpp>
 #include <luna/EventLoop.hpp>
 
+#include <esp_log.h>
+
 namespace luna
 {
     Luna::Luna(EventLoop * mainLoop, LunaConfiguration * config) :
@@ -13,7 +15,10 @@ namespace luna
         mWiFi(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password)
     {
         mWiFi.observer(this);
-        mWiFi.enabled(true);
+        mMainLoop->post([this]{
+            ESP_LOGW("Luna", "Up and running.");
+            mWiFi.enabled(true);
+        });
     }
 
     Luna::~Luna() = default;

@@ -15,11 +15,11 @@ namespace luna
         template<typename T>
         struct NvsProperty : Property<T>
         {
-            explicit NvsProperty(nvs_handle_t handle, std::string && name) :
+            explicit NvsProperty(nvs_handle_t handle, std::string && name, bool & loaded) :
                 Property<T>(std::move(name)),
                 mHandle(handle)
             {
-                load();
+                loaded = (ESP_OK == load());
             }
 
             T getValue() const override
@@ -27,47 +27,47 @@ namespace luna
                 return mValue;
             }
 
-            void setValue(T const & value) override
+            void set(T const & value) override
             {
                 if (mValue == value) { return; }
                 mValue = value;
                 save();
             }
         private:
-            void load();
-            void save();
+            esp_err_t load();
+            esp_err_t save();
 
             T mValue;
             nvs_handle_t const mHandle;
         };
 
         template<>
-        void NvsProperty<bool>::load()
+        esp_err_t NvsProperty<bool>::load()
         {
-            auto error = nvs_get_u8(mHandle, name().c_str(), reinterpret_cast<uint8_t *>(&mValue));
+            return nvs_get_u8(mHandle, name().c_str(), reinterpret_cast<uint8_t *>(&mValue));
         }
 
         template<>
-        void NvsProperty<int>::load()
+        esp_err_t NvsProperty<int>::load()
         {
-            auto error = nvs_get_i32(mHandle, name().c_str(), &mValue);
+            return nvs_get_i32(mHandle, name().c_str(), &mValue);
         }
 
         template<>
-        void NvsProperty<float>::load()
+        esp_err_t NvsProperty<float>::load()
         {
-            auto error = nvs_get_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t *>(&mValue));
+            return nvs_get_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t *>(&mValue));
         }
 
         template<>
-        void NvsProperty<prism::CieXYZ>::load()
+        esp_err_t NvsProperty<prism::CieXYZ>::load()
         {
             size_t size = sizeof(prism::CieXYZ);
-            auto error = nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
+            return nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
         }
 
         template<>
-        void NvsProperty<std::string>::load()
+        esp_err_t NvsProperty<std::string>::load()
         {
             size_t size = 0;
             auto error = nvs_get_str(mHandle, name().c_str(), nullptr, &size);
@@ -75,37 +75,38 @@ namespace luna
                 mValue.resize(size - 1);
                 error = nvs_get_str(mHandle, name().c_str(), mValue.data(), &size);
             }
+            return error;
         }
 
 
         template<>
-        void NvsProperty<bool>::save()
+        esp_err_t NvsProperty<bool>::save()
         {
-            auto error = nvs_set_u8(mHandle, name().c_str(), static_cast<uint8_t>(mValue));
+            return nvs_set_u8(mHandle, name().c_str(), static_cast<uint8_t>(mValue));
         }
 
         template<>
-        void NvsProperty<int>::save()
+        esp_err_t NvsProperty<int>::save()
         {
-            auto error = nvs_set_i32(mHandle, name().c_str(), mValue);
+            return nvs_set_i32(mHandle, name().c_str(), mValue);
         }
 
         template<>
-        void NvsProperty<float>::save()
+        esp_err_t NvsProperty<float>::save()
         {
-            auto error = nvs_set_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t &>(mValue));
+            return nvs_set_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t &>(mValue));
         }
 
         template<>
-        void NvsProperty<prism::CieXYZ>::save()
+        esp_err_t NvsProperty<prism::CieXYZ>::save()
         {
-            auto error = nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::CieXYZ));
+            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::CieXYZ));
         }
 
         template<>
-        void NvsProperty<std::string>::save()
+        esp_err_t NvsProperty<std::string>::save()
         {
-            auto error = nvs_set_str(mHandle, name().c_str(), mValue.c_str());
+            return nvs_set_str(mHandle, name().c_str(), mValue.c_str());
         }
 
     }
@@ -121,9 +122,17 @@ namespace luna
         template<typename T>
         void makeProperty(Property<T> * property)
         {
-            auto nvsProperty = std::make_unique<NvsProperty<T>>(mHandle, std::move(mName));
-            property->bindTo(nvsProperty.get());
-            nvsProperty->bindTo(property);
+            bool loaded;
+            auto nvsProperty = std::make_unique<NvsProperty<T>>(mHandle, std::move(mName), loaded);
+            if (loaded) {
+                // if loaded bind the other first, so that the stored value is propagated
+                property->bindTo(nvsProperty.get());
+                nvsProperty->bindTo(property);
+            } else {
+                // if not loaded bind this first and accept whatever value the other has
+                nvsProperty->bindTo(property);
+                property->bindTo(nvsProperty.get());
+            }
             mPlugin->mProperties.emplace_back(std::move(nvsProperty));
         }
 

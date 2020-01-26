@@ -2,16 +2,17 @@
 
 #include "Effect.hpp"
 
-#include "PlasmaGenerator.hpp"
+#include <luna/ValueProperty.hpp>
 
 namespace luna
 {
     struct PlasmaEffect : Effect
     {
         explicit PlasmaEffect(std::string && name);
-        void update(float timeStep) final;
-        std::unique_ptr<Generator> generator() final;
+        std::unique_ptr<Generator> generator(Time const & t) final;
+        std::vector<AbstractProperty *> properties() final;
+        
     private:
-        float mTime;
+        ValueProperty<float, ValidPositive> mSaturation;
     };
 }

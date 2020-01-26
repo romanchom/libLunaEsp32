@@ -4,37 +4,19 @@ namespace luna
 {
     FlameEffect::FlameEffect(std::string && name) :
         Effect(std::move(name)),
-        mTime(0.0f)
-    {
-        // addProperty("temperatureLow", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mGenerator.temperatureLow(*value);
-        //     }
-        // });
-        // addProperty("temperatureHigh", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mGenerator.temperatureHigh(*value);
-        //     }
-        // });
-        // addProperty("brightness", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mGenerator.brightness(*value);
-        //     }
-        // });
-        // addProperty("frequency", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mGenerator.frequency(*value);
-        //     }
-        // });
-    }
+        mTemperatureLow("tempLow", 1500.0f),
+        mTemperatureHigh("tempHigh", 3000.0f),
+        mFrequency("frequency", 1.0f)
+    {}
 
-    void FlameEffect::update(float timeStep)
+    std::unique_ptr<Generator> FlameEffect::generator(Time const & t)
     {
-        mTime += timeStep;
-    }
-
-    std::unique_ptr<Generator> FlameEffect::generator()
-    {
-        return std::make_unique<FlameGenerator>(mTime, 1500.0f, 3000.0f, 1.0f);
+        return std::make_unique<FlameGenerator>(t.total, mTemperatureLow, mTemperatureHigh, mFrequency);
     };
+
+    std::vector<AbstractProperty *> FlameEffect::properties()
+    {
+        return {&mTemperatureLow, &mTemperatureHigh, &mFrequency};
+    }
+
 }

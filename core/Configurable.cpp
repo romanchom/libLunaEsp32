@@ -1,7 +1,5 @@
 #include "Configurable.hpp"
 
-// #include <nvs.h>
-
 namespace luna
 {
     Configurable::Configurable(std::string && name) :

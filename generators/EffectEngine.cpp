@@ -45,8 +45,7 @@ namespace luna
 
     std::vector<Configurable *> EffectEngine::children()
     {
-        return {mEffects};
-        // return {&mEffectMixer};
+        return {mEffects, &mEffectMixer};
     }
 
     void EffectEngine::takeOwnership(Device * device)
@@ -78,6 +77,7 @@ namespace luna
     void EffectEngine::loop()
     {
         auto lastWakeTime = xTaskGetTickCount();
+        auto const startTime = lastWakeTime;
 
         for (;;) {
             uint32_t notification = 0;
@@ -95,10 +95,13 @@ namespace luna
                 mDevice->update();
             }
 
-            mMainLoop->post([this]{
-                mEffectMixer.update(0.02f);
+            Time t{
+                .total = (lastWakeTime - startTime) * portTICK_PERIOD_MS / 1000.0f,
+                .delta = 0.02f,
+            };
 
-                mGenerator = mEffectMixer.generator();
+            mMainLoop->post([this, t]{
+                mGenerator = mEffectMixer.generator(t);
                 xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
             });
 

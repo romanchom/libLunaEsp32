@@ -27,5 +27,6 @@ namespace luna::mqtt
 
         esp_mqtt_client_handle_t mHandle;
         std::vector<std::unique_ptr<Subscription>> mSubscriptions;
+        bool mConnected;
     };
 }

@@ -3,7 +3,7 @@
 #include "Effect.hpp"
 #include "ConstantGenerator.hpp"
 
-#include <luna/Property.hpp>
+#include <luna/MemberProperty.hpp>
 
 #include <prism/Prism.hpp>
 
@@ -12,8 +12,7 @@ namespace luna
     struct ConstantEffect : Effect
     {
         explicit ConstantEffect(std::string && name);
-        void update(float timeStep) final;
-        std::unique_ptr<Generator> generator() final;
+        std::unique_ptr<Generator> generator(Time const & t) final;
 
         Property<prism::CieXYZ> & color() { return mColor; }
         Property<float> & whiteness() { return mWhiteness; }

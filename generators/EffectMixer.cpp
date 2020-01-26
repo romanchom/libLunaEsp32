@@ -1,6 +1,7 @@
 #include "EffectMixer.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace luna
 {
@@ -8,32 +9,21 @@ namespace luna
         Effect("mixer"),
         mObserver(observer),
         mEnabled(false),
-        mBrightness(1.0f),
         mEnabledPercentage(0.0),
-        mTransitionDuration(1.0f),
-        mTransitionProgress(0.0f)
-    {
-        // addProperty("brightness", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mBrightness = std::clamp(*value, 0.0f, 1.0f);
-        //     }
-        // });
-        // addProperty("duration", [this](std::string_view text) {
-        //     if (auto value = tryParse<float>(text)) {
-        //         mTransitionDuration = std::max(0.0f, *value);
-        //     }
-        // });
-    }
+        mFadeProgress(0.0f),
+        mBrightness("brightness", 1.0f),
+        mFadeDuration("fadeDuration", 1.0f)
+    {}
 
-    void EffectMixer::update(float timeStep)
+    std::unique_ptr<Generator> EffectMixer::generator(Time const & t)
     {
         if (mEnabled) {
             if (mEnabledPercentage < 1.0f) {
-                mEnabledPercentage = std::min(mEnabledPercentage + timeStep, 1.0f);
+                mEnabledPercentage = std::min(mEnabledPercentage + t.delta, 1.0f);
             }
         } else {
             if (mEnabledPercentage > 0.0f) {
-                mEnabledPercentage -= timeStep;
+                mEnabledPercentage -= t.delta;
                 if (mEnabledPercentage <= 0.0f) {
                     mEnabledPercentage = 0.0f;
                     mObserver->enabledChanged(false);
@@ -41,32 +31,26 @@ namespace luna
             }
         }
 
-        mEffects[0]->update(timeStep);
         if (mEffects.size() >= 2) {
-            mEffects[1]->update(timeStep);
-
-            mTransitionProgress += timeStep;
-            if (mTransitionProgress >= mTransitionDuration) {
+            mFadeProgress += t.delta;
+            if (mFadeProgress >= mFadeDuration.get()) {
                 mEffects.pop_front();
-                mTransitionProgress -= mTransitionDuration;
+                mFadeProgress -= mFadeDuration.get();
 
                 if (mEffects.size() == 1) {
-                    mTransitionProgress = 0.0f;
+                    mFadeProgress = 0.0f;
                 }
             }
         }
-    }
 
-    std::unique_ptr<Generator> EffectMixer::generator()
-    {
-        auto const brightness = mBrightness * mEnabledPercentage * mEnabledPercentage;
-        auto const t = mTransitionProgress / mTransitionDuration;
+        auto const brightness = mBrightness.get() * mEnabledPercentage * mEnabledPercentage;
+        auto const x = (mFadeDuration.get() > 0.0f) ? (mFadeProgress / mFadeDuration.get()) : 1.0f;
 
         return std::make_unique<InterpolatingGenerator>(
-            mEffects[0]->generator(),
-            brightness * (1.0f - t),
-            (mEffects.size() >= 2) ? mEffects[1]->generator() : nullptr,
-            brightness * t
+            mEffects[0]->generator(t),
+            brightness * (1.0f - x),
+            (mEffects.size() >= 2) ? mEffects[1]->generator(t) : nullptr,
+            brightness * x
         );
     }
 
@@ -94,5 +78,10 @@ namespace luna
     bool EffectMixer::enabled() const
     {
         return mEnabled;
+    }
+
+    std::vector<AbstractProperty *> EffectMixer::properties()
+    {
+        return {&mBrightness, &mFadeDuration};
     }
 }

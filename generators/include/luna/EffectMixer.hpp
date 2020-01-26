@@ -3,7 +3,7 @@
 #include "Effect.hpp"
 #include "InterpolatingGenerator.hpp"
 
-#include "Effect.hpp"
+#include <luna/ValueProperty.hpp>
 
 #include <deque>
 
@@ -20,22 +20,24 @@ namespace luna
 
         explicit EffectMixer(Observer * observer);
 
-        void update(float timeStep) override;
-        std::unique_ptr<Generator> generator() override;
+        std::unique_ptr<Generator> generator(Time const & t) override;
         void switchTo(Effect * effect);
 
         void enabled(bool state);
         bool enabled() const;
 
+        std::vector<AbstractProperty *> properties() final;
     private:
+
         Observer * mObserver;
 
         std::deque<Effect *> mEffects;
 
         bool mEnabled;
-        float mBrightness;
         float mEnabledPercentage;
-        float mTransitionDuration;
-        float mTransitionProgress;
+        float mFadeProgress;
+
+        ValueProperty<float, ValidPositive> mBrightness;
+        ValueProperty<float, ValidPositive> mFadeDuration;
     };
 }
