@@ -11,6 +11,7 @@ idf_component_register(
         "UpdatePlugin.cpp"
         "RealtimePlugin.cpp"
         "PersistencyPlugin.cpp"
+        "MqttPlugin.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <luna/Plugin.hpp>
 
 #include <string>
@@ -9,10 +8,7 @@ namespace luna
 {
     struct EventLoop;
     struct Configurable;
-}
 
-namespace luna::mqtt
-{
     struct MqttPlugin : Plugin
     {
         explicit MqttPlugin(std::string && name, std::string && address, EventLoop * mainLoop, Configurable * effectEngine);
