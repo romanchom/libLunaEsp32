@@ -113,7 +113,6 @@ namespace luna
     {
         mMainLoop->post([this, enabled]{
             serviceEnabled(enabled);
-            mEnabled.notify(enabled);
         });
     }
 
@@ -144,5 +143,6 @@ namespace luna
     {
         ESP_LOGI(TAG, "%d", value);
         mEffectMixer.enabled(value);
+        mEnabled.notify(value);
     }
 }

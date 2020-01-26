@@ -95,6 +95,6 @@ namespace luna
 
     bool EffectMixer::enabled() const
     {
-        return mEnabledPercentage > 0.0f;
+        return mEnabled;
     }
 }
