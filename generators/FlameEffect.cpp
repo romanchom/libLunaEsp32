@@ -1,7 +1,5 @@
 #include "FlameEffect.hpp"
 
-#include <luna/Parse.hpp>
-
 namespace luna
 {
     FlameEffect::FlameEffect(std::string && name) :

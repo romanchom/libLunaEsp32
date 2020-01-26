@@ -1,7 +1,5 @@
 #include "PlasmaEffect.hpp"
 
-#include <luna/Parse.hpp>
-
 namespace luna
 {
     PlasmaEffect::PlasmaEffect(std::string && name) :

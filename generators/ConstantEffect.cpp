@@ -1,7 +1,5 @@
 #include "ConstantEffect.hpp"
 
-#include <luna/Parse.hpp>
-
 namespace luna
 {
     ConstantEffect::ConstantEffect(std::string && name) :

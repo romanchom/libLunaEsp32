@@ -1,7 +1,5 @@
 #include "EffectMixer.hpp"
 
-#include <luna/Parse.hpp>
-
 #include <algorithm>
 
 namespace luna
