@@ -2,24 +2,24 @@
 
 #include "DirectService.hpp"
 
+#include <luna/TlsConfiguration.hpp>
+
 #include <luna/proto/Builder.hpp>
 #include <luna/proto/Command.hpp>
 
 #include <esp_log.h>
 #include <chrono>
 
-// char* if_indextoname(unsigned int , char* ) { return nullptr; }
-
 static char const TAG[] = "RT";
 
 namespace luna
 {
-    RealtimeService::RealtimeService(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration, DirectService * service) :
-        mTlsConfiguration(std::move(tlsConfiguration)),
+    RealtimeService::RealtimeService(NetworkingContext const & context, DirectService * service) :
+        mTlsConfiguration(context.tlsConfiguration->makeDtlsConfiguration()),
         mService(service),
-        mSocket(*ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
-        mHeartbeat(*ioContext),
-        mTimer(ioContext),
+        mSocket(*context.ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
+        mHeartbeat(*context.ioContext),
+        mTimer(context.ioContext),
         mIo(&mSocket)
     {
         mTimer.onTimeout([=](){

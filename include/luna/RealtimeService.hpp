@@ -3,6 +3,9 @@
 #include "AsioUdpInputOutput.hpp"
 #include "AsioTimer.hpp"
 
+#include <luna/NetworkService.hpp>
+#include <luna/NetworkingContext.hpp>
+
 #include <mbedtls-cpp/Configuration.hpp>
 #include <mbedtls-cpp/Ssl.hpp>
 
@@ -16,10 +19,10 @@ namespace luna
 {
     struct DirectService;
 
-    struct RealtimeService
+    struct RealtimeService : NetworkService
     {
-        explicit RealtimeService(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration, DirectService * service);
-        ~RealtimeService();
+        explicit RealtimeService(NetworkingContext const & context, DirectService * service);
+        ~RealtimeService() final;
 
         uint16_t port();
 

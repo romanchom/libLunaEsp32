@@ -19,6 +19,7 @@ idf_component_register(
         "UpdatePlugin.cpp"
         "Luna.cpp"
         "PersistencyPlugin.cpp"
+        "RealtimePlugin.cpp"
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES
