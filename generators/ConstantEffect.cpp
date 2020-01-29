@@ -14,8 +14,8 @@ namespace luna
 
     std::unique_ptr<Generator> ConstantEffect::generator(Time const & t)
     {
-        auto factor = exp(-t.delta);
-        mCurrentColor = mCurrentColor * (1.0f - factor) + mTargetColor * factor;
+        auto factor = exp(-t.delta * 4);
+        mCurrentColor = mCurrentColor * factor + mTargetColor * (1.0f - factor);
         return std::make_unique<ConstantGenerator>(mCurrentColor);
     }
 
@@ -31,7 +31,9 @@ namespace luna
 
     void ConstantEffect::setColor(prism::CieXYZ const & value)
     {
+        if ((mCurrentColor.head<3>() - value.head<3>()).norm() < 0.01f) { return; }
         mTargetColor.head<3>() = value.head<3>();
+        mColor.notify(value);
     }
 
     float ConstantEffect::getWhiteness() const
@@ -41,6 +43,8 @@ namespace luna
 
     void ConstantEffect::setWhiteness(float const & value)
     {
+        if (mTargetColor[3] == value) { return; }
         mTargetColor[3] = value;
+        mWhiteness.notify(value);
     }
 }

@@ -71,78 +71,104 @@ namespace luna
         case colorOff:
             mEffectEngine->enabled() = false;
             break;
+        case whiteOn:
         case colorOn:
             mEffectEngine->enabled() = true;
             break;
             
-        // case white:
-        //     setColor(prism::CieXY{0.968785f, 1.121183f});
-        //     break;
-        // case warmWhite0:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case warmWhite1:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case coolWhite0:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case coolWhite1:
-        //     setColor(prism::CieXY{});
-        //     break;
+        case warmWhite0:
+            mLight->color() = prism::temperature(3500.0f);
+            break;
+        case warmWhite1:
+            mLight->color() = prism::temperature(5000.0f);
+            break;
+        case white:
+            mLight->color() = prism::temperature(6500.0f);
+            break;
+        case coolWhite0:
+            mLight->color() = prism::temperature(8000.0f);
+            break;
+        case coolWhite1:
+            mLight->color() = prism::temperature(10000.0f);
+            break;
 
         
-        // case red:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case redOrange:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case orange:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case yellow:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case yellowOrange:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case yellowGreen:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case green:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case turqoise:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case cyan:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case someBlue:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case blue:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case skyBlue:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case purple:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case magenta:
-        //     setColor(prism::CieXY{});
-        //     break;
-        // case pink:
-        //     setColor(prism::CieXY{});
-        //     break;
+        case red:
+            setColor({0.7264257f, 0.2629310f});
+            break;
+        case redOrange:
+            setColor({0.6363855f, 0.3563218f});
+            break;
+        case orange:
+            setColor({0.6032129f,	0.3970307f});
+            break;
+        case yellowOrange:
+            setColor({0.5629317f,	0.4281609f});
+            break;
+        case yellow:
+            setColor({0.4586747f,	0.5359195f});
+            break;
+        case green:
+            setColor({0.1790763f, 0.7897510f});
+            break;
+        case yellowGreen:
+            setColor({0.3591566f, 0.6508621f});
+            break;
+        case turqoise:
+            setColor({0.0155823f, 0.7586207f});
+            break;
+        case cyan:
+            setColor({0.0061044f, 0.5598659f});
+            break;
+        case someBlue:
+            setColor({0.0440161f, 0.3012452f});
+            break;
+        case blue:
+            setColor({0.1293173f, 0.0450192f});
+            break;
+        case skyBlue:
+            setColor({0.2098795f, 0.2294061f});
+            break;
+        case purple:
+            setColor({0.1648594f, 0.0090996f});
+            break;
+        case magenta:
+            setColor({0.3781124f, 0.1072797f});
+            break;
+        case pink:
+            setColor({0.3710040f, 0.2246169f});
+            break;
 
+
+        case whiteOff:
+            mLight->whiteness() = 0.0f;
+            break;
+        case white25:
+            mLight->whiteness() = exp(-3.0f);
+            break;
+        case white50:
+            mLight->whiteness() = exp(-2.0f);
+            break;
+        case white75:
+            mLight->whiteness() = exp(-1.0f);
+            break;
+        case white100:
+            mLight->whiteness() = 1.0f;
+            break;
+        case whiteBrightnessUp:
+            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(0.1f), 0.0f, 1.0f);
+            break;
+        case whitePrightnessDown:
+            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(-0.1f), 0.0f, 1.0f);
+            break;
         }
     }
 
     void Ir40ButtonRemote::setColor(prism::CieXY value)
     {
-        mLight->color() = prism::CieXYZ(value.x(), 1.0f, value.y(), 0.0f);
+        auto const Y = 1;
+        auto const X = Y * value.x() / value.y();
+        auto const Z = Y * (1 - value.x() - value.y()) / value.y();
+        mLight->color() = prism::CieXYZ(X, Y, Z, 0.0f);
     }
 }

@@ -58,7 +58,7 @@ namespace luna::mqtt
         {
             if (text.size() == 7 && text[0] == '#') {
                 prism::RGB color;
-                static auto converter = prism::rgbToXyzTransformationMatrix(prism::rec2020());
+                static auto converter = prism::rgbToXyzTransformationMatrix(prism::sRGB());
                 for (int i = 0; i < 3; ++i) {
                     auto channel = text.substr(1 + 2 * i, 2);
                     int value;
@@ -106,7 +106,7 @@ namespace luna::mqtt
         template<>
         std::string serialize<prism::CieXYZ>(prism::CieXYZ const & value)
         {
-            static auto converter = prism::rgbToXyzTransformationMatrix(prism::rec2020()).inverse().eval();
+            static auto converter = prism::rgbToXyzTransformationMatrix(prism::sRGB()).inverse().eval();
             auto rgb = (converter * value.head<3>() * 255).array().cwiseMax(0).cwiseMin(255).cast<uint8_t>().eval();
             char buf[8];
             sprintf(buf, "#%02x%02x%02x", rgb[0], rgb[1], rgb[2]);
