@@ -18,15 +18,18 @@ namespace luna
         {}
 
         using Property<T>::notify;
-    private:
-        T getValue() const override
-        {
-            return (mOwner->*mGetter)();
-        }
+        using Property<T>::operator=;
+        using Property<T>::operator T;
 
         void set(T const & value) override
         {
             (mOwner->*mSetter)(value);
+        }
+
+    private:
+        T getValue() const override
+        {
+            return (mOwner->*mGetter)();
         }
 
         Owner * mOwner;

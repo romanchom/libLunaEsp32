@@ -80,8 +80,20 @@ namespace luna
         auto const startTime = lastWakeTime;
 
         for (;;) {
+            Time t{
+                .total = (lastWakeTime - startTime) * portTICK_PERIOD_MS / 1000.0f,
+                .delta = 0.02f,
+            };
+
+            mMainLoop->post([this, t]{
+                mGenerator = mEffectMixer.generator(t);
+                if (mTaskHandle != 0) {
+                    xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
+                }   
+            });
+
             uint32_t notification = 0;
-            xTaskNotifyWait(0, ~0, &notification, 0);
+            xTaskNotifyWait(0, ~0, &notification, portMAX_DELAY);
 
             if (notification & Notification::Exit) {
                 break;
@@ -94,16 +106,6 @@ namespace luna
 
                 mDevice->update();
             }
-
-            Time t{
-                .total = (lastWakeTime - startTime) * portTICK_PERIOD_MS / 1000.0f,
-                .delta = 0.02f,
-            };
-
-            mMainLoop->post([this, t]{
-                mGenerator = mEffectMixer.generator(t);
-                xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
-            });
 
             vTaskDelayUntil(&lastWakeTime, 20 / portTICK_PERIOD_MS);
         }

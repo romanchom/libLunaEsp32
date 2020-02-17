@@ -17,7 +17,8 @@ namespace luna
         virtual void visit(Property<bool> * property) = 0;
         virtual void visit(Property<int> * property) = 0;
         virtual void visit(Property<float> * property) = 0;
-        virtual void visit(Property<prism::CieXYZ> * property) = 0;
+        virtual void visit(Property<prism::RGB> * property) = 0;
+        virtual void visit(Property<prism::CieXY> * property) = 0;
         virtual void visit(Property<std::string> * property) = 0;
     protected:
         ~Visitor() = default;
@@ -78,8 +79,8 @@ namespace luna
         }
 
         virtual void set(T const & value) = 0;
-        
-        void operator =(T const & value)
+
+        void operator=(T const & value)
         {
             set(value);
         }
@@ -91,7 +92,7 @@ namespace luna
                 subscriber->set(value);
             }
         }
-        
+
     private:
         void accept(Visitor * visitor) override
         {

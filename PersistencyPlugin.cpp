@@ -60,9 +60,16 @@ namespace luna
         }
 
         template<>
-        esp_err_t NvsProperty<prism::CieXYZ>::load()
+        esp_err_t NvsProperty<prism::RGB>::load()
         {
-            size_t size = sizeof(prism::CieXYZ);
+            size_t size = sizeof(prism::RGB);
+            return nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
+        }
+
+        template<>
+        esp_err_t NvsProperty<prism::CieXY>::load()
+        {
+            size_t size = sizeof(prism::CieXY);
             return nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
         }
 
@@ -98,9 +105,15 @@ namespace luna
         }
 
         template<>
-        esp_err_t NvsProperty<prism::CieXYZ>::save()
+        esp_err_t NvsProperty<prism::RGB>::save()
         {
-            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::CieXYZ));
+            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::RGB));
+        }
+
+        template<>
+        esp_err_t NvsProperty<prism::CieXY>::save()
+        {
+            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::CieXY));
         }
 
         template<>
@@ -110,7 +123,7 @@ namespace luna
         }
 
     }
-    
+
     struct NvsVisitor : Visitor
     {
         explicit NvsVisitor(PersistencyPlugin * plugin, nvs_handle_t handle, std::string && name) :
@@ -139,7 +152,8 @@ namespace luna
         void visit(Property<bool> * property) final { makeProperty<bool>(property); }
         void visit(Property<int> * property) final { makeProperty<int>(property); }
         void visit(Property<float> * property) final { makeProperty<float>(property); }
-        void visit(Property<prism::CieXYZ> * property) final { makeProperty<prism::CieXYZ>(property); }
+        void visit(Property<prism::RGB> * property) final { makeProperty<prism::RGB>(property); }
+        void visit(Property<prism::CieXY> * property) final { makeProperty<prism::CieXY>(property); }
         void visit(Property<std::string> * property) final { makeProperty<std::string>(property); }
 
     private:

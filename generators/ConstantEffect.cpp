@@ -1,50 +1,102 @@
 #include "ConstantEffect.hpp"
 
 #include <cmath>
-
+#include <esp_log.h>
 namespace luna
 {
-    ConstantEffect::ConstantEffect(std::string && name) :
+    namespace
+    {
+        auto const converter = prism::RGBColorSpaceTransformation(prism::sRGB());
+        auto const TAG = "Light";
+    }
+
+    ConstantEffect::ConstantEffect(std::string && name, float scale) :
         Effect(std::move(name)),
-        mCurrentColor(prism::CieXYZ::Zero()),
-        mTargetColor(prism::CieXYZ::Zero()),
-        mColor("color", this, &ConstantEffect::getColor, &ConstantEffect::setColor),
+        mScale(scale),
+        mCurrentColor(prism::CieXYZ::Ones()),
+        mTargetChromaticity(0.31271f, 0.32902),
+        mRGB("rgb", this, &ConstantEffect::getRGB, &ConstantEffect::setRGB),
+        mCieXY("xy", this, &ConstantEffect::getCieXY, &ConstantEffect::setCieXY),
+        mBrightness("brightness", this, &ConstantEffect::getBrightness, &ConstantEffect::setBrightness),
         mWhiteness("whiteness", this, &ConstantEffect::getWhiteness, &ConstantEffect::setWhiteness)
     {}
 
     std::unique_ptr<Generator> ConstantEffect::generator(Time const & t)
     {
         auto factor = exp(-t.delta * 4);
-        mCurrentColor = mCurrentColor * factor + mTargetColor * (1.0f - factor);
+        mCurrentColor = mCurrentColor * factor + targetColor() * (1.0f - factor);
         return std::make_unique<ConstantGenerator>(mCurrentColor);
     }
 
     std::vector<AbstractProperty *> ConstantEffect::properties()
     {
-        return {&mColor, &mWhiteness};
+        return {&mRGB, &mCieXY, &mBrightness, &mWhiteness};
     }
 
-    prism::CieXYZ ConstantEffect::getColor() const
+    prism::RGB ConstantEffect::getRGB() const
     {
-        return mTargetColor;
+        return converter.transform(targetColor()).array().cwiseMax(0.0f).cwiseMin(1.0f);
     }
 
-    void ConstantEffect::setColor(prism::CieXYZ const & value)
+    void ConstantEffect::setRGB(prism::RGB const & value)
     {
-        if ((mCurrentColor.head<3>() - value.head<3>()).norm() < 0.01f) { return; }
-        mTargetColor.head<3>() = value.head<3>();
-        mColor.notify(value);
+        if ((getRGB() - value).head<3>().norm() < 0.02f) { return; }
+
+        mRGB.notify(value);
+
+        auto cie = converter.transform(value).head<3>().eval();
+        mBrightness.set(value.maxCoeff());
+        mCieXY.set(cie.head<2>() / cie.sum());
+    }
+
+    prism::CieXY ConstantEffect::getCieXY() const
+    {
+        return mTargetChromaticity;
+    }
+
+    void ConstantEffect::setCieXY(prism::CieXY const & value)
+    {
+        ESP_LOGI(TAG, "X %f Y %f", value.x(), value.y());
+        if ((mTargetChromaticity - value).norm() < 0.001f) { return; }
+
+        mTargetChromaticity = value;
+
+        mCieXY.notify(value);
+        mRGB.notify(getRGB());
+    }
+
+    float ConstantEffect::getBrightness() const
+    {
+        return mTargetBrightness;
+    }
+
+    void ConstantEffect::setBrightness(float const & value)
+    {
+        if (abs(mTargetBrightness - value) < 0.01f) { return; }
+
+        mTargetBrightness = value;
+        mBrightness.notify(value);
     }
 
     float ConstantEffect::getWhiteness() const
     {
-        return mTargetColor[3];
+        return mTargetWhiteness;
     }
 
     void ConstantEffect::setWhiteness(float const & value)
     {
-        if (mTargetColor[3] == value) { return; }
-        mTargetColor[3] = value;
+        if (mTargetWhiteness == value) { return; }
+        mTargetWhiteness = value;
         mWhiteness.notify(value);
+    }
+
+    prism::CieXYZ ConstantEffect::targetColor() const
+    {
+        prism::CieXYZ ret;
+        auto xyz = ret.head<3>();
+        xyz << mTargetChromaticity, 1 - mTargetChromaticity.sum();
+        xyz *= (mTargetBrightness / mScale) / xyz.maxCoeff();
+        ret[3] = mTargetWhiteness / mScale;
+        return ret;
     }
 }

@@ -15,10 +15,13 @@ namespace luna
 
         void demultiplex(uint8_t address, uint8_t command) final;
     private:
-        void setColor(prism::CieXY value);
+        void setChroma(prism::CieXY value);
+        void multiplyLuma(float factor);
 
         EffectEngine * mEffectEngine;
         ConstantEffect * mLight;
+        float mLastBrightness;
+        float mLastWhiteness;
     };
-    
+
 }

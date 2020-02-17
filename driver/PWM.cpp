@@ -1,5 +1,7 @@
 #include "PWM.hpp"
 
+#include <algorithm>
+
 namespace luna
 {
     PWMTimer::PWMTimer(uint32_t timerId, uint32_t frequency, uint32_t resolutionBits) :
@@ -69,6 +71,6 @@ namespace luna
     }
 
     uint32_t PWM::calculateDuty(float duty) const {
-        return static_cast<uint32_t>(mTimer->steps() * duty);
+        return static_cast<uint32_t>(mTimer->steps() * std::clamp(duty, 0.0f, 1.0f));
     }
 }

@@ -43,8 +43,8 @@ namespace luna::mqtt
         template<>
         std::optional<float> parse<float>(std::string_view text)
         {
-            // TODO fix overflow
-            return strtof(text.data(), nullptr);
+            std::string cstr(text);
+            return strtof(cstr.c_str(), nullptr);
         }
 
         template<>
@@ -54,11 +54,10 @@ namespace luna::mqtt
         }
 
         template<>
-        std::optional<prism::CieXYZ> parse<prism::CieXYZ>(std::string_view text)
+        std::optional<prism::RGB> parse<prism::RGB>(std::string_view text)
         {
             if (text.size() == 7 && text[0] == '#') {
                 prism::RGB color;
-                static auto converter = prism::rgbToXyzTransformationMatrix(prism::sRGB());
                 for (int i = 0; i < 3; ++i) {
                     auto channel = text.substr(1 + 2 * i, 2);
                     int value;
@@ -68,12 +67,24 @@ namespace luna::mqtt
                     }
                 }
                 color = prism::linearizeSRGB(color);
-                prism::CieXYZ ret;
+                prism::RGB ret;
                 ret[3] = 0;
-                ret.head<3>() = converter * color.head<3>();
+                ret.head<3>() = color.head<3>();
                 return ret;
             }
             return std::nullopt;
+        }
+
+        template<>
+        std::optional<prism::CieXY> parse<prism::CieXY>(std::string_view text)
+        {
+            std::string cstr(text);
+            prism::CieXY ret;
+            if (2 == sscanf(cstr.c_str(), "%f,%f", &ret[0], &ret[1])) {
+                return ret;
+            } else {
+                return std::nullopt;
+            }
         }
 
         template<typename T>
@@ -104,12 +115,19 @@ namespace luna::mqtt
         }
 
         template<>
-        std::string serialize<prism::CieXYZ>(prism::CieXYZ const & value)
+        std::string serialize<prism::RGB>(prism::RGB const & value)
         {
-            static auto converter = prism::rgbToXyzTransformationMatrix(prism::sRGB()).inverse().eval();
-            auto rgb = (converter * value.head<3>() * 255).array().cwiseMax(0).cwiseMin(255).cast<uint8_t>().eval();
+            auto rgb = (prism::compressSRGB(value).head<3>() * 255).array().cwiseMax(0).cwiseMin(255).cast<uint8_t>().eval();
             char buf[8];
             sprintf(buf, "#%02x%02x%02x", rgb[0], rgb[1], rgb[2]);
+            return buf;
+        }
+
+        template<>
+        std::string serialize<prism::CieXY>(prism::CieXY const & value)
+        {
+            char buf[64];
+            sprintf(buf, "%.4f,%.4f", value[0], value[1]);
             return buf;
         }
 
@@ -132,12 +150,13 @@ namespace luna::mqtt
                 if (mValue == value) { return; }
                 mValue = value;
                 auto text = serialize<T>(value);
+                ESP_LOGI(TAG, "Sending: %s %s", topic().str().c_str(), text.c_str());
                 mController->client()->publish(topic(), text);
             }
         private:
             void deliver(std::string_view text) override
             {
-                ESP_LOGI(TAG, "%s: %.*s", topic().str().c_str(), text.size(), text.data());
+                ESP_LOGI(TAG, "Got %s: %.*s", topic().str().c_str(), text.size(), text.data());
                 if (auto value = parse<T>(text)) {
                     mController->eventLoop()->post([this, v = *value](){
                         mValue = v;
@@ -155,7 +174,9 @@ namespace luna::mqtt
             explicit MqttVisitor(Controller * controller, std::string && topic) :
                 mController(controller),
                 mTopic(std::move(topic))
-            {}
+            {
+                ESP_LOGI(TAG, "Sub: %s", mTopic.c_str());
+            }
 
             template<typename T>
             void makeSubscription(Property<T> * property)
@@ -169,7 +190,8 @@ namespace luna::mqtt
             void visit(Property<bool> * property) final { makeSubscription<bool>(property); }
             void visit(Property<int> * property) final { makeSubscription<int>(property); }
             void visit(Property<float> * property) final { makeSubscription<float>(property); }
-            void visit(Property<prism::CieXYZ> * property) final { makeSubscription<prism::CieXYZ>(property); }
+            void visit(Property<prism::RGB> * property) final { makeSubscription<prism::RGB>(property); }
+            void visit(Property<prism::CieXY> * property) final { makeSubscription<prism::CieXY>(property); }
             void visit(Property<std::string> * property) final { makeSubscription<std::string>(property); }
 
         private:
@@ -185,7 +207,7 @@ namespace luna::mqtt
         subscribeConfigurable(effectEngine, name + "/");
         mClient.connect();
     }
-        
+
     Controller::~Controller() = default;
 
     void Controller::subscribeConfigurable(Configurable * configurable, std::string name)

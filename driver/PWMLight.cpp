@@ -51,7 +51,11 @@ namespace luna
 
     void PWMLight::set(prism::RGB rgbw)
     {
-        rgbw = rgbw.cwiseMax(0.0f).cwiseMin(1.0f);
+        auto norm = rgbw.head<3>().maxCoeff();
+        if (norm > 1.0f) {
+            rgbw.head<3>() /= norm;
+        }
+
         float totalCurrentDraw = 0.0f;
         for (auto & output : mOutputs) {
             auto const index = static_cast<int>(output.color);

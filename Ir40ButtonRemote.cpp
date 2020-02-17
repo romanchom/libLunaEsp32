@@ -23,7 +23,7 @@ namespace luna
             white75             = 0x12,
             white100            = 0x13,
             whiteBrightnessUp   = 0x14,
-            whitePrightnessDown = 0x15,
+            whiteBrightnessDown = 0x15,
             whiteOff            = 0x16,
             whiteOn             = 0x17,
 
@@ -60,7 +60,9 @@ namespace luna
 
     Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light) :
         mEffectEngine(effectEngine),
-        mLight(light)
+        mLight(light),
+        mLastBrightness(mLight->brightness()),
+        mLastWhiteness(mLight->whiteness())
     {}
 
     void Ir40ButtonRemote::demultiplex(uint8_t address, uint8_t command)
@@ -68,81 +70,95 @@ namespace luna
         if (address != 0x00) { return; }
         switch (command)
         {
-        case colorOff:
-            mEffectEngine->enabled() = false;
-            break;
-        case whiteOn:
         case colorOn:
             mEffectEngine->enabled() = true;
+            if (mLight->brightness() != 0.0f) {
+                mLight->brightness() = mLastBrightness;
+            }
             break;
-            
+        case colorOff:
+            mLastBrightness = mLight->brightness();
+            mLight->brightness() = 0.0f;
+            if (mLight->whiteness() == 0.0f) {
+                mEffectEngine->enabled() = false;
+            }
+            break;
+        case whiteOn:
+            mEffectEngine->enabled() = true;
+            if (mLight->whiteness() != 0.0f) {
+                mLight->whiteness() = mLastWhiteness;
+            }
+            break;
+        case whiteOff:
+            mLastWhiteness = mLight->whiteness();
+            mLight->whiteness() = 0.0f;
+            if (mLight->brightness() == 0.0f) {
+                mEffectEngine->enabled() = false;
+            }
+            break;
+
         case warmWhite0:
-            mLight->color() = prism::temperature(3500.0f);
+            setChroma(prism::temperature(3500.0f));
             break;
         case warmWhite1:
-            mLight->color() = prism::temperature(5000.0f);
+            setChroma(prism::temperature(5000.0f));
             break;
         case white:
-            mLight->color() = prism::temperature(6500.0f);
+            setChroma(prism::temperature(6500.0f));
             break;
         case coolWhite0:
-            mLight->color() = prism::temperature(8000.0f);
+            setChroma(prism::temperature(8000.0f));
             break;
         case coolWhite1:
-            mLight->color() = prism::temperature(10000.0f);
+            setChroma(prism::temperature(10000.0f));
             break;
 
-        
         case red:
-            setColor({0.7264257f, 0.2629310f});
+            setChroma({0.7264257f, 0.2629310f});
             break;
         case redOrange:
-            setColor({0.6363855f, 0.3563218f});
+            setChroma({0.6363855f, 0.3563218f});
             break;
         case orange:
-            setColor({0.6032129f,	0.3970307f});
+            setChroma({0.6032129f,	0.3970307f});
             break;
         case yellowOrange:
-            setColor({0.5629317f,	0.4281609f});
+            setChroma({0.5629317f,	0.4281609f});
             break;
         case yellow:
-            setColor({0.4586747f,	0.5359195f});
+            setChroma({0.4586747f,	0.5359195f});
             break;
         case green:
-            setColor({0.1790763f, 0.7897510f});
+            setChroma({0.1790763f, 0.7897510f});
             break;
         case yellowGreen:
-            setColor({0.3591566f, 0.6508621f});
+            setChroma({0.3591566f, 0.6508621f});
             break;
         case turqoise:
-            setColor({0.0155823f, 0.7586207f});
+            setChroma({0.0155823f, 0.7586207f});
             break;
         case cyan:
-            setColor({0.0061044f, 0.5598659f});
+            setChroma({0.0061044f, 0.5598659f});
             break;
         case someBlue:
-            setColor({0.0440161f, 0.3012452f});
+            setChroma({0.0440161f, 0.3012452f});
             break;
         case blue:
-            setColor({0.1293173f, 0.0450192f});
+            setChroma({0.1293173f, 0.0450192f});
             break;
         case skyBlue:
-            setColor({0.2098795f, 0.2294061f});
+            setChroma({0.2098795f, 0.2294061f});
             break;
         case purple:
-            setColor({0.1648594f, 0.0090996f});
+            setChroma({0.1648594f, 0.0090996f});
             break;
         case magenta:
-            setColor({0.3781124f, 0.1072797f});
+            setChroma({0.3781124f, 0.1072797f});
             break;
         case pink:
-            setColor({0.3710040f, 0.2246169f});
+            setChroma({0.3710040f, 0.2246169f});
             break;
 
-
-        case whiteOff:
-            mLight->whiteness() = 0.0f;
-            break;
         case white25:
             mLight->whiteness() = exp(-3.0f);
             break;
@@ -156,19 +172,29 @@ namespace luna
             mLight->whiteness() = 1.0f;
             break;
         case whiteBrightnessUp:
-            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(0.1f), 0.0f, 1.0f);
+            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(0.333f), 0.001f, 1.0f);
             break;
-        case whitePrightnessDown:
-            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(-0.1f), 0.0f, 1.0f);
+        case whiteBrightnessDown:
+            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(-0.333f), 0.001f, 1.0f);
+            break;
+
+        case colorBrightnessUp:
+            multiplyLuma(exp(0.333f));
+            break;
+        case colorBrightnessDown:
+            multiplyLuma(exp(-0.333f));
             break;
         }
     }
 
-    void Ir40ButtonRemote::setColor(prism::CieXY value)
+    void Ir40ButtonRemote::setChroma(prism::CieXY value)
     {
-        auto const Y = 1;
-        auto const X = Y * value.x() / value.y();
-        auto const Z = Y * (1 - value.x() - value.y()) / value.y();
-        mLight->color() = prism::CieXYZ(X, Y, Z, 0.0f);
+        mEffectEngine->activeEffect() = "light";
+        mLight->cieXY() = value;
+    }
+
+    void Ir40ButtonRemote::multiplyLuma(float factor)
+    {
+        mLight->brightness() = std::clamp<float>(mLight->brightness(), 0.001f, 1.0f);
     }
 }

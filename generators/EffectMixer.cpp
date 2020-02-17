@@ -43,7 +43,7 @@ namespace luna
             }
         }
 
-        auto const brightness = mBrightness.get() * mEnabledPercentage * mEnabledPercentage;
+        auto const brightness = std::clamp(mBrightness.get(), 0.0f, 1.0f) * mEnabledPercentage * mEnabledPercentage;
         auto const x = (mFadeDuration.get() > 0.0f) ? (mFadeProgress / mFadeDuration.get()) : 1.0f;
 
         return std::make_unique<InterpolatingGenerator>(

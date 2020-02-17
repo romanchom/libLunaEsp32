@@ -1,5 +1,12 @@
 #include "EventLoop.hpp"
 
+#include <esp_log.h>
+
+namespace
+{
+    auto const TAG = "EV";
+}
+
 namespace luna
 {
     EventLoop::EventLoop() :
@@ -37,6 +44,9 @@ namespace luna
     {
         char buffer[sizeof(Event)];
         auto const view = new (buffer) Event(std::move(event));
-        auto const ret = xQueueSendToBack(mMessageQueue, static_cast<void *>(view), portMAX_DELAY);
+        auto const ret = xQueueSendToBack(mMessageQueue, static_cast<void *>(view), 100);
+        if (ret != pdTRUE) {
+            ESP_LOGE(TAG, "Cannot post");
+        }
     }
 }

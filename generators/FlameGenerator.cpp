@@ -15,13 +15,17 @@ namespace luna
     {
         Eigen::Matrix<float, 3, 1> position = mBegin  + mDiff * ratio;
 
-        auto baseTemperature = mTemperatureNoise.at(position) + 0.5f;
+        auto const baseTemperature = mTemperatureNoise.at(position) + 0.5f;
 
-        auto smoothTemp = mTemperatureLow + mTemperatureDifference * baseTemperature;
+        auto const smoothTemp = mTemperatureLow + mTemperatureDifference * baseTemperature;
 
         auto const fadeFactor = mIsHorizontal ?  0.0f : ratio * ratio * ratio;
 
-        auto color = prism::temperature(smoothTemp);
+        auto const chromaticity = prism::temperature(smoothTemp);
+        prism::CieXYZ color;
+        color << chromaticity, 1 - chromaticity.sum(), 0;
+        auto xyz = color.head<3>();
+        xyz /= xyz.maxCoeff();
         color *= std::max(0.0f, baseTemperature - fadeFactor);
         return color;
     }
