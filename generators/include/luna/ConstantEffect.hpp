@@ -11,7 +11,7 @@ namespace luna
 {
     struct ConstantEffect : Effect
     {
-        explicit ConstantEffect(std::string && name, float scale);
+        explicit ConstantEffect(std::string && name);
         std::unique_ptr<Generator> generator(Time const & t) final;
 
         Property<prism::RGB> & rgb() { return mRGB; }
@@ -34,8 +34,6 @@ namespace luna
         void setWhiteness(float const & value);
 
         prism::CieXYZ targetColor() const;
-
-        float const mScale;
 
         prism::CieXYZ mCurrentColor;
 

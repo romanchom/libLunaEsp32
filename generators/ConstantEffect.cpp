@@ -10,9 +10,8 @@ namespace luna
         auto const TAG = "Light";
     }
 
-    ConstantEffect::ConstantEffect(std::string && name, float scale) :
+    ConstantEffect::ConstantEffect(std::string && name) :
         Effect(std::move(name)),
-        mScale(scale),
         mCurrentColor(prism::CieXYZ::Ones()),
         mTargetChromaticity(0.31271f, 0.32902),
         mRGB("rgb", this, &ConstantEffect::getRGB, &ConstantEffect::setRGB),
@@ -95,8 +94,8 @@ namespace luna
         prism::CieXYZ ret;
         auto xyz = ret.head<3>();
         xyz << mTargetChromaticity, 1 - mTargetChromaticity.sum();
-        xyz *= (mTargetBrightness / mScale) / xyz.maxCoeff();
-        ret[3] = mTargetWhiteness / mScale;
+        xyz *= (mTargetBrightness) / xyz.maxCoeff();
+        ret[3] = mTargetWhiteness;
         return ret;
     }
 }

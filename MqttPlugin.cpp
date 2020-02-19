@@ -5,11 +5,12 @@
 
 namespace luna
 {
-    MqttPlugin::MqttPlugin(std::string && name, std::string && address, EventLoop * mainLoop, Configurable * effectEngine) :
+    MqttPlugin::MqttPlugin(std::string && name, std::string && address, EventLoop * mainLoop, Configurable * effectEngine, float floatScale) :
         mName(std::move(name)),
         mAddress(std::move(address)),
         mMainLoop(mainLoop),
-        mEffectEngine(effectEngine)
+        mEffectEngine(effectEngine),
+        mFloatScale(floatScale)
     {}
 
     MqttPlugin::~MqttPlugin() = default;
@@ -21,6 +22,6 @@ namespace luna
 
     std::unique_ptr<NetworkService> MqttPlugin::makeNetworkService(NetworkingContext const & network)
     {
-        return std::make_unique<mqtt::Controller>(mMainLoop, mEffectEngine, mName, mAddress, network.tlsCredentials);
+        return std::make_unique<mqtt::Controller>(mMainLoop, mEffectEngine, mName, mAddress, network.tlsCredentials, mFloatScale);
     }
 }
