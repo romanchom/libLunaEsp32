@@ -54,13 +54,18 @@ namespace luna
 
             colorBrightnessUp   = 0x5c,
             colorBrightnessDown = 0x5d,
-
         };
+
+        void changeProperty(Property<float> & property, float multiplier)
+        {
+            property = std::clamp<float>(property.get() * multiplier, 0.0001f, 1.0f);
+        }
     }
 
-    Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light) :
+    Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light, float increment) :
         mEffectEngine(effectEngine),
         mLight(light),
+        mIncrement(increment),
         mLastBrightness(mLight->brightness()),
         mLastWhiteness(mLight->whiteness())
     {}
@@ -72,28 +77,32 @@ namespace luna
         {
         case colorOn:
             mEffectEngine->enabled() = true;
-            if (mLight->brightness() != 0.0f) {
+            if (mLight->brightness() == 0.0f) {
                 mLight->brightness() = mLastBrightness;
             }
             break;
         case colorOff:
-            mLastBrightness = mLight->brightness();
-            mLight->brightness() = 0.0f;
-            if (mLight->whiteness() == 0.0f) {
-                mEffectEngine->enabled() = false;
+            if (mLight->brightness() > 0.0f) {
+                mLastBrightness = mLight->brightness();
+                mLight->brightness() = 0.0f;
+                if (mLight->whiteness() == 0.0f) {
+                    mEffectEngine->enabled() = false;
+                }
             }
             break;
         case whiteOn:
             mEffectEngine->enabled() = true;
-            if (mLight->whiteness() != 0.0f) {
+            if (mLight->whiteness() == 0.0f) {
                 mLight->whiteness() = mLastWhiteness;
             }
             break;
         case whiteOff:
-            mLastWhiteness = mLight->whiteness();
-            mLight->whiteness() = 0.0f;
-            if (mLight->brightness() == 0.0f) {
-                mEffectEngine->enabled() = false;
+            if (mLight->whiteness() > 0.0f) {
+                mLastWhiteness = mLight->whiteness();
+                mLight->whiteness() = 0.0f;
+                if (mLight->brightness() == 0.0f) {
+                    mEffectEngine->enabled() = false;
+                }
             }
             break;
 
@@ -172,17 +181,24 @@ namespace luna
             mLight->whiteness() = 1.0f;
             break;
         case whiteBrightnessUp:
-            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(0.333f), 0.001f, 1.0f);
+            changeProperty(mLight->whiteness(), exp(mIncrement));
             break;
         case whiteBrightnessDown:
-            mLight->whiteness() = std::clamp<float>(mLight->whiteness() * exp(-0.333f), 0.001f, 1.0f);
+            changeProperty(mLight->whiteness(), exp(-mIncrement));
             break;
 
         case colorBrightnessUp:
-            multiplyLuma(exp(0.333f));
+            changeProperty(mLight->brightness(), exp(mIncrement));
             break;
         case colorBrightnessDown:
-            multiplyLuma(exp(-0.333f));
+            changeProperty(mLight->brightness(), exp(-mIncrement));
+            break;
+
+        case jump3:
+            mEffectEngine->activeEffect() = "flame";
+            break;
+        case fade3:
+            mEffectEngine->activeEffect() = "plasma";
             break;
         }
     }
@@ -191,10 +207,5 @@ namespace luna
     {
         mEffectEngine->activeEffect() = "light";
         mLight->cieXY() = value;
-    }
-
-    void Ir40ButtonRemote::multiplyLuma(float factor)
-    {
-        mLight->brightness() = std::clamp<float>(mLight->brightness(), 0.001f, 1.0f);
     }
 }

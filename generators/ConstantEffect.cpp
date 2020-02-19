@@ -41,11 +41,17 @@ namespace luna
     {
         if ((getRGB() - value).head<3>().norm() < 0.02f) { return; }
 
-        mRGB.notify(value);
-
         auto cie = converter.transform(value).head<3>().eval();
-        mBrightness.set(value.maxCoeff());
-        mCieXY.set(cie.head<2>() / cie.sum());
+        if (cie.sum() > 0) {
+            mTargetBrightness = value.maxCoeff();
+            mTargetChromaticity = cie.head<2>() / cie.sum();
+        } else {
+            mTargetBrightness = 0;
+        }
+
+        mRGB.notify(value);
+        mBrightness.notify(mTargetBrightness);
+        mCieXY.notify(mTargetChromaticity);
     }
 
     prism::CieXY ConstantEffect::getCieXY() const
@@ -71,7 +77,7 @@ namespace luna
 
     void ConstantEffect::setBrightness(float const & value)
     {
-        if (abs(mTargetBrightness - value) < 0.01f) { return; }
+        if (mTargetBrightness == value) { return; }
 
         mTargetBrightness = value;
         mBrightness.notify(value);

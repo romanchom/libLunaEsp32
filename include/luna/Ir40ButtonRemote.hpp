@@ -11,15 +11,15 @@ namespace luna
 
     struct Ir40ButtonRemote : InfraredDemux
     {
-        explicit Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light);
+        explicit Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light, float increment);
 
         void demultiplex(uint8_t address, uint8_t command) final;
     private:
         void setChroma(prism::CieXY value);
-        void multiplyLuma(float factor);
 
         EffectEngine * mEffectEngine;
         ConstantEffect * mLight;
+        float mIncrement;
         float mLastBrightness;
         float mLastWhiteness;
     };
