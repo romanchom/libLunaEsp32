@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace luna
 {
@@ -52,6 +53,21 @@ namespace luna
     {
         using AbstractProperty::AbstractProperty;
 
+        ~Property() override
+        {
+            for (auto publisher : mPublishers)
+            {
+                auto thisIt = std::find(publisher->mSubscribers.begin(), publisher->mSubscribers.end(), this);
+                publisher->mSubscribers.erase(thisIt);
+            }
+
+            for (auto subscriber : mSubscribers)
+            {
+                auto it = std::find(subscriber->mPublishers.begin(), subscriber->mPublishers.end(), this);
+                subscriber->mPublishers.erase(it);
+            }
+        }
+
         void bindTo(Property * other)
         {
             mPublishers.emplace_back(other);
@@ -59,6 +75,17 @@ namespace luna
             if (other) {
                 other->mSubscribers.emplace_back(this);
                 set(other->get());
+            }
+        }
+
+        void unbindFrom(Property * other)
+        {
+            auto it = std::find(mPublishers.begin(), mPublishers.end(), other);
+
+            if (it != mPublishers.end()) {
+                auto thisIt = std::find(other->mSubscribers.begin(), other->mSubscribers.end(), this);
+                other->mSubscribers.erase(thisIt);
+                mPublishers.erase(it);
             }
         }
 

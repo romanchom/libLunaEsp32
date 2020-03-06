@@ -60,6 +60,11 @@ namespace luna
         {
             property = std::clamp<float>(property.get() * multiplier, 0.0001f, 1.0f);
         }
+
+        void toggle(Property<bool> & property)
+        {
+            property = !property;
+        }
     }
 
     Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light, float increment) :
@@ -76,34 +81,14 @@ namespace luna
         switch (command)
         {
         case colorOn:
-            mEffectEngine->enabled() = true;
-            if (mLight->brightness() == 0.0f) {
-                mLight->brightness() = mLastBrightness;
-            }
+        case whiteOn:
+            toggle(mEffectEngine->enabled());
             break;
         case colorOff:
-            if (mLight->brightness() > 0.0f) {
-                mLastBrightness = mLight->brightness();
-                mLight->brightness() = 0.0f;
-                if (mLight->whiteness() == 0.0f) {
-                    mEffectEngine->enabled() = false;
-                }
-            }
-            break;
-        case whiteOn:
-            mEffectEngine->enabled() = true;
-            if (mLight->whiteness() == 0.0f) {
-                mLight->whiteness() = mLastWhiteness;
-            }
+            mLight->brightness() = 0.0f;
             break;
         case whiteOff:
-            if (mLight->whiteness() > 0.0f) {
-                mLastWhiteness = mLight->whiteness();
-                mLight->whiteness() = 0.0f;
-                if (mLight->brightness() == 0.0f) {
-                    mEffectEngine->enabled() = false;
-                }
-            }
+            mLight->whiteness() = 0.0f;
             break;
 
         case warmWhite0:
@@ -207,5 +192,6 @@ namespace luna
     {
         mEffectEngine->activeEffect() = "light";
         mLight->cieXY() = value;
+        mLight->brightness() = 1.0f;
     }
 }
