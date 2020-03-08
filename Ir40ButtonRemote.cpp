@@ -70,9 +70,7 @@ namespace luna
     Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light, float increment) :
         mEffectEngine(effectEngine),
         mLight(light),
-        mIncrement(increment),
-        mLastBrightness(mLight->brightness()),
-        mLastWhiteness(mLight->whiteness())
+        mIncrement(increment)
     {}
 
     void Ir40ButtonRemote::demultiplex(uint8_t address, uint8_t command)
@@ -185,6 +183,9 @@ namespace luna
         case fade3:
             mEffectEngine->activeEffect() = "plasma";
             break;
+        case auto_:
+            mEffectEngine->activeEffect() = "light";
+            break;    
         }
     }
 

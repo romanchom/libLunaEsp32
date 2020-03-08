@@ -20,8 +20,6 @@ namespace luna
         EffectEngine * mEffectEngine;
         ConstantEffect * mLight;
         float mIncrement;
-        float mLastBrightness;
-        float mLastWhiteness;
     };
 
 }
