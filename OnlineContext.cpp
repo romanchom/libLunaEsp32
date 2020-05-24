@@ -6,17 +6,17 @@
 
 namespace luna
 {
-    OnlineContext::OnlineContext(EventLoop * mainLoop, TlsCredentials const & credentials, std::vector<Plugin *> plugins) :
+    OnlineContext::OnlineContext(LunaContext const & context, TlsCredentials const & credentials, std::vector<Plugin *> plugins) :
         mTlsConfiguration(credentials)
     {
-        NetworkingContext context{
+        NetworkingContext network{
             .tlsCredentials = credentials,
             .tlsConfiguration = &mTlsConfiguration,
             .ioContext = &mIoContext,
         };
 
         for (auto plugin : plugins) {
-            if (auto service = plugin->makeNetworkService(context)) {
+            if (auto service = plugin->makeNetworkService(context, network)) {
                 mServices.emplace_back(std::move(service));
             }
         }

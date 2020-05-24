@@ -1,7 +1,8 @@
 #include "RealtimeStreamer.hpp"
-
 #include "DirectController.hpp"
 
+#include <luna/ControllerMux.hpp>
+#include <luna/EventLoop.hpp>
 #include <luna/TlsConfiguration.hpp>
 
 #include <luna/proto/Builder.hpp>
@@ -14,12 +15,14 @@ static char const TAG[] = "RT";
 
 namespace luna
 {
-    RealtimeStreamer::RealtimeStreamer(NetworkingContext const & context, DirectController * controller) :
-        mTlsConfiguration(context.tlsConfiguration->makeDtlsConfiguration()),
+    RealtimeStreamer::RealtimeStreamer(LunaContext const & context, NetworkingContext const & network, DirectController * controller) :
+        mMainLoop(context.mainLoop),
+        mMultiplexer(context.multiplexer),
+        mTlsConfiguration(network.tlsConfiguration->makeDtlsConfiguration()),
         mController(controller),
-        mSocket(*context.ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
-        mHeartbeat(*context.ioContext),
-        mTimer(context.ioContext),
+        mSocket(*network.ioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)),
+        mHeartbeat(*network.ioContext),
+        mTimer(network.ioContext),
         mIo(&mSocket)
     {
         mTimer.onTimeout([=](){
@@ -44,7 +47,10 @@ namespace luna
     void RealtimeStreamer::reset()
     {
         ESP_LOGI(TAG, "Reset");
-        mController->enabled(false);
+        mMainLoop->post([this]{
+            mMultiplexer->setEnabled(mController, false);
+        });
+
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);
         mSsl.setTimer(&mTimer);
@@ -128,7 +134,9 @@ namespace luna
     void RealtimeStreamer::activate()
     {
         ESP_LOGI(TAG, "Peer connected and authenticated");
-        mController->enabled(true);
+        mMainLoop->post([this]{
+            mMultiplexer->setEnabled(mController, true);
+        });
         startRead();
     }
 

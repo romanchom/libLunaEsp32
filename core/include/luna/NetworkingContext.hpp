@@ -8,7 +8,6 @@ namespace asio
 }
 
 namespace luna {
-    struct EventLoop;
     struct TlsConfiguration;
 
     struct NetworkingContext

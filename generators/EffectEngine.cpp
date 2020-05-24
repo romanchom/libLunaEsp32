@@ -5,6 +5,8 @@
 #include <luna/EventLoop.hpp>
 #include <luna/Device.hpp>
 #include <luna/Strand.hpp>
+#include <luna/ControllerMux.hpp>
+#include <luna/NetworkService.hpp>
 
 #include <esp_log.h>
 
@@ -22,20 +24,30 @@ namespace
     };
 }
 
-
 namespace luna
 {
-    EffectEngine::EffectEngine(EffectSet * effects, EventLoop * mainLoop) :
+    EffectEngine::EffectEngine(std::initializer_list<Effect *> effects) :
         Configurable("effects"),
         mEffects(effects),
-        mMainLoop(mainLoop),
         mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
         mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
         mDevice(nullptr),
         mEffectMixer(this),
-        mTaskHandle(nullptr)
+        mTaskHandle(nullptr),
+        mMainLoop(nullptr)
     {
-        mEffectMixer.switchTo(mEffects->find("light"));
+        mEffectMixer.switchTo(mEffects.find("light"));
+    }
+
+    Controller * EffectEngine::getController(LunaContext const & context)
+    {
+        mMainLoop = context.mainLoop;
+        return this;
+    }
+
+    std::unique_ptr<NetworkService> EffectEngine::makeNetworkService(LunaContext const & context,NetworkingContext const & network)
+    {
+        return nullptr;
     }
 
     std::vector<AbstractProperty *> EffectEngine::properties()
@@ -45,17 +57,15 @@ namespace luna
 
     std::vector<Configurable *> EffectEngine::children()
     {
-        return {mEffects, &mEffectMixer};
+        return {&mEffects, &mEffectMixer};
     }
 
     void EffectEngine::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "Enabled");
-        {
-            mDevice = device;
-            mDevice->enabled(true);
-            xTaskCreatePinnedToCore(&EffectEngine::tick, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
-        }
+        mDevice = device;
+        mDevice->enabled(true);
+        xTaskCreatePinnedToCore(&EffectEngine::tick, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
     }
 
     void EffectEngine::releaseOwnership()
@@ -117,7 +127,7 @@ namespace luna
     void EffectEngine::enabledChanged(bool value)
     {
         mMainLoop->post([this, value]{
-            Controller::enabled(value);
+            mMultiplexer->setEnabled(this, value);
         });
     }
 
@@ -132,7 +142,7 @@ namespace luna
             return;
         }
 
-        if (auto effect = mEffects->find(value)) {
+        if (auto effect = mEffects.find(value)) {
             mLastEffect = value;
             mEffectMixer.switchTo(effect);
             mActiveEffect.notify(value);

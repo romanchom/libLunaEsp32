@@ -1,43 +1,46 @@
 #include "ControllerMux.hpp"
 #include "Controller.hpp"
-#include "Device.hpp"
-#include "Strand.hpp"
-#include "Plugin.hpp"
 
 #include <algorithm>
 
 namespace luna
 {
-    ControllerMux::ControllerMux(EventLoop * mainLoop, Device * device, std::vector<Plugin *> plugins) :
+    ControllerMux::ControllerMux(Device * device) :
         mDevice(device),
         mActive(nullptr)
     {
-        mControllers.emplace_back(&mIdleController);
-
-        for (auto plugin : plugins) {
-            if (auto controller = plugin->getController()) {
-                controller->setManager(this);
-                mControllers.emplace_back(controller);
-            }
-        }
-
+        mControllers.emplace_back(State{true, &mIdleController});
         findActive();
     }
 
-    void ControllerMux::enabled(Controller * controller, bool enabled)
+    void ControllerMux::add(Controller * controller)
     {
-        auto it = std::find(mControllers.begin(), mControllers.end(), controller);
+        mControllers.emplace_back(State{false, controller});
+    }
 
-        if (it == mControllers.end()) {
-            return;
-        }
+    void ControllerMux::setEnabled(Controller * controller, bool enabled)
+    {
+        auto it = std::find_if(mControllers.begin(), mControllers.end(), [controller](const auto& state) {
+            return state.controller == controller;
+        });
 
+        if (it == mControllers.end()) return;
+        if (it->enabled == enabled) return;
+        it->enabled = enabled;
         findActive();
     }
 
     void ControllerMux::findActive()
     {
-        auto newActive = maxEnabled();
+        Controller * newActive = nullptr;
+        
+        auto it = std::find_if(mControllers.rbegin(), mControllers.rend(), [](auto controller){
+            return controller.enabled;
+        });
+
+        if (it != mControllers.rend()) {
+            newActive = it->controller;
+        }
 
         if (mActive != newActive) {
             if (mActive) {
@@ -47,19 +50,6 @@ namespace luna
                 newActive->takeOwnership(mDevice);
             }
             mActive = newActive;
-        }
-    }
-
-    Controller * ControllerMux::maxEnabled()
-    {
-        auto it = std::find_if(mControllers.rbegin(), mControllers.rend(), [](auto controller){
-            return controller->enabled();
-        });
-
-        if (it != mControllers.rend()) {
-            return *it;
-        } else {
-            return nullptr;
         }
     }
 }

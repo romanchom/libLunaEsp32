@@ -1,16 +1,20 @@
 #pragma once
 
+#include "LunaContext.hpp"
+
 #include <memory>
 
 namespace luna
 {
-    struct NetworkingContext;
     struct Controller;
+    struct EventLoop;
+    struct ControllerMux;
     struct NetworkService;
+    struct NetworkingContext;
 
     struct Plugin
     {
-        virtual Controller * getController() = 0;
-        virtual std::unique_ptr<NetworkService> makeNetworkService(NetworkingContext const & network) = 0;
+        virtual Controller * getController(LunaContext const & context) = 0;
+        virtual std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context, NetworkingContext const & network) = 0;
     };
 }

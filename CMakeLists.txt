@@ -7,7 +7,6 @@ idf_component_register(
         "Luna.cpp"
         "OnlineContext.cpp"
         "Infrared.cpp"
-        "EffectsPlugin.cpp"
         "UpdatePlugin.cpp"
         "RealtimePlugin.cpp"
         "PersistencyPlugin.cpp"

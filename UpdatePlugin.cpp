@@ -6,9 +6,9 @@
 
 namespace luna
 {
-    Controller * UpdatePlugin::getController() { return nullptr; }
+    Controller * UpdatePlugin::getController(LunaContext const & context) { return nullptr; }
 
-    std::unique_ptr<NetworkService> UpdatePlugin::makeNetworkService(NetworkingContext const & network)
+    std::unique_ptr<NetworkService> UpdatePlugin::makeNetworkService(LunaContext const & context, NetworkingContext const & network)
     {
         return std::make_unique<Updater>(network.ioContext, network.tlsConfiguration->makeTlsConfiguration());
     }

@@ -4,7 +4,6 @@ add_library(${PROJECT_NAME}
     "Configurable.cpp"
     "EventLoop.cpp"
     "IdleController.cpp"
-    "Controller.cpp"
     "ControllerMux.cpp"
     "TlsConfiguration.cpp"
 )

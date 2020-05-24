@@ -10,8 +10,8 @@ namespace luna
     {
         explicit RealtimePlugin(std::string && name, Device * device);
 
-        Controller * getController() final;
-        std::unique_ptr<NetworkService> makeNetworkService(NetworkingContext const & network) final;
+        Controller * getController(LunaContext const & context) final;
+        std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context, NetworkingContext const & network) final;
     private:
         std::string mName;
         Device * mDevice;

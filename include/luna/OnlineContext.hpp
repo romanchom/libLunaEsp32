@@ -2,6 +2,7 @@
 
 #include <luna/TlsConfiguration.hpp>
 #include <luna/TlsCredentials.hpp>
+#include <luna/LunaContext.hpp>
 
 #include <asio/io_context.hpp>
 #include <vector>
@@ -15,7 +16,7 @@ namespace luna
 
     struct OnlineContext
     {
-        explicit OnlineContext(EventLoop * mainLoop, TlsCredentials const & credentials, std::vector<Plugin *> plugins);
+        explicit OnlineContext(LunaContext const & context, TlsCredentials const & credentials, std::vector<Plugin *> plugins);
         ~OnlineContext();
 
     private:

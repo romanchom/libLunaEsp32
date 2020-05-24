@@ -4,6 +4,7 @@
 #include "WifiCredentials.hpp"
 
 #include <luna/ControllerMux.hpp>
+#include <luna/EventLoop.hpp>
 #include <luna/TlsCredentials.hpp>
 
 #include <memory>
@@ -13,27 +14,28 @@ namespace luna
 {
     struct Plugin;
     struct Device;
-    struct EventLoop;
     struct OnlineContext;
 
     struct LunaConfiguration
     {
         std::vector<Plugin *> plugins;
-        Device * hardware;
+        Device * device;
         WifiCredentials wifiCredentials;
         TlsCredentials tlsCredentials;
     };
 
     struct Luna : private WiFi::Observer
     {
-        explicit Luna(EventLoop * mainLoop, LunaConfiguration * plugins);
+        explicit Luna(LunaConfiguration const * plugins);
         ~Luna();
+
+        void run();
     private:
         void connected() final;
         void disconnected() final;
 
-        EventLoop * mMainLoop;
-        LunaConfiguration * mConfig;
+        EventLoop mMainLoop;
+        LunaConfiguration const * const mConfig;
 
         ControllerMux mControllerMux;
         std::unique_ptr<WiFi> mWiFi;

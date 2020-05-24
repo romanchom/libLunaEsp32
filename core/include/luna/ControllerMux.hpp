@@ -8,22 +8,26 @@ namespace luna
 {
     struct Controller;
     struct Device;
-    struct Plugin;
-    struct EventLoop;
 
     struct ControllerMux
     {
-        explicit ControllerMux(EventLoop * mainLoop, Device * device, std::vector<Plugin *> plugins);
+        explicit ControllerMux(Device * device);
 
-        void enabled(Controller * controller, bool enabled);
+        void add(Controller * controller);
+        void setEnabled(Controller * controller, bool enabled);
     private:
-        void findActive();
+        friend class Controller;
 
-        Controller * maxEnabled();
+        void findActive();
 
         Device * mDevice;
         IdleController mIdleController;
-        std::vector<Controller *> mControllers;
+        struct State
+        {
+            bool enabled;
+            Controller * controller;
+        };
+        std::vector<State> mControllers;
         Controller * mActive;
     };
 }

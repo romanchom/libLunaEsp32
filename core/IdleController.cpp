@@ -24,11 +24,6 @@ namespace luna
         };
     }
 
-    IdleController::IdleController()
-    {
-        enabled(true);
-    }
-
     void IdleController::takeOwnership(Device * device)
     {
         ESP_LOGI(TAG, "On");
