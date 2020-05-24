@@ -42,6 +42,7 @@ namespace luna
     Controller * EffectEngine::getController(LunaContext const & context)
     {
         mMainLoop = context.mainLoop;
+        mMultiplexer = context.multiplexer;
         return this;
     }
 

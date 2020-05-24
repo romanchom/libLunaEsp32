@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LunaContext.hpp"
+#include "NetworkService.hpp"
 
 #include <memory>
 
@@ -9,7 +10,6 @@ namespace luna
     struct Controller;
     struct EventLoop;
     struct ControllerMux;
-    struct NetworkService;
     struct NetworkingContext;
 
     struct Plugin

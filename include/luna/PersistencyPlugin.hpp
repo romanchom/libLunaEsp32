@@ -2,6 +2,7 @@
 
 #include <luna/Configurable.hpp>
 #include <luna/Property.hpp>
+#include <luna/Plugin.hpp>
 
 #include <nvs_flash.h>
 
@@ -20,15 +21,19 @@ namespace luna
         nvs_handle_t mHandle;
     };
 
-    struct PersistencyPlugin
+    struct PersistencyPlugin : Plugin
     {
-        explicit PersistencyPlugin(Configurable * effectEngine);
+        explicit PersistencyPlugin(Configurable * configurable);
         ~PersistencyPlugin();
+
+        Controller * getController(LunaContext const & context) override;
+        std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context, NetworkingContext const & network) override;
     private:
         void recurse(Configurable * configurable, std::string const & name);
 
         friend struct NvsVisitor;
 
+        Configurable * mConfigurable;
         std::vector<NvsNamespace> mNamespaces;
         std::vector<std::unique_ptr<AbstractProperty>> mProperties;
     };
