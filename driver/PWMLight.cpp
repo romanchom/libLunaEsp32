@@ -3,8 +3,15 @@
 #include <luna/proto/Scalar.hpp>
 #include <luna/Generator.hpp>
 
+#include <esp_log.h>
+
 #include <limits>
 #include <algorithm>
+
+namespace
+{
+    auto const TAG = "PWMLight";
+}
 
 namespace luna
 {
@@ -30,9 +37,14 @@ namespace luna
         return mColorSpace;
     }
 
-    void PWMLight::rawBytes(std::byte const * data, size_t size)
+    void PWMLight::rawBytes(std::byte const * data, size_t const size)
     {
-        assert(size == 4 * 2);
+        auto const expectedSize = sizeof(uint16_t) * 4;
+        if (size != expectedSize) {
+            ESP_LOGW(TAG, "Size mismatch %d %d", size, expectedSize);
+            return;
+        }
+
         auto const value = reinterpret_cast<proto::Scalar<uint16_t> const *>(data);
 
         prism::RGB rgbw;

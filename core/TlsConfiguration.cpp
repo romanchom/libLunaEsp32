@@ -22,8 +22,8 @@ namespace luna
     std::unique_ptr<tls::Configuration> TlsConfiguration::makeDtlsConfiguration()
     {
         auto config = makeDefault();
-        config->setDtlsCookies(&mCookie);
         config->setDefaults(tls::Endpoint::server, tls::Transport::datagram, tls::Preset::default_);
+        config->setDtlsCookies(&mCookie);
         return std::move(config);
     }
     
