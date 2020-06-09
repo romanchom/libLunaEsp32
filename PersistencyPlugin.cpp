@@ -181,16 +181,29 @@ namespace luna
 
     NvsNamespace::~NvsNamespace()
     {
-        if (mHandle) { nvs_close(mHandle); }
+        if (mHandle) {
+            nvs_close(mHandle);
+        }
     }
 
-    PersistencyPlugin::PersistencyPlugin(Configurable * effectEngine)
+    PersistencyPlugin::PersistencyPlugin(Configurable * configurable) :
+        mConfigurable(configurable)
     {
         Nvs::init();
-        recurse(effectEngine, "");
     }
 
     PersistencyPlugin::~PersistencyPlugin() = default;
+
+    std::unique_ptr<PluginInstance> PersistencyPlugin::instantiate(LunaInterface * luna)
+    {
+        recurse(mConfigurable, "");
+
+        struct Instance : PluginInstance
+        {
+            void onNetworkAvaliable(LunaNetworkInterface * luna) final {}
+        };
+        return std::make_unique<Instance>();
+    }
 
     void PersistencyPlugin::recurse(Configurable * configurable, std::string const & name)
     {
