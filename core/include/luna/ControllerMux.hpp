@@ -14,6 +14,7 @@ namespace luna
         explicit ControllerMux(Device * device);
 
         void add(Controller * controller);
+        void remove(Controller * controller);
         void setEnabled(Controller * controller, bool enabled);
     private:
         friend class Controller;

@@ -4,9 +4,9 @@
 
 namespace luna
 {
-    EffectSet::EffectSet(std::initializer_list<Effect *> effects) :
+    EffectSet::EffectSet(std::vector<Effect *> && effects) :
         Configurable("effects"),
-        mEffects(effects)
+        mEffects(std::move(effects))
     {}
 
     Effect * EffectSet::find(std::string const & name)

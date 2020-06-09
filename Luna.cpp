@@ -2,8 +2,6 @@
 #include "OnlineContext.hpp"
 
 #include <luna/Plugin.hpp>
-#include <luna/EventLoop.hpp>
-#include <luna/LunaContext.hpp>
 
 #include <esp_log.h>
 
@@ -13,16 +11,8 @@ namespace luna
         mConfig(config),
         mControllerMux(mConfig->device)
     {
-        LunaContext context {
-            &mMainLoop,
-            &mControllerMux,
-        };
-
         for (auto plugin : config->plugins) {
-            auto controller = plugin->getController(context);
-            if (controller) {
-                mControllerMux.add(controller);
-            }
+            mPluginInstances.emplace_back(std::move(plugin->instantiate(this)));
         }
 
         mMainLoop.post([this]{
@@ -43,18 +33,80 @@ namespace luna
     void Luna::connected()
     {
         mMainLoop.post([this]{
-            LunaContext context {
-                &mMainLoop,
-                &mControllerMux,
-            };
-            mOnlineContext = std::make_unique<OnlineContext>(context, mConfig->tlsCredentials, mConfig->plugins);
+            mOnlineContext = std::make_unique<OnlineContext>();
+            if (!mTlsConfiguration) {
+                mTlsConfiguration = std::make_unique<TlsConfiguration>(mConfig->tlsCredentials);
+            }
+            for (auto & plugin : mPluginInstances) {
+                plugin->onNetworkAvaliable(this);
+            }
         });
     }
 
     void Luna::disconnected()
     {
         mMainLoop.post([this]{
+            mNetworkServices.clear();
             mOnlineContext.reset();
         });
+    }
+
+    void Luna::post(std::function<void()> && task)
+    {
+        mMainLoop.post(std::move(task));
+    }
+
+    std::unique_ptr<ControllerHandle> Luna::addController(Controller * controller)
+    {
+        struct Handle : ControllerHandle
+        {
+            Handle(ControllerMux * mux, Controller * controller) :
+                mMux(mux),
+                mController(controller)
+            {
+                mMux->add(mController);
+            }
+
+            ~Handle() final
+            {
+                mMux->remove(mController);
+            }
+            
+            void enabled(bool value) final
+            {
+                mMux->setEnabled(mController, value);
+            }
+
+        private:
+            ControllerMux * mMux;
+            Controller * mController;
+        };
+
+        return std::make_unique<Handle>(&mControllerMux, controller);
+    }
+
+    Device * Luna::device()
+    {
+        return mConfig->device;
+    }
+
+    void Luna::addNetworkService(std::unique_ptr<NetworkService> service)
+    {
+        mNetworkServices.emplace_back(std::move(service));
+    }
+
+    TlsCredentials const & Luna::tlsCredentials()
+    {
+        return mConfig->tlsCredentials;
+    }
+
+    TlsConfiguration * Luna::tlsConfiguration()
+    {
+        return mTlsConfiguration.get();
+    }
+
+    asio::io_context * Luna::ioContext()
+    {
+        return mOnlineContext->ioContext();
     }
 }

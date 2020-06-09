@@ -1,17 +1,30 @@
 #include "RealtimePlugin.hpp"
 
+#include <luna/DirectController.hpp>
 #include <luna/DiscoveryResponder.hpp>
 #include <luna/NetworkService.hpp>
-#include <luna/NetworkingContext.hpp>
 #include <luna/RealtimeStreamer.hpp>
+#include <luna/LunaInterface.hpp>
+#include <luna/TlsConfiguration.hpp>
 
 namespace luna
 {
     struct RealtimeNetworkService : NetworkService
     {
-        explicit RealtimeNetworkService(LunaContext const & context, NetworkingContext const & network, std::string name, DirectController * controller, Device * device) :
-            mStreamer(context, network, controller),
-            mResponder(network.ioContext, mStreamer.port(), name, device->strands())
+        explicit RealtimeNetworkService(LunaNetworkInterface * luna, std::string const & name, DirectController * controller, ControllerHandle * handle) :
+            mStreamer(
+                luna,
+                controller,
+                handle,
+                std::move(luna->tlsConfiguration()->makeDtlsConfiguration()),
+                luna->ioContext()
+            ),
+            mResponder(
+                luna->ioContext(),
+                mStreamer.port(),
+                name,
+                luna->device()->strands()
+            )
         {}
 
         ~RealtimeNetworkService() final = default;
@@ -20,18 +33,30 @@ namespace luna
         DiscoveryResponder mResponder;
     };
 
-    RealtimePlugin::RealtimePlugin(std::string && name, Device * device) : 
-        mName(std::move(name)),
-        mDevice(device)
+    struct RealtimePluginInstance : PluginInstance
+    {
+        RealtimePluginInstance(LunaInterface * luna, std::string const & name) :
+            mName(name),
+            mHandle(luna->addController(&mController))
+        {}
+
+        void onNetworkAvaliable(LunaNetworkInterface * luna) override
+        {
+            luna->addNetworkService(std::make_unique<RealtimeNetworkService>(luna, mName, &mController, mHandle.get()));
+        }
+        
+    private:
+        std::string const & mName;
+        DirectController mController;
+        std::unique_ptr<ControllerHandle> mHandle;
+    };
+
+    RealtimePlugin::RealtimePlugin(std::string && name) : 
+        mName(std::move(name))
     {}
 
-    Controller * RealtimePlugin::getController(LunaContext const & context)
+    std::unique_ptr<PluginInstance> RealtimePlugin::instantiate(LunaInterface * luna)
     {
-        return &mController;
-    }
-    
-    std::unique_ptr<NetworkService> RealtimePlugin::makeNetworkService(LunaContext const & context, NetworkingContext const & network)
-    {
-        return std::make_unique<RealtimeNetworkService>(context, network, mName, &mController, mDevice);
+        return std::make_unique<RealtimePluginInstance>(luna, mName);
     }
 }

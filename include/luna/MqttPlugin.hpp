@@ -14,9 +14,10 @@ namespace luna
         explicit MqttPlugin(std::string && name, std::string && address, Configurable * effectEngine, float floatScale);
         ~MqttPlugin();
 
-        luna::Controller * getController(LunaContext const & context) final;
-        std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context,NetworkingContext const & network) final;
+        std::unique_ptr<PluginInstance> instantiate(LunaInterface * luna) final;
     private:
+        struct Instance;
+
         std::string mName;
         std::string mAddress;
         Configurable * mEffectEngine;

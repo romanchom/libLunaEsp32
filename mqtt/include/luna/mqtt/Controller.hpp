@@ -3,7 +3,7 @@
 #include "Client.hpp"
 
 #include <luna/Configurable.hpp>
-#include <luna/EventLoop.hpp>
+#include <luna/LunaInterface.hpp>
 #include <luna/TlsCredentials.hpp>
 #include <luna/NetworkService.hpp>
 
@@ -13,13 +13,13 @@ namespace luna::mqtt
 {
     struct Controller : NetworkService
     {
-        explicit Controller(EventLoop * eventLoop, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale);
+        explicit Controller(LunaInterface * luna, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale);
         ~Controller() final;
 
         float floatScale() const { return mFloatScale; }
 
         Client * client() { return &mClient; }
-        EventLoop * eventLoop() { return mEventLoop; }
+        LunaInterface * luna() { return mLuna; }
 
         template<typename T>
         std::optional<T> parse(std::string_view text) const;
@@ -29,7 +29,7 @@ namespace luna::mqtt
         void subscribeConfigurable(Configurable * configurable, std::string name);
         
         Client mClient;
-        EventLoop * mEventLoop;
+        LunaInterface * mLuna;
         
         float const mFloatScale;
     };

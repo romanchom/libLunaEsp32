@@ -1,15 +1,21 @@
 #include "UpdatePlugin.hpp"
 #include "Updater.hpp"
 
-#include <luna/NetworkingContext.hpp>
+#include <luna/LunaInterface.hpp>
 #include <luna/TlsConfiguration.hpp>
 
 namespace luna
 {
-    Controller * UpdatePlugin::getController(LunaContext const & context) { return nullptr; }
-
-    std::unique_ptr<NetworkService> UpdatePlugin::makeNetworkService(LunaContext const & context, NetworkingContext const & network)
+    struct UpdateInstance : PluginInstance
     {
-        return std::make_unique<Updater>(network.ioContext, network.tlsConfiguration->makeTlsConfiguration());
+        void onNetworkAvaliable(LunaNetworkInterface * luna) final
+        {
+            luna->addNetworkService(std::make_unique<Updater>(luna->ioContext(), luna->tlsConfiguration()->makeTlsConfiguration()));
+        }
+    };
+
+    std::unique_ptr<PluginInstance> UpdatePlugin::instantiate(LunaInterface * luna)
+    {
+        return std::make_unique<UpdateInstance>();
     }
 }

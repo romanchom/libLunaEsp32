@@ -18,6 +18,16 @@ namespace luna
         mControllers.emplace_back(State{false, controller});
     }
 
+    void ControllerMux::remove(Controller * controller)
+    {
+        setEnabled(controller, false);
+        auto it = std::find_if(mControllers.begin(), mControllers.end(), [controller](const auto& state) {
+            return state.controller == controller;
+        });
+
+        mControllers.erase(it);
+    }
+
     void ControllerMux::setEnabled(Controller * controller, bool enabled)
     {
         auto it = std::find_if(mControllers.begin(), mControllers.end(), [controller](const auto& state) {

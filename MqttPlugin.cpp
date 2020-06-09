@@ -1,10 +1,32 @@
 #include "MqttPlugin.hpp"
 
+#include <luna/LunaInterface.hpp>
 #include <luna/mqtt/Controller.hpp>
-#include <luna/NetworkingContext.hpp>
 
 namespace luna
 {
+    struct MqttPlugin::Instance : PluginInstance
+    {
+        Instance(MqttPlugin const * parent) :
+            mParent(parent)
+        {}
+
+        void onNetworkAvaliable(LunaNetworkInterface * luna) final
+        {
+            luna->addNetworkService(std::make_unique<mqtt::Controller>(
+                luna,
+                mParent->mEffectEngine,
+                mParent->mName,
+                mParent->mAddress,
+                luna->tlsCredentials(),
+                mParent->mFloatScale
+            ));
+        }
+
+    private:
+        MqttPlugin const * mParent;
+    };
+
     MqttPlugin::MqttPlugin(std::string && name, std::string && address, Configurable * effectEngine, float floatScale) :
         mName(std::move(name)),
         mAddress(std::move(address)),
@@ -14,13 +36,8 @@ namespace luna
 
     MqttPlugin::~MqttPlugin() = default;
 
-    luna::Controller * MqttPlugin::getController(LunaContext const & context) 
+    std::unique_ptr<PluginInstance> MqttPlugin::instantiate(LunaInterface * luna) 
     {
-        return nullptr;
-    }
-
-    std::unique_ptr<NetworkService> MqttPlugin::makeNetworkService(LunaContext const & context,NetworkingContext const & network)
-    {
-        return std::make_unique<mqtt::Controller>(context.mainLoop, mEffectEngine, mName, mAddress, network.tlsCredentials, mFloatScale);
+        return std::make_unique<Instance>(this);
     }
 }

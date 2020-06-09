@@ -3,8 +3,7 @@
 #include "AsioUdpInputOutput.hpp"
 #include "AsioTimer.hpp"
 
-#include <luna/NetworkingContext.hpp>
-#include <luna/LunaContext.hpp>
+#include <luna/LunaInterface.hpp>
 
 #include <mbedtls-cpp/Configuration.hpp>
 #include <mbedtls-cpp/Ssl.hpp>
@@ -22,7 +21,7 @@ namespace luna
 
     struct RealtimeStreamer
     {
-        explicit RealtimeStreamer(LunaContext const & context, NetworkingContext const & network, DirectController * controller);
+        explicit RealtimeStreamer(LunaInterface * luna, DirectController * controller, ControllerHandle * handle, std::unique_ptr<tls::Configuration> dtlsConfig, asio::io_context * ioContext);
         ~RealtimeStreamer();
 
         uint16_t port();
@@ -37,10 +36,10 @@ namespace luna
 
         void dispatchCommand(std::byte const * data, size_t size);
 
-        EventLoop * const mMainLoop;
-        ControllerMux * const mMultiplexer;
+        LunaInterface * mLuna;
+        DirectController * mController;
+        ControllerHandle * mHandle;
         std::unique_ptr<tls::Configuration> mTlsConfiguration;
-        DirectController * const mController;
 
         tls::Ssl mSsl;
 

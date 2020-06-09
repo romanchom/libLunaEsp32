@@ -5,9 +5,9 @@
 
 namespace luna
 {
-    EffectMixer::EffectMixer(EffectMixer::Observer * observer) :
+    EffectMixer::EffectMixer() :
         Effect("mixer"),
-        mObserver(observer),
+        mObserver(nullptr),
         mEnabled(false),
         mEnabledPercentage(0.0),
         mFadeProgress(0.0f),
@@ -24,7 +24,7 @@ namespace luna
         } else {
             if (mEnabledPercentage > 0.0f) {
                 mEnabledPercentage -= t.delta;
-                if (mEnabledPercentage <= 0.0f) {
+                if (mObserver && mEnabledPercentage <= 0.0f) {
                     mEnabledPercentage = 0.0f;
                     mObserver->enabledChanged(false);
                 }
@@ -70,7 +70,7 @@ namespace luna
         }
 
         mEnabled = state;
-        if (mEnabled && mEnabledPercentage == 0.0f) {
+        if (mObserver && mEnabled && mEnabledPercentage == 0.0f) {
             mObserver->enabledChanged(true);
         }
     }
@@ -78,6 +78,14 @@ namespace luna
     bool EffectMixer::enabled() const
     {
         return mEnabled;
+    }
+
+    void EffectMixer::setObserver(EnabledObserver * observer)
+    {
+        mObserver = observer;
+        if (mObserver) {
+            mObserver->enabledChanged(mEnabled);
+        }
     }
 
     std::vector<AbstractProperty *> EffectMixer::properties()

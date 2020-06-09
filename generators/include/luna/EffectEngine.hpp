@@ -1,45 +1,36 @@
 #pragma once
 
-#include "ConstantEffect.hpp"
-#include "Effect.hpp"
 #include "EffectMixer.hpp"
 #include "EffectSet.hpp"
 
-#include <luna/Controller.hpp>
 #include <luna/Plugin.hpp>
+#include <luna/Configurable.hpp>
+#include <luna/MemberProperty.hpp>
 
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
 
-#include <set>
 #include <memory>
+#include <string>
 
 namespace luna
 {
-    struct EventLoop;
-    struct ControllerMux;
+    struct Effect;
 
-    struct EffectEngine : Plugin, Configurable, private Controller, private EffectMixer::Observer
+    struct EffectEngine : Plugin, Configurable
     {
-        explicit EffectEngine(std::initializer_list<Effect *> effects);
+        explicit EffectEngine(std::vector<Effect *> && effects);
 
         Property<std::string> & activeEffect() { return mActiveEffect; }
         Property<bool> & enabled() { return mEnabled; }
 
-        Controller * getController(LunaContext const & context) final;
-        std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context,NetworkingContext const & network) final;
-        
+        std::unique_ptr<PluginInstance> instantiate(LunaInterface * luna) override;
+
         std::vector<AbstractProperty *> properties() override;
         std::vector<Configurable *> children() override;
 
     private:
-        void takeOwnership(Device * device) final;
-        void releaseOwnership() final;
-
-        void enabledChanged(bool value) override;
-
-        static void tick(void * data);
-        void loop();
+        struct Instance;
 
         std::string getActiveEffect() const;
         void setActiveEffect(std::string const & value);
@@ -53,11 +44,6 @@ namespace luna
         MemberProperty<EffectEngine, bool> mEnabled;
 
         std::string mLastEffect;
-        Device * mDevice;
         EffectMixer mEffectMixer;
-        TaskHandle_t mTaskHandle;
-        std::unique_ptr<Generator> mGenerator;
-        EventLoop * mMainLoop;
-        ControllerMux * mMultiplexer;
     };
 }

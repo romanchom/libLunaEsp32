@@ -9,16 +9,16 @@
 
 namespace luna
 {
+    struct EnabledObserver
+    {
+        virtual void enabledChanged(bool enabled) = 0;
+    protected:
+        ~EnabledObserver() = default;
+    };
+
     struct EffectMixer : Effect
     {
-        struct Observer
-        {
-            virtual void enabledChanged(bool enabled) = 0;
-        protected:
-            ~Observer() = default;
-        };
-
-        explicit EffectMixer(Observer * observer);
+        explicit EffectMixer();
 
         std::unique_ptr<Generator> generator(Time const & t) override;
         void switchTo(Effect * effect);
@@ -26,10 +26,11 @@ namespace luna
         void enabled(bool state);
         bool enabled() const;
 
+        void setObserver(EnabledObserver * observer);
+
         std::vector<AbstractProperty *> properties() final;
     private:
-
-        Observer * mObserver;
+        EnabledObserver * mObserver;
 
         std::deque<Effect *> mEffects;
 

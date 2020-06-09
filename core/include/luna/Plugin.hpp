@@ -1,20 +1,26 @@
 #pragma once
 
-#include "LunaContext.hpp"
+#include "LunaInterface.hpp"
 
 #include <memory>
 
+namespace asio
+{
+    class io_context;
+}
+
 namespace luna
 {
-    struct Controller;
-    struct EventLoop;
-    struct ControllerMux;
-    struct NetworkService;
-    struct NetworkingContext;
+    struct PluginInstance
+    {
+        virtual ~PluginInstance() = default;
+        virtual void onNetworkAvaliable(LunaNetworkInterface * luna) = 0;
+    };
 
     struct Plugin
     {
-        virtual Controller * getController(LunaContext const & context) = 0;
-        virtual std::unique_ptr<NetworkService> makeNetworkService(LunaContext const & context, NetworkingContext const & network) = 0;
+        virtual std::unique_ptr<PluginInstance> instantiate(LunaInterface * luna) = 0;
+    protected:
+        ~Plugin() = default;
     };
 }

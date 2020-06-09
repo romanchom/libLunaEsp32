@@ -1,17 +1,12 @@
 #include "EffectEngine.hpp"
 
-#include "ConstantGenerator.hpp"
-
-#include <luna/EventLoop.hpp>
 #include <luna/Device.hpp>
 #include <luna/Strand.hpp>
-#include <luna/ControllerMux.hpp>
-#include <luna/NetworkService.hpp>
+#include <luna/Controller.hpp>
 
 #include <esp_log.h>
 
 #include <chrono>
-#include <mutex>
 
 static char const TAG[] = "Effects";
 
@@ -26,28 +21,122 @@ namespace
 
 namespace luna
 {
-    EffectEngine::EffectEngine(std::initializer_list<Effect *> effects) :
+    struct EffectEngine::Instance : PluginInstance, private Controller, private EnabledObserver
+    {
+        explicit Instance(EffectEngine * parent, LunaInterface * luna) :
+            mParent(parent),
+            mLuna(luna),
+            mControllerHandle(mLuna->addController(this)),
+            mTaskHandle(nullptr),
+            mDevice(nullptr),
+            mMainTaskHandle(nullptr)
+        {
+            mParent->mEffectMixer.setObserver(this);
+        }
+
+        ~Instance()
+        {
+            mParent->mEffectMixer.setObserver(nullptr);
+        }
+
+        void onNetworkAvaliable(LunaNetworkInterface * luna) override
+        {}
+
+    private:
+        void takeOwnership(Device * device) final
+        {
+            ESP_LOGI(TAG, "Enabled");
+            mDevice = device;
+            mDevice->enabled(true);
+            xTaskCreatePinnedToCore(&Instance::task, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
+        }
+
+        void releaseOwnership() final
+        {
+            ESP_LOGI(TAG, "Disabled");
+            mMainTaskHandle = xTaskGetCurrentTaskHandle();
+            xTaskNotify(mTaskHandle, Notification::Exit, eSetBits);
+            ulTaskNotifyTake(false, portMAX_DELAY);
+            mDevice = nullptr;
+        }
+
+        static void task(void * data)
+        {
+            ESP_LOGI(TAG, "Running");
+            static_cast<Instance *>(data)->loop();
+            ESP_LOGI(TAG, "Exiting");
+            vTaskDelete(0);
+        }
+
+        void loop()
+        {
+            auto lastWakeTime = xTaskGetTickCount();
+            auto const startTime = lastWakeTime;
+
+            for (;;) {
+                Time t{
+                    .total = (lastWakeTime - startTime) * portTICK_PERIOD_MS / 1000.0f,
+                    .delta = 0.02f,
+                };
+
+                mLuna->post([this, t]{
+                    mGenerator = mParent->mEffectMixer.generator(t);
+                    if (mTaskHandle != 0) {
+                        xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
+                    }   
+                });
+
+                uint32_t notification = 0;
+                xTaskNotifyWait(0, ~0, &notification, portMAX_DELAY);
+
+                if (notification & Notification::Exit) {
+                    break;
+                }
+
+                if (notification & Notification::Update) {
+                    for (auto strand : mDevice->strands()) {
+                        strand->acceptGenerator(mGenerator.get());
+                    }
+
+                    mDevice->update();
+                }
+
+                vTaskDelayUntil(&lastWakeTime, 20 / portTICK_PERIOD_MS);
+            }
+
+            mTaskHandle = 0;
+            xTaskNotifyGive(mMainTaskHandle);
+        }
+
+        void enabledChanged(bool enabled) override
+        {
+            mLuna->post([this, enabled]{
+                mControllerHandle->enabled(enabled);
+            });
+        }
+
+        EffectEngine * mParent;
+        LunaInterface * mLuna;
+        std::unique_ptr<ControllerHandle> mControllerHandle;
+        TaskHandle_t mTaskHandle;
+        Device * mDevice;
+        std::unique_ptr<Generator> mGenerator;
+        TaskHandle_t mMainTaskHandle;
+    };
+
+    EffectEngine::EffectEngine(std::vector<Effect *> && effects) :
         Configurable("effects"),
-        mEffects(effects),
+        mEffects(std::move(effects)),
         mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
         mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
-        mDevice(nullptr),
-        mEffectMixer(this),
-        mTaskHandle(nullptr),
-        mMainLoop(nullptr)
+        mEffectMixer()
     {
         mEffectMixer.switchTo(mEffects.find("light"));
     }
 
-    Controller * EffectEngine::getController(LunaContext const & context)
+    std::unique_ptr<PluginInstance> EffectEngine::instantiate(LunaInterface * luna)
     {
-        mMainLoop = context.mainLoop;
-        return this;
-    }
-
-    std::unique_ptr<NetworkService> EffectEngine::makeNetworkService(LunaContext const & context,NetworkingContext const & network)
-    {
-        return nullptr;
+        return std::make_unique<Instance>(this, luna);
     }
 
     std::vector<AbstractProperty *> EffectEngine::properties()
@@ -58,77 +147,6 @@ namespace luna
     std::vector<Configurable *> EffectEngine::children()
     {
         return {&mEffects, &mEffectMixer};
-    }
-
-    void EffectEngine::takeOwnership(Device * device)
-    {
-        ESP_LOGI(TAG, "Enabled");
-        mDevice = device;
-        mDevice->enabled(true);
-        xTaskCreatePinnedToCore(&EffectEngine::tick, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
-    }
-
-    void EffectEngine::releaseOwnership()
-    {
-        ESP_LOGI(TAG, "Disabled");
-        xTaskNotify(mTaskHandle, Notification::Exit, eSetBits);
-        ulTaskNotifyTake(false, portMAX_DELAY);
-        mDevice = nullptr;
-    }
-
-    void EffectEngine::tick(void * data)
-    {
-        ESP_LOGI(TAG, "Running");
-        static_cast<EffectEngine *>(data)->loop();
-        ESP_LOGI(TAG, "Exiting");
-        vTaskDelete(0);
-    }
-
-    void EffectEngine::loop()
-    {
-        auto lastWakeTime = xTaskGetTickCount();
-        auto const startTime = lastWakeTime;
-
-        for (;;) {
-            Time t{
-                .total = (lastWakeTime - startTime) * portTICK_PERIOD_MS / 1000.0f,
-                .delta = 0.02f,
-            };
-
-            mMainLoop->post([this, t]{
-                mGenerator = mEffectMixer.generator(t);
-                if (mTaskHandle != 0) {
-                    xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
-                }   
-            });
-
-            uint32_t notification = 0;
-            xTaskNotifyWait(0, ~0, &notification, portMAX_DELAY);
-
-            if (notification & Notification::Exit) {
-                break;
-            }
-
-            if (notification & Notification::Update) {
-                for (auto strand : mDevice->strands()) {
-                    strand->acceptGenerator(mGenerator.get());
-                }
-
-                mDevice->update();
-            }
-
-            vTaskDelayUntil(&lastWakeTime, 20 / portTICK_PERIOD_MS);
-        }
-
-        mTaskHandle = 0;
-        xTaskNotifyGive(mMainLoop->taskHandle());
-    }
-
-    void EffectEngine::enabledChanged(bool value)
-    {
-        mMainLoop->post([this, value]{
-            mMultiplexer->setEnabled(this, value);
-        });
     }
 
     std::string EffectEngine::getActiveEffect() const

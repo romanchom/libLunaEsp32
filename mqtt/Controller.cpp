@@ -1,7 +1,6 @@
 #include "Controller.hpp"
 #include "Subscription.hpp"
 
-#include <luna/EventLoop.hpp>
 #include <luna/Property.hpp>
 
 #include <prism/Prism.hpp>
@@ -150,7 +149,7 @@ namespace luna::mqtt
         {
             ESP_LOGI(TAG, "Got %s: %.*s", topic().str().c_str(), text.size(), text.data());
             if (auto value = mController->parse<T>(text)) {
-                mController->eventLoop()->post([this, v = *value](){
+                mController->luna()->post([this, v = *value](){
                     mValue = v;
                     this->notify(mValue);
                 });
@@ -191,9 +190,9 @@ namespace luna::mqtt
         std::string const mTopic;
     };
 
-    Controller::Controller(EventLoop * eventLoop, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale) :
+    Controller::Controller(LunaInterface * luna, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale) :
         mClient(address, credentials),
-        mEventLoop(eventLoop),
+        mLuna(luna),
         mFloatScale(floatScale)
     {
         subscribeConfigurable(effectEngine, name + "/");

@@ -2,7 +2,7 @@
 
 #include <luna/Configurable.hpp>
 
-#include <initializer_list>
+#include <vector>
 #include <string>
 
 namespace luna
@@ -11,7 +11,7 @@ namespace luna
 
     struct EffectSet : Configurable
     {
-        explicit EffectSet(std::initializer_list<Effect *> effects);
+        explicit EffectSet(std::vector<Effect *> && effects);
         Effect * find(std::string const & name);
         std::vector<Configurable *> children() override;
 
