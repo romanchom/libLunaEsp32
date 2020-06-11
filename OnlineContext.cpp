@@ -5,10 +5,9 @@
 
 namespace luna
 {
-    OnlineContext::OnlineContext() 
-    {
-        xTaskCreatePinnedToCore(&task, "Asio", 1024 * 8, this, 5, &mTaskHandle, 1);
-    }
+    OnlineContext::OnlineContext() :
+        mTaskHandle(nullptr)
+    {}
 
     void OnlineContext::task(void * data)
     {
@@ -19,8 +18,14 @@ namespace luna
         }
     }
 
+    void OnlineContext::start()
+    {
+        xTaskCreatePinnedToCore(&task, "Asio", 1024 * 8, this, 5, &mTaskHandle, 1);
+    }
+
     OnlineContext::~OnlineContext()
     {
+        if (!mTaskHandle) return;
         xTaskNotify(mTaskHandle, (uint32_t)xTaskGetCurrentTaskHandle(), eSetValueWithOverwrite);
         mIoContext.stop();
         ulTaskNotifyTake(0, portMAX_DELAY);

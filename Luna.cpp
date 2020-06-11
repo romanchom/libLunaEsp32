@@ -40,6 +40,7 @@ namespace luna
             for (auto & plugin : mPluginInstances) {
                 plugin->onNetworkAvaliable(this);
             }
+            mOnlineContext->start();
         });
     }
 
