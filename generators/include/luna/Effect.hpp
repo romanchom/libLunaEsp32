@@ -8,7 +8,7 @@
 
 namespace luna
 {
-    struct EffectEngine;
+    struct EffectPlugin;
 
     struct Time
     {

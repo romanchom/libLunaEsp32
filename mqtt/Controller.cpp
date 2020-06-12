@@ -190,12 +190,12 @@ namespace luna::mqtt
         std::string const mTopic;
     };
 
-    Controller::Controller(LunaInterface * luna, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale) :
+    Controller::Controller(LunaInterface * luna, Configurable * configurable, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale) :
         mClient(address, credentials),
         mLuna(luna),
         mFloatScale(floatScale)
     {
-        subscribeConfigurable(effectEngine, name + "/");
+        subscribeConfigurable(configurable, name + "/");
         mClient.connect();
     }
 

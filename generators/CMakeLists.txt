@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME}
     "ConstantEffect.cpp"
     "FlameEffect.cpp"
     "PlasmaEffect.cpp"
-    "EffectEngine.cpp"
+    "EffectPlugin.cpp"
     "EffectSet.cpp"
 )
 

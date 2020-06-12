@@ -13,7 +13,7 @@ namespace luna::mqtt
 {
     struct Controller : NetworkService
     {
-        explicit Controller(LunaInterface * luna, Configurable * effectEngine, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale);
+        explicit Controller(LunaInterface * luna, Configurable * configurable, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale);
         ~Controller() final;
 
         float floatScale() const { return mFloatScale; }

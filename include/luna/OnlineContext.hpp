@@ -1,6 +1,8 @@
 #pragma once
 
 #include <asio/io_context.hpp>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 namespace luna
 {
@@ -8,6 +10,8 @@ namespace luna
     {
         explicit OnlineContext();
         ~OnlineContext();
+
+        void start();
 
         asio::io_context * ioContext()
         {
@@ -17,7 +21,6 @@ namespace luna
         static void task(void * data);
 
         asio::io_context mIoContext;
-
         TaskHandle_t mTaskHandle;
     };
 }

@@ -11,7 +11,7 @@ namespace luna
 
     struct MqttPlugin : Plugin
     {
-        explicit MqttPlugin(std::string && name, std::string && address, Configurable * effectEngine, float floatScale);
+        explicit MqttPlugin(std::string && name, std::string && address, Configurable * configurable, float floatScale);
         ~MqttPlugin();
 
         std::unique_ptr<PluginInstance> instantiate(LunaInterface * luna) final;
@@ -20,7 +20,7 @@ namespace luna
 
         std::string mName;
         std::string mAddress;
-        Configurable * mEffectEngine;
+        Configurable * mConfigurable;
         float const mFloatScale;
     };
 }

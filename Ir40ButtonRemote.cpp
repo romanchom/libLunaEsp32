@@ -1,7 +1,7 @@
 #include "Ir40ButtonRemote.hpp"
 
 #include <luna/ConstantEffect.hpp>
-#include <luna/EffectEngine.hpp>
+#include <luna/EffectPlugin.hpp>
 
 namespace luna
 {
@@ -67,8 +67,8 @@ namespace luna
         }
     }
 
-    Ir40ButtonRemote::Ir40ButtonRemote(EffectEngine * effectEngine, ConstantEffect * light, float increment) :
-        mEffectEngine(effectEngine),
+    Ir40ButtonRemote::Ir40ButtonRemote(EffectPlugin * effectPlugin, ConstantEffect * light, float increment) :
+        mEffectPlugin(effectPlugin),
         mLight(light),
         mIncrement(increment)
     {}
@@ -80,7 +80,7 @@ namespace luna
         {
         case colorOn:
         case whiteOn:
-            toggle(mEffectEngine->enabled());
+            toggle(mEffectPlugin->enabled());
             break;
         case colorOff:
             mLight->brightness() = 0.0f;
@@ -178,20 +178,20 @@ namespace luna
             break;
 
         case jump3:
-            mEffectEngine->activeEffect() = "flame";
+            mEffectPlugin->activeEffect() = "flame";
             break;
         case fade3:
-            mEffectEngine->activeEffect() = "plasma";
+            mEffectPlugin->activeEffect() = "plasma";
             break;
         case auto_:
-            mEffectEngine->activeEffect() = "light";
+            mEffectPlugin->activeEffect() = "light";
             break;    
         }
     }
 
     void Ir40ButtonRemote::setChroma(prism::CieXY value)
     {
-        mEffectEngine->activeEffect() = "light";
+        mEffectPlugin->activeEffect() = "light";
         mLight->cieXY() = value;
         mLight->brightness() = 1.0f;
     }

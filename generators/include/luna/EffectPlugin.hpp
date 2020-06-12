@@ -17,9 +17,9 @@ namespace luna
 {
     struct Effect;
 
-    struct EffectEngine : Plugin, Configurable
+    struct EffectPlugin : Plugin, Configurable
     {
-        explicit EffectEngine(std::vector<Effect *> && effects);
+        explicit EffectPlugin(std::vector<Effect *> && effects);
 
         Property<std::string> & activeEffect() { return mActiveEffect; }
         Property<bool> & enabled() { return mEnabled; }
@@ -40,8 +40,8 @@ namespace luna
 
         EffectSet mEffects;
 
-        MemberProperty<EffectEngine, std::string> mActiveEffect;
-        MemberProperty<EffectEngine, bool> mEnabled;
+        MemberProperty<EffectPlugin, std::string> mActiveEffect;
+        MemberProperty<EffectPlugin, bool> mEnabled;
 
         std::string mLastEffect;
         EffectMixer mEffectMixer;

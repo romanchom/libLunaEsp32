@@ -1,4 +1,4 @@
-#include "EffectEngine.hpp"
+#include "EffectPlugin.hpp"
 
 #include <luna/Device.hpp>
 #include <luna/Strand.hpp>
@@ -21,9 +21,9 @@ namespace
 
 namespace luna
 {
-    struct EffectEngine::Instance : PluginInstance, private Controller, private EnabledObserver
+    struct EffectPlugin::Instance : PluginInstance, private Controller, private EnabledObserver
     {
-        explicit Instance(EffectEngine * parent, LunaInterface * luna) :
+        explicit Instance(EffectPlugin * parent, LunaInterface * luna) :
             mParent(parent),
             mLuna(luna),
             mControllerHandle(mLuna->addController(this)),
@@ -115,7 +115,7 @@ namespace luna
             });
         }
 
-        EffectEngine * mParent;
+        EffectPlugin * mParent;
         LunaInterface * mLuna;
         std::unique_ptr<ControllerHandle> mControllerHandle;
         TaskHandle_t mTaskHandle;
@@ -124,37 +124,37 @@ namespace luna
         TaskHandle_t mMainTaskHandle;
     };
 
-    EffectEngine::EffectEngine(std::vector<Effect *> && effects) :
+    EffectPlugin::EffectPlugin(std::vector<Effect *> && effects) :
         Configurable("effects"),
         mEffects(std::move(effects)),
-        mActiveEffect("effect", this, &EffectEngine::getActiveEffect, &EffectEngine::setActiveEffect),
-        mEnabled("enabled", this, &EffectEngine::getEnabled, &EffectEngine::setEnabled),
+        mActiveEffect("effect", this, &EffectPlugin::getActiveEffect, &EffectPlugin::setActiveEffect),
+        mEnabled("enabled", this, &EffectPlugin::getEnabled, &EffectPlugin::setEnabled),
         mEffectMixer()
     {
         mEffectMixer.switchTo(mEffects.find("light"));
     }
 
-    std::unique_ptr<PluginInstance> EffectEngine::instantiate(LunaInterface * luna)
+    std::unique_ptr<PluginInstance> EffectPlugin::instantiate(LunaInterface * luna)
     {
         return std::make_unique<Instance>(this, luna);
     }
 
-    std::vector<AbstractProperty *> EffectEngine::properties()
+    std::vector<AbstractProperty *> EffectPlugin::properties()
     {
         return {&mActiveEffect, &mEnabled};
     }
 
-    std::vector<Configurable *> EffectEngine::children()
+    std::vector<Configurable *> EffectPlugin::children()
     {
         return {&mEffects, &mEffectMixer};
     }
 
-    std::string EffectEngine::getActiveEffect() const
+    std::string EffectPlugin::getActiveEffect() const
     {
         return mLastEffect;
     }
 
-    void EffectEngine::setActiveEffect(std::string const & value)
+    void EffectPlugin::setActiveEffect(std::string const & value)
     {
         if (mLastEffect == value) {
             return;
@@ -167,12 +167,12 @@ namespace luna
         }
     }
 
-    bool EffectEngine::getEnabled() const
+    bool EffectPlugin::getEnabled() const
     {
         return mEffectMixer.enabled();
     }
 
-    void EffectEngine::setEnabled(bool const & value)
+    void EffectPlugin::setEnabled(bool const & value)
     {
         ESP_LOGI(TAG, "%d", value);
         mEffectMixer.enabled(value);
