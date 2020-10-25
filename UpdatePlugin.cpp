@@ -6,16 +6,19 @@
 
 namespace luna
 {
-    struct UpdateInstance : PluginInstance
+    namespace
     {
-        void onNetworkAvaliable(LunaNetworkInterface * luna) final
+        struct Instance : PluginInstance
         {
-            luna->addNetworkService(std::make_unique<Updater>(luna->ioContext(), luna->tlsConfiguration()->makeTlsConfiguration()));
-        }
-    };
+            void onNetworkAvaliable(LunaNetworkInterface * luna) final
+            {
+                luna->addNetworkService(std::make_unique<Updater>(luna->ioContext(), luna->tlsConfiguration()->makeTlsConfiguration()));
+            }
+        };
+    }
 
     std::unique_ptr<PluginInstance> UpdatePlugin::instantiate(LunaInterface * luna)
     {
-        return std::make_unique<UpdateInstance>();
+        return std::make_unique<Instance>();
     }
 }

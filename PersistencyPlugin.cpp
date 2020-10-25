@@ -1,10 +1,14 @@
 #include "PersistencyPlugin.hpp"
 
-#include <Nvs.hpp>
+#include <luna/Nvs.hpp>
+#include <luna/Property.hpp>
 
+#include <nvs_flash.h>
 #include <esp_log.h>
 
 #include <charconv>
+#include <memory>
+#include <vector>
 
 namespace luna
 {
@@ -122,67 +126,107 @@ namespace luna
             return nvs_set_str(mHandle, name().c_str(), mValue.c_str());
         }
 
-    }
-
-    struct NvsVisitor : Visitor
-    {
-        explicit NvsVisitor(PersistencyPlugin * plugin, nvs_handle_t handle, std::string && name) :
-            mPlugin(plugin),
-            mHandle(handle),
-            mName(std::move(name))
-        {}
-
-        template<typename T>
-        void makeProperty(Property<T> * property)
+        struct NvsNamespace
         {
-            bool loaded;
-            auto nvsProperty = std::make_unique<NvsProperty<T>>(mHandle, std::move(mName), loaded);
-            if (loaded) {
-                // if loaded bind the other first, so that the stored value is propagated
-                property->bindTo(nvsProperty.get());
-                nvsProperty->bindTo(property);
-            } else {
-                // if not loaded bind this first and accept whatever value the other has
-                nvsProperty->bindTo(property);
-                property->bindTo(nvsProperty.get());
+            explicit NvsNamespace(std::string const & name)
+            {
+                auto hash = std::hash<std::string>()(name);
+                char key[2 * sizeof(hash) + 1] = {};
+                std::to_chars(key, key + sizeof(key), hash, 16);
+                auto error = nvs_open(key, NVS_READWRITE, &mHandle);
+                if (error != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to open NVS. %x", error);
+                }
             }
-            mPlugin->mProperties.emplace_back(std::move(nvsProperty));
+            
+            explicit NvsNamespace(NvsNamespace && other) :
+                mHandle(other.mHandle)
+            {
+                other.mHandle = 0;
+            }
+            
+            ~NvsNamespace()
+            {
+                if (mHandle) {
+                    nvs_close(mHandle);
+                }
+            }
+            nvs_handle_t handle() const { return mHandle; }
+        private:
+            nvs_handle_t mHandle;
+        };
+
+        struct PersistencyPluginInstance : PluginInstance
+        {
+            explicit PersistencyPluginInstance(Configurable * configurable);
+            void recurse(Configurable * configurable, std::string const & name);
+            void onNetworkAvaliable(LunaNetworkInterface * luna) final {}
+
+        private:
+            friend struct NvsVisitor;
+            std::vector<NvsNamespace> mNamespaces;
+            std::vector<std::unique_ptr<AbstractProperty>> mProperties;
+        };
+
+        struct NvsVisitor : Visitor
+        {
+            explicit NvsVisitor(PersistencyPluginInstance * plugin, nvs_handle_t handle, std::string && name) :
+                mPlugin(plugin),
+                mHandle(handle),
+                mName(std::move(name))
+            {}
+
+            template<typename T>
+            void makeProperty(Property<T> * property)
+            {
+                bool loaded;
+                auto nvsProperty = std::make_unique<NvsProperty<T>>(mHandle, std::move(mName), loaded);
+                if (loaded) {
+                    // if loaded bind the other first, so that the stored value is propagated
+                    property->bindTo(nvsProperty.get());
+                    nvsProperty->bindTo(property);
+                } else {
+                    // if not loaded bind this first and accept whatever value the other has
+                    nvsProperty->bindTo(property);
+                    property->bindTo(nvsProperty.get());
+                }
+                mPlugin->mProperties.emplace_back(std::move(nvsProperty));
+            }
+
+            void visit(Property<bool> * property) final { makeProperty<bool>(property); }
+            void visit(Property<int> * property) final { makeProperty<int>(property); }
+            void visit(Property<float> * property) final { makeProperty<float>(property); }
+            void visit(Property<prism::RGB> * property) final { makeProperty<prism::RGB>(property); }
+            void visit(Property<prism::CieXY> * property) final { makeProperty<prism::CieXY>(property); }
+            void visit(Property<std::string> * property) final { makeProperty<std::string>(property); }
+
+        private:
+            PersistencyPluginInstance * const mPlugin;
+            nvs_handle_t const mHandle;
+            std::string mName;
+        };
+
+        PersistencyPluginInstance::PersistencyPluginInstance(Configurable * configurable)
+        {
+            recurse(configurable, "");
         }
 
-        void visit(Property<bool> * property) final { makeProperty<bool>(property); }
-        void visit(Property<int> * property) final { makeProperty<int>(property); }
-        void visit(Property<float> * property) final { makeProperty<float>(property); }
-        void visit(Property<prism::RGB> * property) final { makeProperty<prism::RGB>(property); }
-        void visit(Property<prism::CieXY> * property) final { makeProperty<prism::CieXY>(property); }
-        void visit(Property<std::string> * property) final { makeProperty<std::string>(property); }
+        void PersistencyPluginInstance::recurse(Configurable * configurable, std::string const & name)
+        {
+            std::string nsName = name + configurable->name();
 
-    private:
-        PersistencyPlugin * const mPlugin;
-        nvs_handle_t const mHandle;
-        std::string mName;
-    };
+            mNamespaces.emplace_back(nsName);
 
-    NvsNamespace::NvsNamespace(std::string const & name)
-    {
-        auto hash = std::hash<std::string>()(name);
-        char key[2 * sizeof(hash) + 1] = {};
-        std::to_chars(key, key + sizeof(key), hash, 16);
-        auto error = nvs_open(key, NVS_READWRITE, &mHandle);
-        if (error != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to open NVS. %x", error);
-        }
-    }
+            auto & ns = mNamespaces.back();
 
-    NvsNamespace::NvsNamespace(NvsNamespace && other) :
-        mHandle(other.mHandle)
-    {
-        other.mHandle = 0;
-    }
+            for (auto property : configurable->properties()) {
+                NvsVisitor visitor(this, ns.handle(), std::string(property->name()));
+                property->acceptVisitor(&visitor);
+            }
 
-    NvsNamespace::~NvsNamespace()
-    {
-        if (mHandle) {
-            nvs_close(mHandle);
+            for (auto child : configurable->children()) {
+                recurse(child, nsName);
+            }
         }
     }
 
@@ -196,31 +240,6 @@ namespace luna
 
     std::unique_ptr<PluginInstance> PersistencyPlugin::instantiate(LunaInterface * luna)
     {
-        recurse(mConfigurable, "");
-
-        struct Instance : PluginInstance
-        {
-            void onNetworkAvaliable(LunaNetworkInterface * luna) final {}
-        };
-        return std::make_unique<Instance>();
+        return std::make_unique<PersistencyPluginInstance>(mConfigurable);
     }
-
-    void PersistencyPlugin::recurse(Configurable * configurable, std::string const & name)
-    {
-        std::string nsName = name + configurable->name();
-
-        mNamespaces.emplace_back(nsName);
-
-        auto & ns = mNamespaces.back();
-
-        for (auto property : configurable->properties()) {
-            NvsVisitor visitor(this, ns.handle(), std::string(property->name()));
-            property->acceptVisitor(&visitor);
-        }
-
-        for (auto child : configurable->children()) {
-            recurse(child, nsName);
-        }
-    }
-
 }

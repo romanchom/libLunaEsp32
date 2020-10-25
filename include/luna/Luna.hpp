@@ -9,8 +9,10 @@
 #include <luna/NetworkService.hpp>
 #include <luna/TlsConfiguration.hpp>
 #include <luna/TlsCredentials.hpp>
+#include <luna/OnlineContext.hpp>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace luna
@@ -52,10 +54,10 @@ namespace luna
 
         ControllerMux mControllerMux;
         std::vector<std::unique_ptr<PluginInstance>> mPluginInstances;
-        std::unique_ptr<WiFi> mWiFi;
+        std::optional<WiFi> mWiFi;
 
-        std::unique_ptr<OnlineContext> mOnlineContext;
-        std::unique_ptr<TlsConfiguration> mTlsConfiguration;
+        std::optional<OnlineContext> mOnlineContext;
+        std::optional<TlsConfiguration> mTlsConfiguration;
         std::vector<std::unique_ptr<NetworkService>> mNetworkServices;
     };
 }

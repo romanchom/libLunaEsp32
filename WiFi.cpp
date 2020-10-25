@@ -1,10 +1,11 @@
 #include "WiFi.hpp"
 #include "Nvs.hpp"
 
-#include <cstring>
-
-#include <esp_event_loop.h>
+#include <esp_event.h>
 #include <esp_wifi.h>
+#include <esp_log.h>
+
+#include <cstring>
 
 namespace luna
 {
@@ -13,9 +14,11 @@ namespace luna
     {
         Nvs::init();
 
-        tcpip_adapter_init();
+        ESP_ERROR_CHECK(esp_netif_init());
 
         ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+        esp_netif_create_default_wifi_sta();
 
         wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
         ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -43,7 +46,7 @@ namespace luna
         if (value) {
             ESP_ERROR_CHECK(esp_wifi_start());
         } else {
-
+            ESP_ERROR_CHECK(esp_wifi_stop());
         }
     }
 
@@ -55,6 +58,7 @@ namespace luna
     void WiFi::handleEvent(esp_event_base_t eventBase, int32_t eventId, void * eventData)
     {
         if (eventBase == WIFI_EVENT) {
+
             switch (eventId) {
             case WIFI_EVENT_STA_DISCONNECTED:
                 if (mObserver) {
@@ -63,8 +67,6 @@ namespace luna
                 // fallthrough
             case WIFI_EVENT_STA_START:
                 esp_wifi_connect();
-                break;
-            default:
                 break;
             }
         } else if (eventBase == IP_EVENT) {

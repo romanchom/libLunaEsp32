@@ -1,6 +1,5 @@
 #pragma once
 
-#include <luna/Device.hpp>
 #include <luna/Plugin.hpp>
 
 namespace luna

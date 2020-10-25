@@ -1,12 +1,12 @@
 #pragma once
 
 #include <luna/Plugin.hpp>
+#include <luna/Configurable.hpp>
 
 #include <string>
 
 namespace luna
 {
-    struct EventLoop;
     struct Configurable;
 
     struct MqttPlugin : Plugin

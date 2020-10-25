@@ -16,7 +16,7 @@ namespace luna
         }
 
         mMainLoop.post([this]{
-            mWiFi = std::make_unique<WiFi>(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password);
+            mWiFi.emplace(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password);
             mWiFi->observer(this);
             mWiFi->enabled(true);
         });
@@ -33,9 +33,9 @@ namespace luna
     void Luna::connected()
     {
         mMainLoop.post([this]{
-            mOnlineContext = std::make_unique<OnlineContext>();
+            mOnlineContext.emplace();
             if (!mTlsConfiguration) {
-                mTlsConfiguration = std::make_unique<TlsConfiguration>(mConfig->tlsCredentials);
+                mTlsConfiguration.emplace(mConfig->tlsCredentials);
             }
             for (auto & plugin : mPluginInstances) {
                 plugin->onNetworkAvaliable(this);
@@ -103,7 +103,7 @@ namespace luna
 
     TlsConfiguration * Luna::tlsConfiguration()
     {
-        return mTlsConfiguration.get();
+        return &mTlsConfiguration.value();
     }
 
     asio::io_context * Luna::ioContext()
