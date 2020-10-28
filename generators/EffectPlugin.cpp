@@ -48,7 +48,7 @@ namespace luna
             ESP_LOGI(TAG, "Enabled");
             mDevice = device;
             mDevice->enabled(true);
-            xTaskCreatePinnedToCore(&Instance::task, "effects", 1024 * 2, this, 5, &mTaskHandle, 0);
+            xTaskCreatePinnedToCore(&Instance::task, "effects", 1024 * 4, this, 5, &mTaskHandle, 0);
         }
 
         void releaseOwnership() final

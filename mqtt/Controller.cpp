@@ -141,13 +141,13 @@ namespace luna::mqtt
             if (mValue == value) { return; }
             mValue = value;
             auto text = mController->serialize<T>(value);
-            ESP_LOGI(TAG, "Sending: %s %s", topic().str().c_str(), text.c_str());
+            ESP_LOGD(TAG, "Sending: %s %s", topic().str().c_str(), text.c_str());
             mController->client()->publish(topic(), text);
         }
     private:
         void deliver(std::string_view text) override
         {
-            ESP_LOGI(TAG, "Got %s: %.*s", topic().str().c_str(), text.size(), text.data());
+            ESP_LOGD(TAG, "Got %s: %.*s", topic().str().c_str(), text.size(), text.data());
             if (auto value = mController->parse<T>(text)) {
                 mController->luna()->post([this, v = *value](){
                     mValue = v;
@@ -166,7 +166,7 @@ namespace luna::mqtt
             mController(controller),
             mTopic(std::move(topic))
         {
-            ESP_LOGI(TAG, "Sub: %s", mTopic.c_str());
+            ESP_LOGD(TAG, "Sub: %s", mTopic.c_str());
         }
 
         template<typename T>
@@ -197,13 +197,14 @@ namespace luna::mqtt
     {
         subscribeConfigurable(configurable, name + "/");
         mClient.connect();
+        ESP_LOGI(TAG, "Subscribed");
     }
 
     Controller::~Controller() = default;
 
     void Controller::subscribeConfigurable(Configurable * configurable, std::string name)
     {
-        ESP_LOGI(TAG, "%s", name.c_str());
+        ESP_LOGD(TAG, "%s", name.c_str());
         for (auto property : configurable->properties()) {
             MqttVisitor visitor(this, name + property->name());
             property->acceptVisitor(&visitor);
