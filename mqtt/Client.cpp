@@ -12,10 +12,13 @@ namespace luna::mqtt
     {
         esp_mqtt_client_config_t mqtt_cfg = {
             .uri = address.data(),
-            .cert_pem = credentials.caCertificate.data(),
-            .client_cert_pem = credentials.ownCertificate.data(),
-            .client_key_pem = credentials.ownKey.data(),
         };
+
+        if (address.find_first_of("mqtts") != address.npos) {
+            mqtt_cfg.cert_pem = credentials.caCertificate.data();
+            mqtt_cfg.client_cert_pem = credentials.ownCertificate.data();
+            mqtt_cfg.client_key_pem = credentials.ownKey.data();
+        }
 
         mHandle = esp_mqtt_client_init(&mqtt_cfg);
         esp_mqtt_client_register_event(mHandle, (esp_mqtt_event_id_t) ESP_EVENT_ANY_ID, &Client::handler, this);

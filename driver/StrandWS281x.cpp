@@ -62,11 +62,13 @@ namespace luna {
 
     prism::RGBColorSpace StrandWS2811::colorSpace() const noexcept
     {
+        // sRGB primaries, but different whitepoint
+        // red and blue are swapped
         return {
             { 0.24623f, 0.27455f },
-            { 0.13450f, 0.04598f },
-            { 0.68934f, 0.31051f },
-            { 0.13173f, 0.77457f },
+            {0.15,    0.06},
+            {0.64,    0.33},
+            {0.3,     0.6},
         };
     }
 
