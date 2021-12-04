@@ -1,28 +1,9 @@
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
+project(libLunaEsp32)
 
-idf_component_register(
-    SRCS
-        "AsioTcpInputOutput.cpp"
-        "WiFi.cpp"
-        "Updater.cpp"
-        "Nvs.cpp"
-        "Luna.cpp"
-        "OnlineContext.cpp"
-        "Infrared.cpp"
-        "UpdatePlugin.cpp"
-        "RealtimePlugin.cpp"
-        "PersistencyPlugin.cpp"
-        "MqttPlugin.cpp"
-        "Ir40ButtonRemote.cpp"
-    INCLUDE_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-    REQUIRES
-        mbedtls app_update mqtt asio nvs_flash
-)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
 
 find_package(Eigen3 REQUIRED)
 
-add_subdirectory(lunaProto)
 add_subdirectory(prism)
 add_subdirectory(mbedtls-cpp)
 add_subdirectory(core)
@@ -31,9 +12,25 @@ add_subdirectory(generators)
 add_subdirectory(mqtt)
 add_subdirectory(realtime)
 
-target_link_libraries(${COMPONENT_TARGET} PUBLIC
-    lunaProto
-    prism
+add_library(${PROJECT_NAME}
+    "AsioTcpInputOutput.cpp"
+    "WiFi.cpp"
+    "Updater.cpp"
+    "Nvs.cpp"
+    "Luna.cpp"
+    "OnlineContext.cpp"
+    "Infrared.cpp"
+    "UpdatePlugin.cpp"
+    "RealtimePlugin.cpp"
+    "PersistencyPlugin.cpp"
+    "MqttPlugin.cpp"
+    "Ir40ButtonRemote.cpp"
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    idf::app_update
+    idf::asio
+    idf::nvs_flash
     mbedtls-cpp
     luna.core
     luna.driver
@@ -42,6 +39,7 @@ target_link_libraries(${COMPONENT_TARGET} PUBLIC
     luna.realtime
 )
 
-target_include_directories(${COMPONENT_TARGET}
-    PRIVATE include/luna
+target_include_directories(${PROJECT_NAME}
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/luna"
 )

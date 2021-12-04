@@ -1,6 +1,6 @@
 #include "PersistencyPlugin.hpp"
 
-#include <luna/Nvs.hpp>
+#include <Nvs.hpp>
 #include <luna/Property.hpp>
 
 #include <nvs_flash.h>
@@ -138,13 +138,13 @@ namespace luna
                     ESP_LOGE(TAG, "Failed to open NVS. %x", error);
                 }
             }
-            
+
             explicit NvsNamespace(NvsNamespace && other) :
                 mHandle(other.mHandle)
             {
                 other.mHandle = 0;
             }
-            
+
             ~NvsNamespace()
             {
                 if (mHandle) {

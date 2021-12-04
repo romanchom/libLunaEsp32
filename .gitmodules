@@ -1,5 +1,5 @@
 [submodule "lunaProto"]
-	path = lunaProto
+	path = realtime/lunaProto
 	url = git@github.com:romanchom/lunaProto.git
 [submodule "prism"]
 	path = prism

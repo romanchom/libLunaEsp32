@@ -1,5 +1,7 @@
 project(luna.realtime)
 
+add_subdirectory(lunaProto)
+
 add_library(${PROJECT_NAME}
     "AsioUdpInputOutput.cpp"
     "AsioTimer.cpp"
@@ -14,5 +16,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC luna.core luna.generators idf::freertos idf::mqtt
+    PUBLIC lunaProto luna.core luna.generators idf::freertos idf::mqtt
 )
