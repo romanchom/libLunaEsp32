@@ -1,5 +1,7 @@
 project(luna.driver)
 
+add_subdirectory(ws281x-driver-esp32)
+
 add_library(${PROJECT_NAME}
     "ATX.cpp"
     "PWM.cpp"
@@ -14,5 +16,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC luna.core idf::driver idf::ws281x-driver-esp32 lunaProto
+    PUBLIC luna.core idf::driver ws281x-driver-esp32 lunaProto
 )

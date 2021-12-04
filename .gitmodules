@@ -4,3 +4,6 @@
 [submodule "prism"]
 	path = prism
 	url = git@github.com:romanchom/prism.git
+[submodule "driver/ws281x-driver-esp32"]
+	path = driver/ws281x-driver-esp32
+	url = git@github.com:romanchom/ws281x-driver-esp32.git

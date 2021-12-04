@@ -17,7 +17,7 @@ idf_component_register(
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     REQUIRES
-        ws281x-driver-esp32 mbedtls app_update mqtt asio nvs_flash
+        mbedtls app_update mqtt asio nvs_flash
 )
 
 find_package(Eigen3 REQUIRED)
