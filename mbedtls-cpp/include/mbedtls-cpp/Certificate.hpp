@@ -48,7 +48,8 @@ namespace tls {
         {
             int error = mbedtls_x509_crt_parse_der(&mCertificate, reinterpret_cast<unsigned char const *>(certificate.data()), certificate.size());
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
     };
@@ -60,7 +61,8 @@ namespace tls {
         {
             int error = mbedtls_x509_crt_parse(&mCertificate, reinterpret_cast<unsigned char const *>(certificate.data()), certificate.size());
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
     };

@@ -20,5 +20,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC luna.core Eigen3::Eigen prism idf::asio
+    PUBLIC luna.core Eigen3::Eigen prism idf::freertos
 )

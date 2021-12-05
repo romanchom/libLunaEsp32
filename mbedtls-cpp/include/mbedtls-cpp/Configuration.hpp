@@ -65,7 +65,8 @@ namespace tls {
                 static_cast<int>(p));
 
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
 
@@ -83,7 +84,8 @@ namespace tls {
         {
             auto error = mbedtls_ssl_conf_own_cert(&mConfiguration, cert->get(), key->get());
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
 
@@ -108,7 +110,8 @@ namespace tls {
         {
             int error = mbedtls_ssl_conf_psk(&mConfiguration, sharedKey, sharedKeyLength, identity, identityLength);
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
 

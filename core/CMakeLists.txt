@@ -14,5 +14,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC prism Eigen3::Eigen lunaProto idf::nvs_flash mbedtls-cpp
+    PUBLIC idf::freertos prism Eigen3::Eigen lunaProto mbedtls-cpp
 )

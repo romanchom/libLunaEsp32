@@ -9,7 +9,9 @@
 #include <luna/NetworkService.hpp>
 #include <luna/TlsConfiguration.hpp>
 #include <luna/TlsCredentials.hpp>
-#include <luna/OnlineContext.hpp>
+#if ESP32
+#   include <luna/OnlineContext.hpp>
+#endif
 
 #include <memory>
 #include <optional>
@@ -20,7 +22,6 @@ namespace luna
     struct Plugin;
     struct PluginInstance;
     struct Device;
-    struct OnlineContext;
 
     struct LunaConfiguration
     {
@@ -55,8 +56,9 @@ namespace luna
         ControllerMux mControllerMux;
         std::vector<std::unique_ptr<PluginInstance>> mPluginInstances;
         std::optional<WiFi> mWiFi;
-
+#if ESP32
         std::optional<OnlineContext> mOnlineContext;
+#endif
         std::optional<TlsConfiguration> mTlsConfiguration;
         std::vector<std::unique_ptr<NetworkService>> mNetworkServices;
     };

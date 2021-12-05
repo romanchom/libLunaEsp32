@@ -7,9 +7,6 @@
 #include <luna/Configurable.hpp>
 #include <luna/MemberProperty.hpp>
 
-#include <asio/io_context.hpp>
-#include <asio/steady_timer.hpp>
-
 #include <memory>
 #include <string>
 

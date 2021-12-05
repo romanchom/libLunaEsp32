@@ -2,8 +2,6 @@
 
 #include <prism/Prism.hpp>
 
-#include <nvs.h>
-
 #include <functional>
 #include <string>
 #include <vector>

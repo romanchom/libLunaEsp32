@@ -6,7 +6,6 @@
 
 #include <esp_log.h>
 
-
 namespace luna
 {
     namespace

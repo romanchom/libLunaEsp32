@@ -19,7 +19,7 @@ namespace luna
         explicit WiFi(std::string_view ssid, std::string_view password);
         void observer(Observer * value);
         void enabled(bool value);
-        
+
     private:
         static void eventHandler(void * context, esp_event_base_t eventBase, int32_t eventId, void * eventData);
         void handleEvent(esp_event_base_t event_base, int32_t event_id, void* event_data);

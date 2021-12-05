@@ -21,7 +21,8 @@ private:
     {
         int error = mbedtls_pk_parse_key(&mPrivateKey, reinterpret_cast<unsigned char const *>(key.data()), key.size(), NULL, 0);
         if (0 != error) {
-            throw tls::Exception(error);
+            std::terminate();
+            // throw tls::Exception(error);
         }
     }
 
@@ -29,7 +30,8 @@ private:
     {
         int error = mbedtls_pk_parse_keyfile(&mPrivateKey, fileName, password);
         if (0 != error) {
-            throw tls::Exception(error);
+            std::terminate();
+            // throw tls::Exception(error);
         }
     }
 public:

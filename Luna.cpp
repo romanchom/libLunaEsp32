@@ -1,5 +1,4 @@
 #include "Luna.hpp"
-#include "OnlineContext.hpp"
 
 #include <luna/Plugin.hpp>
 
@@ -33,14 +32,21 @@ namespace luna
     void Luna::connected()
     {
         mMainLoop.post([this]{
+#if ESP32
             mOnlineContext.emplace();
-            if (!mTlsConfiguration) {
+#endif
+            if (!mTlsConfiguration &&
+                !mConfig->tlsCredentials.caCertificate.empty() &&
+                !mConfig->tlsCredentials.ownCertificate.empty() &&
+                !mConfig->tlsCredentials.ownKey.empty()) {
                 mTlsConfiguration.emplace(mConfig->tlsCredentials);
             }
             for (auto & plugin : mPluginInstances) {
                 plugin->onNetworkAvaliable(this);
             }
+#if ESP32
             mOnlineContext->start();
+#endif
         });
     }
 
@@ -48,7 +54,9 @@ namespace luna
     {
         mMainLoop.post([this]{
             mNetworkServices.clear();
+#if ESP32
             mOnlineContext.reset();
+#endif
         });
     }
 
@@ -72,7 +80,7 @@ namespace luna
             {
                 mMux->remove(mController);
             }
-            
+
             void enabled(bool value) final
             {
                 mMux->setEnabled(mController, value);
@@ -103,11 +111,19 @@ namespace luna
 
     TlsConfiguration * Luna::tlsConfiguration()
     {
-        return &mTlsConfiguration.value();
+        if (mTlsConfiguration) {
+            return &mTlsConfiguration.value();
+        } else {
+            return nullptr;
+        }
     }
 
     asio::io_context * Luna::ioContext()
     {
+#if ESP32
         return mOnlineContext->ioContext();
+#else
+        return nullptr;
+#endif
     }
 }

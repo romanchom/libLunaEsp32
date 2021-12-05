@@ -4,12 +4,12 @@
 
 namespace luna
 {
+    static bool initialized = false;
+
     void Nvs::init() {
-        static Nvs instance;
-    }
-    
-    Nvs::Nvs()
-    {
+        if (initialized) return;
+        initialized = true;
+
         esp_err_t ret = nvs_flash_init();
 
         if (ESP_ERR_NVS_NO_FREE_PAGES == ret) {

@@ -6,6 +6,9 @@
 
 #include <esp_log.h>
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
 #include <chrono>
 
 static char const TAG[] = "Effects";
@@ -83,7 +86,7 @@ namespace luna
                     mGenerator = mParent->mEffectMixer.generator(t);
                     if (mTaskHandle != 0) {
                         xTaskNotify(mTaskHandle, Notification::Update, eSetBits);
-                    }   
+                    }
                 });
 
                 uint32_t notification = 0;

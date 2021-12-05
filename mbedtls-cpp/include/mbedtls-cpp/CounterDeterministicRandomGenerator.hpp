@@ -44,7 +44,8 @@ namespace tls {
                 entropy_source->getCallback(), entropy_source->getData(),
                 reinterpret_cast<const unsigned char *>(data), dataLength);
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
 
@@ -52,7 +53,8 @@ namespace tls {
         {
             int error = mbedtls_ctr_drbg_random(reinterpret_cast<void *>(&m_generator), destination, size);
             if (0 != error) {
-                throw tls::Exception(error);
+                std::terminate();
+                // throw tls::Exception(error);
             }
         }
     };

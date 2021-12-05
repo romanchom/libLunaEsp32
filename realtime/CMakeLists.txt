@@ -1,7 +1,5 @@
 project(luna.realtime)
 
-add_subdirectory(lunaProto)
-
 add_library(${PROJECT_NAME}
     "AsioUdpInputOutput.cpp"
     "AsioTimer.cpp"
