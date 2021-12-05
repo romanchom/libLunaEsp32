@@ -1,7 +1,7 @@
 #include "MqttPlugin.hpp"
 
+#include "Controller.hpp"
 #include <luna/LunaInterface.hpp>
-#include <luna/mqtt/Controller.hpp>
 
 namespace luna
 {
@@ -36,7 +36,7 @@ namespace luna
 
     MqttPlugin::~MqttPlugin() = default;
 
-    std::unique_ptr<PluginInstance> MqttPlugin::instantiate(LunaInterface * luna) 
+    std::unique_ptr<PluginInstance> MqttPlugin::instantiate(LunaInterface * luna)
     {
         return std::make_unique<Instance>(this);
     }

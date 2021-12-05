@@ -1,10 +1,11 @@
 #include "RealtimePlugin.hpp"
 
+#include "DirectController.hpp"
+#include "RealtimeStreamer.hpp"
+#include "DiscoveryResponder.hpp"
+
 #include <luna/Device.hpp>
-#include <luna/DirectController.hpp>
-#include <luna/DiscoveryResponder.hpp>
 #include <luna/NetworkService.hpp>
-#include <luna/RealtimeStreamer.hpp>
 #include <luna/LunaInterface.hpp>
 #include <luna/TlsConfiguration.hpp>
 
@@ -47,7 +48,7 @@ namespace luna
             {
                 luna->addNetworkService(std::make_unique<RealtimeNetworkService>(luna, mName, &mController, mHandle.get()));
             }
-            
+
         private:
             std::string const & mName;
             DirectController mController;
@@ -55,7 +56,7 @@ namespace luna
         };
     }
 
-    RealtimePlugin::RealtimePlugin(std::string && name) : 
+    RealtimePlugin::RealtimePlugin(std::string && name) :
         mName(std::move(name))
     {}
 

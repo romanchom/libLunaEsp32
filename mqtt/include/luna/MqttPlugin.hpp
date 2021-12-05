@@ -7,8 +7,6 @@
 
 namespace luna
 {
-    struct Configurable;
-
     struct MqttPlugin : Plugin
     {
         explicit MqttPlugin(std::string && name, std::string && address, Configurable * configurable, float floatScale);
