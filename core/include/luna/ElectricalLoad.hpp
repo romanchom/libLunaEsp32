@@ -29,6 +29,5 @@ namespace luna
         }
 
         LoadObserver * mObserver;
-        float mCurrentPerPixel;
     };
 }
