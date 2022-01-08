@@ -9,8 +9,7 @@ namespace luna
     template<typename T, typename Validator>
     struct ValueProperty : Property<T>
     {
-        explicit ValueProperty(std::string name, T defaultValue = T{}) :
-            Property<T>(std::move(name)),
+        explicit ValueProperty(T defaultValue = T{}) :
             mValue(defaultValue)
         {}
 
@@ -37,6 +36,14 @@ namespace luna
         bool operator()(float value) const
         {
             return value >= 0.0f && !std::isinf(value);
+        }
+    };
+
+    struct ValidZeroOne
+    {
+        bool operator()(float value) const
+        {
+            return value >= 0.0f && value <= 1.0f;
         }
     };
 }

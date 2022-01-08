@@ -6,13 +6,12 @@
 namespace luna
 {
     EffectMixer::EffectMixer() :
-        Effect("mixer"),
         mObserver(nullptr),
         mEnabled(false),
         mEnabledPercentage(0.0),
         mFadeProgress(0.0f),
-        mBrightness("brightness", 1.0f),
-        mFadeDuration("fadeDuration", 1.0f)
+        mBrightness(1.0f),
+        mFadeDuration(1.0f)
     {}
 
     std::unique_ptr<Generator> EffectMixer::generator(Time const & t)
@@ -88,8 +87,11 @@ namespace luna
         }
     }
 
-    std::vector<AbstractProperty *> EffectMixer::properties()
+    std::vector<std::tuple<std::string, AbstractProperty *>> EffectMixer::properties()
     {
-        return {&mBrightness, &mFadeDuration};
+        return {
+            {"brightness", &mBrightness},
+            {"fadeDuration", &mFadeDuration}
+        };
     }
 }

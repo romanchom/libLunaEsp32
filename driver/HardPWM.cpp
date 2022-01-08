@@ -1,4 +1,4 @@
-#include "PWM.hpp"
+#include "HardPWM.hpp"
 
 #include <algorithm>
 
@@ -48,7 +48,7 @@ namespace luna
     }
 
 
-    PWM::PWM(PWMTimer * timer, uint32_t pin) :
+    HardPWM::HardPWM(PWMTimer * timer, uint32_t pin) :
         mTimer(timer),
         mChannel(timer->nextChannel())
     {
@@ -63,14 +63,14 @@ namespace luna
         ledc_channel_config(&pwm_config);
     }
 
-    void PWM::duty(float duty)
+    void HardPWM::duty(float duty)
     {
         auto steps = calculateDuty(duty);
         ledc_set_duty(mTimer->mode(), mChannel, steps);
         ledc_update_duty(mTimer->mode(), mChannel);
     }
 
-    uint32_t PWM::calculateDuty(float duty) const {
+    uint32_t HardPWM::calculateDuty(float duty) const {
         return static_cast<uint32_t>(mTimer->steps() * std::clamp(duty, 0.0f, 1.0f));
     }
 }

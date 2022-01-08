@@ -1,4 +1,4 @@
-#include "Updater.hpp"
+#include "UpdaterAsio.hpp"
 
 #include <esp_log.h>
 
@@ -6,7 +6,7 @@ static char const TAG[] = "OTA";
 
 namespace luna
 {
-    Updater::Updater(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration) :
+    UpdaterAsio::UpdaterAsio(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration) :
         mTlsConfiguration(std::move(tlsConfiguration)),
         mListeningSocket(*ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 60000)),
         mStreamSocket(*ioContext),
@@ -20,9 +20,9 @@ namespace luna
         acceptConnection();
     }
 
-    Updater::~Updater() = default;
+    UpdaterAsio::~UpdaterAsio() = default;
 
-    void Updater::acceptConnection()
+    void UpdaterAsio::acceptConnection()
     {
         mListeningSocket.async_accept(mStreamSocket, [this](asio::error_code const & error){
             if (!error) {
@@ -36,7 +36,7 @@ namespace luna
         ESP_LOGI(TAG, "Awaiting connection");
     }
 
-    void Updater::doHandshake()
+    void UpdaterAsio::doHandshake()
     {
         mStreamSocket.async_wait(mStreamSocket.wait_read, [this](asio::error_code const & error) {
             for (;;) {
@@ -59,7 +59,7 @@ namespace luna
         });
     }
 
-    void Updater::doUpdate()
+    void UpdaterAsio::doUpdate()
     {
         mStreamSocket.async_wait(mStreamSocket.wait_read, [this](asio::error_code const & error) {
             if (error) {
@@ -91,7 +91,7 @@ namespace luna
         });
     }
 
-    void Updater::reset()
+    void UpdaterAsio::reset()
     {
         mSsl.resetSession();
         mSsl.setInputOutput(&mIo);

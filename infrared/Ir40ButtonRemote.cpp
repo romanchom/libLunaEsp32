@@ -185,14 +185,14 @@ namespace luna
             break;
         case auto_:
             mEffectPlugin->activeEffect() = "light";
-            break;    
+            break;
         }
     }
 
     void Ir40ButtonRemote::setChroma(prism::CieXY value)
     {
         mEffectPlugin->activeEffect() = "light";
-        mLight->cieXY() = value;
-        mLight->brightness() = 1.0f;
+        // TODO fixme
+        // mLight->rgb() = transform.transform(prism::value);
     }
 }

@@ -11,5 +11,6 @@ namespace luna
         virtual ~Generator() = default;
         virtual void location(Location const & location) = 0;
         virtual prism::CieXYZ generate(float ratio) const noexcept = 0;
+        virtual float whiteTemperature() const { return 0; }
     };
 }

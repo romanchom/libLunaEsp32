@@ -9,9 +9,9 @@ namespace luna
 {
     struct FlameEffect : Effect
     {
-        explicit FlameEffect(std::string && name);
+        explicit FlameEffect();
         std::unique_ptr<Generator> generator(Time const & t) final;
-        std::vector<AbstractProperty *> properties() final;
+        std::vector<std::tuple<std::string, AbstractProperty *>> properties() final;
 
     private:
         ValueProperty<float, ValidPositive> mTemperatureLow;

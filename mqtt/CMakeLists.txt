@@ -2,10 +2,9 @@ project(luna.mqtt)
 
 add_library(${PROJECT_NAME}
     "Client.cpp"
+    "Codec.cpp"
     "Controller.cpp"
     "MqttPlugin.cpp"
-    "Subscription.cpp"
-    "Topic.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}

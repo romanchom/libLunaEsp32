@@ -11,11 +11,11 @@ namespace luna
 
     struct EffectSet : Configurable
     {
-        explicit EffectSet(std::vector<Effect *> && effects);
+        explicit EffectSet(std::vector<std::tuple<std::string, Effect *>> && effects);
         Effect * find(std::string const & name);
-        std::vector<Configurable *> children() override;
+        std::vector<std::tuple<std::string, Configurable *>> children() override;
 
     private:
-        std::vector<Effect *> mEffects;
+        std::vector<std::tuple<std::string, Effect *>> mEffects;
     };
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GPIO.hpp"
-#include "PWM.hpp"
+#include "HardPWM.hpp"
 
 #include <luna/ElectricalLoad.hpp>
 
@@ -33,7 +33,7 @@ namespace luna
         };
 
         luna::GPIO mPowerEnable;
-        PWM mDummyPWM;
+        HardPWM mDummyPWM;
 
         std::map<ElectricalLoad *, LoadProperties> mLoadProperties;
 

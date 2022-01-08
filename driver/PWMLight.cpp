@@ -15,6 +15,13 @@ namespace
 
 namespace luna
 {
+    namespace
+    {
+        float unlerp(float a, float b, float x) {
+            return (x - a) / (b - a);
+        }
+    }
+
     PWMLight::PWMLight(Location const & location, prism::RGBColorSpace const & colorSpace, std::initializer_list<OutputChannel> channels) :
         Strand(location),
         mOutputs(channels.begin(), channels.end()),
@@ -51,17 +58,17 @@ namespace luna
         for (int i = 0; i < 4; ++i) {
             rgbw[i] = float(value[i]) / float(std::numeric_limits<uint16_t>::max());
         }
-        set(rgbw);
+        set(rgbw, 500);
     }
 
     void PWMLight::fill(Generator * generator)
     {
         auto const cie = generator->generate(0.5f);
         auto const rgbw = mTransformation.transform(cie);
-        set(rgbw);
+        set(rgbw, generator->whiteTemperature());
     }
 
-    void PWMLight::set(prism::RGB rgbw)
+    void PWMLight::set(prism::RGB rgbw, float temperature)
     {
         auto norm = rgbw.head<3>().maxCoeff();
         if (norm > 1.0f) {
@@ -69,9 +76,17 @@ namespace luna
         }
 
         float totalCurrentDraw = 0.0f;
+        auto tempT = std::clamp(unlerp(153, 500, temperature), 0.0f, 1.0f);
         for (auto & output : mOutputs) {
-            auto const index = static_cast<int>(output.color);
-            auto const duty = rgbw[index];
+            float duty;
+            if (output.color == CoolWhite) {
+                duty = rgbw[3] * (1 - tempT);
+            } else if (output.color == WarmWhite) {
+                duty = rgbw[3] * tempT;
+            } else {
+                auto const index = static_cast<int>(output.color);
+                duty = rgbw[index];
+            }
             totalCurrentDraw += output.maximumCurrentDraw * duty;
             output.pwm->duty(duty);
         }

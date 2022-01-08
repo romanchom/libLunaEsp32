@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace luna
@@ -9,16 +10,10 @@ namespace luna
 
     struct Configurable
     {
-        explicit Configurable(std::string && name);
-        std::string const & name() const noexcept { return mName; }
-
-        virtual std::vector<AbstractProperty *> properties() { return {}; }
-        virtual std::vector<Configurable *> children() { return {}; }
+        virtual std::vector<std::tuple<std::string, AbstractProperty *>> properties() { return {}; }
+        virtual std::vector<std::tuple<std::string, Configurable *>> children() { return {}; }
 
     protected:
         ~Configurable();
-
-    private:
-        std::string const mName;
     };
 }

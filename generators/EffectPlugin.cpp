@@ -127,11 +127,10 @@ namespace luna
         TaskHandle_t mMainTaskHandle;
     };
 
-    EffectPlugin::EffectPlugin(std::vector<Effect *> && effects) :
-        Configurable("effects"),
+    EffectPlugin::EffectPlugin(std::vector<std::tuple<std::string, Effect *>> && effects) :
         mEffects(std::move(effects)),
-        mActiveEffect("effect", this, &EffectPlugin::getActiveEffect, &EffectPlugin::setActiveEffect),
-        mEnabled("enabled", this, &EffectPlugin::getEnabled, &EffectPlugin::setEnabled),
+        mActiveEffect(this, &EffectPlugin::getActiveEffect, &EffectPlugin::setActiveEffect),
+        mEnabled(this, &EffectPlugin::getEnabled, &EffectPlugin::setEnabled),
         mEffectMixer()
     {
         mEffectMixer.switchTo(mEffects.find("light"));
@@ -142,14 +141,20 @@ namespace luna
         return std::make_unique<Instance>(this, luna);
     }
 
-    std::vector<AbstractProperty *> EffectPlugin::properties()
+    std::vector<std::tuple<std::string, AbstractProperty *>> EffectPlugin::properties()
     {
-        return {&mActiveEffect, &mEnabled};
+        return {
+            {"effect", &mActiveEffect},
+            {"enabled", &mEnabled}
+        };
     }
 
-    std::vector<Configurable *> EffectPlugin::children()
+    std::vector<std::tuple<std::string, Configurable *>> EffectPlugin::children()
     {
-        return {&mEffects, &mEffectMixer};
+        return {
+            {"effects", &mEffects},
+            {"mixer", &mEffectMixer}
+        };
     }
 
     std::string EffectPlugin::getActiveEffect() const

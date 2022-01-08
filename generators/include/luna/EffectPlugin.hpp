@@ -16,15 +16,15 @@ namespace luna
 
     struct EffectPlugin : Plugin, Configurable
     {
-        explicit EffectPlugin(std::vector<Effect *> && effects);
+        explicit EffectPlugin(std::vector<std::tuple<std::string, Effect *>> && effects);
 
         Property<std::string> & activeEffect() { return mActiveEffect; }
         Property<bool> & enabled() { return mEnabled; }
 
         std::unique_ptr<PluginInstance> instantiate(LunaInterface * luna) override;
 
-        std::vector<AbstractProperty *> properties() override;
-        std::vector<Configurable *> children() override;
+        std::vector<std::tuple<std::string, AbstractProperty *>> properties() override;
+        std::vector<std::tuple<std::string, Configurable *>> children() override;
 
     private:
         struct Instance;

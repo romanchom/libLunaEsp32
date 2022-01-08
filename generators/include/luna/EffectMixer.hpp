@@ -28,7 +28,7 @@ namespace luna
 
         void setObserver(EnabledObserver * observer);
 
-        std::vector<AbstractProperty *> properties() final;
+        std::vector<std::tuple<std::string, AbstractProperty *>> properties() final;
     private:
         EnabledObserver * mObserver;
 

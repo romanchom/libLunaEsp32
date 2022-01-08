@@ -16,6 +16,8 @@ struct PWMLight : Strand, ElectricalLoad
         Green,
         Blue,
         White,
+        CoolWhite,
+        WarmWhite,
     };
 
     struct OutputChannel
@@ -32,7 +34,7 @@ struct PWMLight : Strand, ElectricalLoad
     void rawBytes(std::byte const * data, size_t size) override;
     void fill(Generator * generator) final;
 private:
-    void set(prism::RGB rgbw);
+    void set(prism::RGB rgbw, float temperature);
     std::vector<OutputChannel> mOutputs;
     prism::RGBColorSpace mColorSpace;
     prism::RGBColorSpaceTransformation mTransformation;

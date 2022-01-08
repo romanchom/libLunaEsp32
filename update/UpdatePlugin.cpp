@@ -1,5 +1,10 @@
 #include "UpdatePlugin.hpp"
-#include "Updater.hpp"
+
+#if ESP32
+#   include "UpdaterAsio.hpp"
+#else
+#   include "UpdaterSocket.hpp"
+#endif
 
 #include <luna/LunaInterface.hpp>
 #include <luna/TlsConfiguration.hpp>
@@ -12,7 +17,12 @@ namespace luna
         {
             void onNetworkAvaliable(LunaNetworkInterface * luna) final
             {
-                luna->addNetworkService(std::make_unique<Updater>(luna->ioContext(), luna->tlsConfiguration()->makeTlsConfiguration()));
+#if ESP32
+                auto updater = std::make_unique<UpdaterAsio>(luna->ioContext(), luna->tlsConfiguration()->makeTlsConfiguration());
+#else
+                auto updater = std::make_unique<UpdaterSocket>();
+#endif
+                luna->addNetworkService(std::move(updater));
             }
         };
     }

@@ -1,13 +1,8 @@
 project(luna.driver)
 
-add_subdirectory(ws281x-driver-esp32)
 
 add_library(${PROJECT_NAME}
-    "ATX.cpp"
-    "PWM.cpp"
     "PWMLight.cpp"
-    "StrandWS281x.cpp"
-    "WS281xMeter.cpp"
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -16,5 +11,25 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC luna.core idf::driver ws281x-driver-esp32 lunaProto
+    PUBLIC luna.core lunaProto
 )
+
+if(IDF_TARGET STREQUAL "esp32")
+    add_subdirectory(ws281x-driver-esp32)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        "ATX.cpp"
+        "HardPWM.cpp"
+        "StrandWS281x.cpp"
+        "WS281xMeter.cpp"
+    )
+
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC idf::driver ws281x-driver-esp32
+    )
+else()
+    target_sources(${PROJECT_NAME} PRIVATE
+        "SoftPWM.cpp"
+    )
+endif()
+

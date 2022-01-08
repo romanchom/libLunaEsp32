@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Client.hpp"
+#include "Codec.hpp"
 
 #include <luna/Configurable.hpp>
 #include <luna/LunaInterface.hpp>
@@ -16,21 +17,20 @@ namespace luna::mqtt
         explicit Controller(LunaInterface * luna, Configurable * configurable, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale);
         ~Controller() final;
 
-        float floatScale() const { return mFloatScale; }
+        void deliver(std::string_view topic, std::string_view data);
+        void subscribe();
 
         Client * client() { return &mClient; }
         LunaInterface * luna() { return mLuna; }
-
-        template<typename T>
-        std::optional<T> parse(std::string_view text) const;
-        template<typename T>
-        std::string serialize(T const & value) const;
     private:
-        void subscribeConfigurable(Configurable * configurable, std::string name);
-        
+        void subscribeConfigurable(std::string prefix, Configurable * configurable);
+        void publishConfigurable(std::string prefix, Configurable * configurable);
+
         Client mClient;
         LunaInterface * mLuna;
-        
-        float const mFloatScale;
+        Configurable * mConfigurable;
+        std::string mPrefix;
+        std::vector<std::unique_ptr<AbstractProperty>> mProperties;
+        Codec mCodec;
     };
 }

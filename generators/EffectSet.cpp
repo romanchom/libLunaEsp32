@@ -4,22 +4,21 @@
 
 namespace luna
 {
-    EffectSet::EffectSet(std::vector<Effect *> && effects) :
-        Configurable("effects"),
+    EffectSet::EffectSet(std::vector<std::tuple<std::string, Effect *>> && effects) :
         mEffects(std::move(effects))
     {}
 
     Effect * EffectSet::find(std::string const & name)
     {
-        for (auto effect : mEffects) {
-            if (effect->name() == name) {
+        for (auto & [effectName, effect] : mEffects) {
+            if (effectName == name) {
                 return effect;
             }
         }
         return nullptr;
     }
 
-    std::vector<Configurable *> EffectSet::children()
+    std::vector<std::tuple<std::string, Configurable *>> EffectSet::children()
     {
         return {mEffects.begin(), mEffects.end()};
     }

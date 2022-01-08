@@ -43,7 +43,7 @@ namespace luna
     void ControllerMux::findActive()
     {
         Controller * newActive = nullptr;
-        
+
         auto it = std::find_if(mControllers.rbegin(), mControllers.rend(), [](auto controller){
             return controller.enabled;
         });

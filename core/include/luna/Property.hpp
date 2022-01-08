@@ -2,7 +2,6 @@
 
 #include <prism/Prism.hpp>
 
-#include <functional>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -17,24 +16,35 @@ namespace luna
         virtual void visit(Property<int> * property) = 0;
         virtual void visit(Property<float> * property) = 0;
         virtual void visit(Property<prism::RGB> * property) = 0;
+        virtual void visit(Property<prism::RGBW> * property) = 0;
         virtual void visit(Property<prism::CieXY> * property) = 0;
         virtual void visit(Property<std::string> * property) = 0;
     protected:
         ~Visitor() = default;
     };
 
-    struct AbstractProperty
+    template<typename Functor>
+    struct TemplatedVisitor : Visitor
     {
-        explicit AbstractProperty(std::string const & name) :
-            mName(name)
+        explicit TemplatedVisitor(Functor & functor) :
+            mFunctor(functor)
         {}
 
-        virtual ~AbstractProperty() = default;
+        void visit(Property<bool> * property) override { mFunctor(property); }
+        void visit(Property<int> * property) override { mFunctor(property); }
+        void visit(Property<float> * property) override { mFunctor(property); }
+        void visit(Property<prism::RGB> * property) override { mFunctor(property); }
+        void visit(Property<prism::RGBW> * property) override { mFunctor(property); }
+        void visit(Property<prism::CieXY> * property) override { mFunctor(property); }
+        void visit(Property<std::string> * property) override { mFunctor(property); }
 
-        std::string const & name() const
-        {
-            return mName;
-        }
+    private:
+        Functor & mFunctor;
+    };
+
+    struct AbstractProperty
+    {
+        virtual ~AbstractProperty() = default;
 
         void acceptVisitor(Visitor * visitor)
         {
@@ -42,8 +52,6 @@ namespace luna
         }
     private:
         virtual void accept(Visitor * visitor) = 0;
-
-        std::string const mName;
     };
 
     template<typename T>
@@ -68,9 +76,8 @@ namespace luna
 
         void bindTo(Property * other)
         {
-            mPublishers.emplace_back(other);
-
             if (other) {
+                mPublishers.emplace_back(other);
                 other->mSubscribers.emplace_back(this);
                 set(other->get());
             }
@@ -85,12 +92,6 @@ namespace luna
                 other->mSubscribers.erase(thisIt);
                 mPublishers.erase(it);
             }
-        }
-
-        void twoWayBindTo(Property * other)
-        {
-            bindTo(other);
-            other->bindTo(this);
         }
 
         T get() const

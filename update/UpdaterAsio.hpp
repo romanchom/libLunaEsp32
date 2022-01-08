@@ -16,10 +16,10 @@
 
 namespace luna
 {
-    struct Updater : NetworkService
+    struct UpdaterAsio : NetworkService
     {
-        explicit Updater(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration);
-        ~Updater() final;
+        explicit UpdaterAsio(asio::io_context * ioContext, std::unique_ptr<tls::Configuration> && tlsConfiguration);
+        ~UpdaterAsio() final;
     private:
         void acceptConnection();
         void doHandshake();

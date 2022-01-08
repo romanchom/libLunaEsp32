@@ -10,8 +10,7 @@ namespace luna
     {
         using Setter = void (Owner::*)(T const &);
         using Getter = T (Owner::*)() const;
-        explicit MemberProperty(std::string name, Owner * owner, Getter getter, Setter setter) :
-            Property<T>(name),
+        explicit MemberProperty(Owner * owner, Getter getter, Setter setter) :
             mOwner(owner),
             mGetter(getter),
             mSetter(setter)

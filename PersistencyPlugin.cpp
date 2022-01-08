@@ -20,8 +20,8 @@ namespace luna
         struct NvsProperty : Property<T>
         {
             explicit NvsProperty(nvs_handle_t handle, std::string && name, bool & loaded) :
-                Property<T>(std::move(name)),
-                mHandle(handle)
+                mHandle(handle),
+                mName(std::move(name))
             {
                 loaded = (ESP_OK == load());
             }
@@ -43,48 +43,56 @@ namespace luna
 
             T mValue;
             nvs_handle_t const mHandle;
+            std::string mName;
         };
 
         template<>
         esp_err_t NvsProperty<bool>::load()
         {
-            return nvs_get_u8(mHandle, name().c_str(), reinterpret_cast<uint8_t *>(&mValue));
+            return nvs_get_u8(mHandle, mName.c_str(), (uint8_t *)&mValue);
         }
 
         template<>
         esp_err_t NvsProperty<int>::load()
         {
-            return nvs_get_i32(mHandle, name().c_str(), &mValue);
+            return nvs_get_i32(mHandle, mName.c_str(), &mValue);
         }
 
         template<>
         esp_err_t NvsProperty<float>::load()
         {
-            return nvs_get_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t *>(&mValue));
+            return nvs_get_u32(mHandle, mName.c_str(), (uint32_t *) &mValue);
         }
 
         template<>
         esp_err_t NvsProperty<prism::RGB>::load()
         {
             size_t size = sizeof(prism::RGB);
-            return nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
+            return nvs_get_blob(mHandle, mName.c_str(), &mValue, &size);
+        }
+
+        template<>
+        esp_err_t NvsProperty<prism::RGBW>::load()
+        {
+            size_t size = sizeof(prism::RGBW);
+            return nvs_get_blob(mHandle, mName.c_str(), &mValue, &size);
         }
 
         template<>
         esp_err_t NvsProperty<prism::CieXY>::load()
         {
             size_t size = sizeof(prism::CieXY);
-            return nvs_get_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), &size);
+            return nvs_get_blob(mHandle, mName.c_str(), &mValue, &size);
         }
 
         template<>
         esp_err_t NvsProperty<std::string>::load()
         {
             size_t size = 0;
-            auto error = nvs_get_str(mHandle, name().c_str(), nullptr, &size);
+            auto error = nvs_get_str(mHandle, mName.c_str(), nullptr, &size);
             if (error == ESP_OK) {
                 mValue.resize(size - 1);
-                error = nvs_get_str(mHandle, name().c_str(), mValue.data(), &size);
+                error = nvs_get_str(mHandle, mName.c_str(), mValue.data(), &size);
             }
             return error;
         }
@@ -93,37 +101,43 @@ namespace luna
         template<>
         esp_err_t NvsProperty<bool>::save()
         {
-            return nvs_set_u8(mHandle, name().c_str(), static_cast<uint8_t>(mValue));
+            return nvs_set_u8(mHandle, mName.c_str(), uint8_t(mValue));
         }
 
         template<>
         esp_err_t NvsProperty<int>::save()
         {
-            return nvs_set_i32(mHandle, name().c_str(), mValue);
+            return nvs_set_i32(mHandle, mName.c_str(), mValue);
         }
 
         template<>
         esp_err_t NvsProperty<float>::save()
         {
-            return nvs_set_u32(mHandle, name().c_str(), reinterpret_cast<uint32_t &>(mValue));
+            return nvs_set_u32(mHandle, mName.c_str(), (uint32_t &) mValue);
         }
 
         template<>
         esp_err_t NvsProperty<prism::RGB>::save()
         {
-            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::RGB));
+            return nvs_set_blob(mHandle, mName.c_str(), &mValue, sizeof(prism::RGB));
+        }
+
+        template<>
+        esp_err_t NvsProperty<prism::RGBW>::save()
+        {
+            return nvs_set_blob(mHandle, mName.c_str(), &mValue, sizeof(prism::RGBW));
         }
 
         template<>
         esp_err_t NvsProperty<prism::CieXY>::save()
         {
-            return nvs_set_blob(mHandle, name().c_str(), reinterpret_cast<void *>(&mValue), sizeof(prism::CieXY));
+            return nvs_set_blob(mHandle, mName.c_str(), &mValue, sizeof(prism::CieXY));
         }
 
         template<>
         esp_err_t NvsProperty<std::string>::save()
         {
-            return nvs_set_str(mHandle, name().c_str(), mValue.c_str());
+            return nvs_set_str(mHandle, mName.c_str(), mValue.c_str());
         }
 
         struct NvsNamespace
@@ -163,42 +177,30 @@ namespace luna
             void onNetworkAvaliable(LunaNetworkInterface * luna) final {}
 
         private:
-            friend struct NvsVisitor;
+            friend struct PropertyFactory;
             std::vector<NvsNamespace> mNamespaces;
             std::vector<std::unique_ptr<AbstractProperty>> mProperties;
         };
 
-        struct NvsVisitor : Visitor
+        struct PropertyFactory
         {
-            explicit NvsVisitor(PersistencyPluginInstance * plugin, nvs_handle_t handle, std::string && name) :
+            explicit PropertyFactory(PersistencyPluginInstance * plugin, nvs_handle_t handle, std::string const & name) :
                 mPlugin(plugin),
                 mHandle(handle),
                 mName(std::move(name))
             {}
 
             template<typename T>
-            void makeProperty(Property<T> * property)
+            void operator()(Property<T> * property)
             {
                 bool loaded;
                 auto nvsProperty = std::make_unique<NvsProperty<T>>(mHandle, std::move(mName), loaded);
                 if (loaded) {
-                    // if loaded bind the other first, so that the stored value is propagated
-                    property->bindTo(nvsProperty.get());
-                    nvsProperty->bindTo(property);
-                } else {
-                    // if not loaded bind this first and accept whatever value the other has
-                    nvsProperty->bindTo(property);
-                    property->bindTo(nvsProperty.get());
+                    property->set(nvsProperty->get());
                 }
+                nvsProperty->bindTo(property);
                 mPlugin->mProperties.emplace_back(std::move(nvsProperty));
             }
-
-            void visit(Property<bool> * property) final { makeProperty<bool>(property); }
-            void visit(Property<int> * property) final { makeProperty<int>(property); }
-            void visit(Property<float> * property) final { makeProperty<float>(property); }
-            void visit(Property<prism::RGB> * property) final { makeProperty<prism::RGB>(property); }
-            void visit(Property<prism::CieXY> * property) final { makeProperty<prism::CieXY>(property); }
-            void visit(Property<std::string> * property) final { makeProperty<std::string>(property); }
 
         private:
             PersistencyPluginInstance * const mPlugin;
@@ -213,19 +215,18 @@ namespace luna
 
         void PersistencyPluginInstance::recurse(Configurable * configurable, std::string const & name)
         {
-            std::string nsName = name + configurable->name();
-
-            mNamespaces.emplace_back(nsName);
+            mNamespaces.emplace_back(name);
 
             auto & ns = mNamespaces.back();
 
-            for (auto property : configurable->properties()) {
-                NvsVisitor visitor(this, ns.handle(), std::string(property->name()));
+            for (auto & [propertyName, property] : configurable->properties()) {
+                PropertyFactory factory(this, ns.handle(), propertyName);
+                TemplatedVisitor visitor(factory);
                 property->acceptVisitor(&visitor);
             }
 
-            for (auto child : configurable->children()) {
-                recurse(child, nsName);
+            for (auto [childName, child] : configurable->children()) {
+                recurse(child, childName);
             }
         }
     }

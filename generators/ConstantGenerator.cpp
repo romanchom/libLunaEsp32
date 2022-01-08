@@ -2,8 +2,9 @@
 
 namespace luna
 {
-    ConstantGenerator::ConstantGenerator(prism::CieXYZ const & color) :
-        mColor(color)
+    ConstantGenerator::ConstantGenerator(prism::CieXYZ const & color, float temperature) :
+        mColor(color),
+        mTemperature(temperature)
     {
         auto maximum = mColor.maxCoeff();
         if (maximum > 1.0f) {
@@ -16,5 +17,10 @@ namespace luna
     prism::CieXYZ ConstantGenerator::generate(float ratio) const noexcept
     {
         return mColor;
+    }
+
+    float ConstantGenerator::whiteTemperature() const
+    {
+        return mTemperature;
     }
 }

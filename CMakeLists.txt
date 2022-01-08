@@ -21,12 +21,16 @@ add_subdirectory(mbedtls-cpp)
 add_subdirectory(core)
 add_subdirectory(generators)
 add_subdirectory(mqtt)
+add_subdirectory(driver)
+add_subdirectory(update)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     idf::nvs_flash
     luna.core
     luna.generators
-    # luna.mqtt
+    luna.mqtt
+    luna.driver
+    luna.update
 )
 
 if(IDF_TARGET STREQUAL "esp32")
@@ -34,15 +38,11 @@ if(IDF_TARGET STREQUAL "esp32")
         PRIVATE "OnlineContext.cpp"
     )
 
-    add_subdirectory(driver)
     add_subdirectory(realtime)
-    add_subdirectory(update)
     add_subdirectory(infrared)
 
     target_link_libraries(${PROJECT_NAME} PUBLIC
-        luna.driver
         luna.realtime
-        luna.update
         luna.infrared
     )
 endif()
