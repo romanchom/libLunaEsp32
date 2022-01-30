@@ -3,6 +3,7 @@
 #include <esp_event.h>
 
 #include <string_view>
+#include <string>
 
 namespace luna
 {
@@ -16,7 +17,7 @@ namespace luna
             ~Observer() = default;
         };
 
-        explicit WiFi(std::string_view ssid, std::string_view password);
+        explicit WiFi(std::string const & name, std::string_view ssid, std::string_view password);
         void observer(Observer * value);
         void enabled(bool value);
 

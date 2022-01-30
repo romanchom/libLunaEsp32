@@ -24,6 +24,7 @@ namespace luna
 
     struct LunaInterface
     {
+        virtual std::string const & name() = 0;
         virtual void post(std::function<void()> && task) = 0;
         virtual std::unique_ptr<ControllerHandle> addController(Controller * controller) = 0;
         virtual Device * device() = 0;

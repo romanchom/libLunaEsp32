@@ -46,4 +46,13 @@ namespace luna
             return value >= 0.0f && value <= 1.0f;
         }
     };
+
+    template<typename T, T minimum, T maximum>
+    struct ValidInRange
+    {
+        bool operator()(T value) const
+        {
+            return value >= minimum && value <= maximum;
+        }
+    };
 }

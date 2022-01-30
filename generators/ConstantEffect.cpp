@@ -27,14 +27,14 @@ namespace luna
         mRGB(this, &ConstantEffect::getRGB, &ConstantEffect::setRGB),
         mRGBW(this, &ConstantEffect::getRGBW, &ConstantEffect::setRGBW),
         mWhiteness(this, &ConstantEffect::getWhiteness, &ConstantEffect::setWhiteness),
-        mTemp(this, &ConstantEffect::getTemp, &ConstantEffect::setTemp)
+        mTemp(150)
     {}
 
     std::unique_ptr<Generator> ConstantEffect::generator(Time const & t)
     {
         auto factor = exp(-t.delta * 4);
         mCurrentColor = mCurrentColor * factor + mBrightness * targetColor() * (1.0f - factor);
-        return std::make_unique<ConstantGenerator>(mCurrentColor, mTempValue);
+        return std::make_unique<ConstantGenerator>(mCurrentColor, mTemp);
     }
 
     std::vector<std::tuple<std::string, AbstractProperty *>> ConstantEffect::properties()
@@ -97,16 +97,6 @@ namespace luna
     {
         auto rgb = getRGB();
         setRGBW({rgb[0], rgb[1], rgb[2], value});
-    }
-
-    float ConstantEffect::getTemp() const
-    {
-        return mTempValue;
-    }
-
-    void ConstantEffect::setTemp(float const & value)
-    {
-        mTempValue = value;
     }
 
     prism::CieXYZ ConstantEffect::targetColor() const

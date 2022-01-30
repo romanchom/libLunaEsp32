@@ -74,6 +74,7 @@ namespace luna
         if (norm > 1.0f) {
             rgbw.head<3>() /= norm;
         }
+        rgbw = rgbw.cwiseMin(prism::RGBW::Ones()).cwiseMax(prism::RGBW::Zero());
 
         float totalCurrentDraw = 0.0f;
         auto tempT = std::clamp(unlerp(153, 500, temperature), 0.0f, 1.0f);

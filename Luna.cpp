@@ -15,7 +15,7 @@ namespace luna
         }
 
         mMainLoop.post([this]{
-            mWiFi.emplace(mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password);
+            mWiFi.emplace(mConfig->name, mConfig->wifiCredentials.ssid, mConfig->wifiCredentials.password);
             mWiFi->observer(this);
             mWiFi->enabled(true);
         });
@@ -58,6 +58,11 @@ namespace luna
             mOnlineContext.reset();
 #endif
         });
+    }
+
+    std::string const & Luna::name()
+    {
+        return mConfig->name;
     }
 
     void Luna::post(std::function<void()> && task)

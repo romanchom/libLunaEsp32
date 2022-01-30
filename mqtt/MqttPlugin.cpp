@@ -16,7 +16,6 @@ namespace luna
             luna->addNetworkService(std::make_unique<mqtt::Controller>(
                 luna,
                 mParent->mConfigurable,
-                mParent->mName,
                 mParent->mAddress,
                 luna->tlsCredentials(),
                 mParent->mFloatScale
@@ -27,8 +26,7 @@ namespace luna
         MqttPlugin const * mParent;
     };
 
-    MqttPlugin::MqttPlugin(std::string && name, std::string && address, Configurable * configurable, float floatScale) :
-        mName(std::move(name)),
+    MqttPlugin::MqttPlugin(std::string && address, Configurable * configurable, float floatScale) :
         mAddress(std::move(address)),
         mConfigurable(configurable),
         mFloatScale(floatScale)

@@ -25,6 +25,7 @@ namespace luna
 
     struct LunaConfiguration
     {
+        std::string name;
         std::vector<Plugin *> plugins;
         Device * device;
         WifiCredentials wifiCredentials;
@@ -41,6 +42,7 @@ namespace luna
         void connected() final;
         void disconnected() final;
 
+        std::string const & name() final;
         void post(std::function<void()> && task) final;
         std::unique_ptr<ControllerHandle> addController(Controller * controller) final;
         Device * device() final;

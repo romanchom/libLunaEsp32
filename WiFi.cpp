@@ -12,7 +12,7 @@ namespace luna
 {
     static auto const TAG = "WiFi";
 
-    WiFi::WiFi(std::string_view ssid, std::string_view password) :
+    WiFi::WiFi(std::string const & name, std::string_view ssid, std::string_view password) :
         mObserver(nullptr)
     {
         Nvs::init();
@@ -21,6 +21,7 @@ namespace luna
         esp_netif_create_default_wifi_sta();
 #elif ESP8266
         tcpip_adapter_init();
+        tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_AP, name.c_str());
 #endif
         ESP_ERROR_CHECK(esp_event_loop_create_default());
         wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();

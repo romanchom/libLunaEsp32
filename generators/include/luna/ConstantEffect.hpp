@@ -19,7 +19,7 @@ namespace luna
         Property<prism::RGB> & rgb() { return mRGB; }
         Property<prism::RGBW> & rgbw() { return mRGBW; }
         Property<float> & whiteness() { return mWhiteness; }
-        Property<float> & temp() { return mTemp; }
+        Property<int> & temp() { return mTemp; }
 
         std::vector<std::tuple<std::string, AbstractProperty *>> properties() override;
     private:
@@ -32,9 +32,6 @@ namespace luna
         float getWhiteness() const;
         void setWhiteness(float const & value);
 
-        float getTemp() const;
-        void setTemp(float const & value);
-
         prism::CieXYZ targetColor() const;
 
         prism::CieXYZ mCurrentColor;
@@ -42,12 +39,11 @@ namespace luna
         prism::CieXY mTargetChromaticity;
         float mTargetBrightness;
         float mTargetWhiteness;
-        float mTempValue;
 
         ValueProperty<float, ValidZeroOne> mBrightness;
         MemberProperty<ConstantEffect, prism::RGB> mRGB;
         MemberProperty<ConstantEffect, prism::RGBW> mRGBW;
         MemberProperty<ConstantEffect, float> mWhiteness;
-        MemberProperty<ConstantEffect, float> mTemp;
+        ValueProperty<int, ValidInRange<int, 153, 500>> mTemp;
     };
 }

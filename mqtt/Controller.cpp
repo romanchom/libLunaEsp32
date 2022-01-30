@@ -111,11 +111,11 @@ namespace luna::mqtt
     }
 
 
-    Controller::Controller(LunaInterface * luna, Configurable * configurable, std::string const & name, std::string const & address, TlsCredentials const & credentials, float floatScale) :
+    Controller::Controller(LunaInterface * luna, Configurable * configurable, std::string const & address, TlsCredentials const & credentials, float floatScale) :
         mClient(address, credentials, this),
         mLuna(luna),
         mConfigurable(configurable),
-        mPrefix(name + "/"),
+        mPrefix(luna->name() + "/"),
         mCodec(floatScale)
     {
         mClient.connect();

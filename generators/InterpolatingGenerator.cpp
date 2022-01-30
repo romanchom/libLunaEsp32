@@ -26,6 +26,12 @@ namespace luna
         if (mSecond) {
             ret += mSecond->generate(ratio) * mSecondRatio;
         }
-        return ret;       
+        return ret;
     }
+
+    float InterpolatingGenerator::whiteTemperature() const
+    {
+        return mFirst->whiteTemperature();
+    }
+
 }
